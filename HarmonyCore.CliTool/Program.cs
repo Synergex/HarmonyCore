@@ -307,6 +307,9 @@ Known structure properties:
 
         static void Main(string[] args)
         {
+            //clear CODEGEN_TPLDIR to prevent unexpected codegen templates being used
+            Environment.SetEnvironmentVariable("CODEGEN_TPLDIR", null);
+            Environment.SetEnvironmentVariable("CODEGEN_OUTDIR", null);
             var (handle, mode) = GetConsoleState();
             //force synrnt to load
             Synergex.SynergyDE.AlphaDesc.notPassedAlpha.CheckPassed();

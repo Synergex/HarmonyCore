@@ -295,25 +295,30 @@ namespace <NAMESPACE>
                 ;;Add OData query fields to swagger documentation
                 c.OperationFilter<ODataParametersSwaggerDefinition>()
 
-                ;;If present, use information from Services.xml in swagger documentation
-                data filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.xml")
-                if (File.Exists(filePath))
-                begin
-                    c.IncludeXmlComments(filePath, true)
-                end
+                data xmlDocFolder = findRelativeFolderForAssembly("XmlDoc")
 
-                ;;If present, use information from Services.Controllers.xml in swagger documentation
-                filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.Controllers.xml")
-                if (File.Exists(filePath))
+                if(!string.IsNullOrWhiteSpace(xmlDocFolder))
                 begin
-                    c.IncludeXmlComments(filePath, true)
-                end
+                    ;;If present, use information from Services.xml in swagger documentation
+                    data filePath = Path.Combine(xmlDocFolder, "Services.xml")
+                    if (File.Exists(filePath))
+                    begin
+                        c.IncludeXmlComments(filePath, true)
+                    end
 
-                ;;If present, use information from Services.Models.xml in swagger documentation
-                filePath = Path.Combine(findRelativeFolderForAssembly("XmlDoc"), "Services.Models.xml")
-                if (File.Exists(filePath))
-                begin
-                    c.IncludeXmlComments(filePath, true)
+                    ;;If present, use information from Services.Controllers.xml in swagger documentation
+                    filePath = Path.Combine(xmlDocFolder, "Services.Controllers.xml")
+                    if (File.Exists(filePath))
+                    begin
+                        c.IncludeXmlComments(filePath, true)
+                    end
+
+                    ;;If present, use information from Services.Models.xml in swagger documentation
+                    filePath = Path.Combine(xmlDocFolder, "Services.Models.xml")
+                    if (File.Exists(filePath))
+                    begin
+                        c.IncludeXmlComments(filePath, true)
+                    end
                 end
 <IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
