@@ -14,6 +14,7 @@ import Harmony.Core
 import Harmony.Core.Context
 import Harmony.Core.EF.Extensions
 import Microsoft.EntityFrameworkCore
+import System.Collections.Generic
 import System.Linq.Expressions
 import Services.Models
 
@@ -127,7 +128,14 @@ namespace Services.Models
 
 .region "Tag filtering"
 
-            ;;This will currently only work for single field .operator. value tags.
+            ;;This code will currently only work for tags with:
+            ;;   a single "field .operator. value" expression
+            ;;   multiple "field .operator. value" expressions connected by AND operators
+            ;;   multiple "field .operator. value" expressions connected by OR operators
+            ;;
+            ;;The code will not work for multi-part tags that use a combination of AND and OR operators
+
+            data tagExpressions, @List<Tuple<Expression,TagConnector>>
 
 .endregion
 
@@ -313,7 +321,7 @@ namespace Services.Models
 .endregion
 
             ;;-----------------------------------------------
-            ;;If we have a OnModelCreatingCustom method, call it 
+            ;;If we have a OnModelCreatingCustom method, call it
 
             OnModelCreatingCustom(parm)
 

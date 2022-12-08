@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read All")}
-        public method GetTestcarlots, void
+        public method GetAllTestcarlots, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Testcarlots").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlots, @ODataTestcarlots, JsonConvert.DeserializeObject<ODataTestcarlots>(result)
+            data testcarlots, @ODataTestcarlotsMultiple, JsonConvert.DeserializeObject<ODataTestcarlotsMultiple>(result)
             Assert.AreEqual(testcarlots.Value.Count,TestConstants.Instance.GetTestcarlots_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read All")}
-        public method GetTestcarlots_Expand_REL_Testcars, void
+        public method GetAllTestcarlots_Expand_REL_Testcars, void
         proc
             data uri = "/odata/v1/Testcarlots?$expand=REL_Testcars"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read All")}
-        public method GetTestcarlots_Expand_All, void
+        public method GetAllTestcarlots_Expand_All, void
         proc
             data uri = "/odata/v1/Testcarlots?$expand=REL_Testcars"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read by Primary Key")}
-        public method GetTestcarlot, void
+        public method GetOneTestcarlot, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarlots(Id={1})","",TestConstants.Instance.GetTestcarlot_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlot, JsonConvert.DeserializeObject<ODataTestcarlot>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read by Primary Key")}
-        public method GetTestcarlot_Expand_REL_Testcars, void
+        public method GetOneTestcarlot_Expand_REL_Testcars, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarlots(Id={1})?$expand=REL_Testcars","",TestConstants.Instance.GetTestcarlot_Expand_REL_Testcars_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlot, JsonConvert.DeserializeObject<ODataTestcarlot>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Testcarlot Tests - Read by Primary Key")}
-        public method GetTestcarlot_Expand_All, void
+        public method GetOneTestcarlot_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Testcarlots(Id={1})?$expand=REL_Testcars","",TestConstants.Instance.GetTestcarlot_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data testcarlot, @ODataTestcarlot, JsonConvert.DeserializeObject<ODataTestcarlot>(result)
+            data testcarlot = JsonConvert.DeserializeObject<Testcarlot>(result)
         endmethod
 
         ;;------------------------------------------------------------

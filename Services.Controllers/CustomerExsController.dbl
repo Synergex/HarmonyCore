@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for CustomerExs
+    ;;; extended fields for a customer record
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for extended fields for a customer record
+    ;;; </remarks>
     public partial class CustomerExsController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,9 +69,14 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<CustomerEx>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all CustomerExs
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetCustomerExs, @IActionResult
         proc
             mreturn Ok(_DbContext.CustomerExs.AsNoTracking())
@@ -78,25 +88,37 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single CustomerEx by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aCustomerid"></param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aCustomerid" example="123"></param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetCustomerEx, @SingleResult<CustomerEx>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method GetCustomerExByPK, @SingleResult<CustomerEx>
             required in aCustomerid, int
         proc
             mreturn new SingleResult<CustomerEx>(_DbContext.CustomerExs.AsNoTracking().FindQuery<CustomerEx>(_DbContext, aCustomerid))
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(CustomerEx),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("CustomerExs")}
         ;;; <summary>
-        ;;; Create a new customerEx (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostCustomerEx, @IActionResult
             {FromBody}
             required in aCustomerEx, @CustomerEx
@@ -130,17 +152,23 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("CustomerExs(Customerid={aCustomerid})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a customerEx.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aCustomerid"></param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aCustomerid" example="123"></param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutCustomerEx, @IActionResult
-            {FromODataUri}
             required in aCustomerid, int
             {FromBody}
             required in aCustomerEx, @CustomerEx
@@ -183,17 +211,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("CustomerExs(Customerid={aCustomerid})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a customerEx.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aCustomerid"></param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aCustomerid" example="123"></param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchCustomerEx, @IActionResult
-            {FromODataUri}
             required in aCustomerid, int
             {FromBody}
             required in aCustomerEx, @JsonPatchDocument<CustomerEx>
@@ -240,12 +275,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a customerEx.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aCustomerid"></param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aCustomerid" example="123"></param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteCustomerEx, @IActionResult
-            {FromODataUri}
             required in aCustomerid, int
         proc
             ;;Get the customerEx to be deleted

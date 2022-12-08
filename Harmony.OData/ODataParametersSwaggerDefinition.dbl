@@ -1,0 +1,96 @@
+
+import Microsoft.AspNetCore.OData.Query
+import Microsoft.AspNetCore.OData.Results
+import Microsoft.AspNetCore.Mvc.ApiExplorer
+import Microsoft.OpenApi.Models
+import Swashbuckle.AspNetCore.SwaggerGen
+import System
+import System.Collections.Generic
+import System.Linq
+
+namespace Harmony.OData
+
+    ;;; <summary>
+    ;;; This filter adds OData query capabilities such as $select, $filter
+    ;;; $orderby, $top and $skip to the "try it out" panes of the swagger docs.
+    ;;; </summary>
+    public class ODataParametersSwaggerDefinition implements IOperationFilter
+    
+        public method Apply, void
+            operation, @OpenApiOperation
+            context, @OperationFilterContext
+        proc
+            ;Does the method (endpoint) have the {EnableQuery} atttribuite ?
+            data isQueryable = Attribute.IsDefined(context.MethodInfo, ^typeof(EnableQueryAttribute))
+
+            ;Does the method (endpoint) return @SingleResult<type> ?
+            data isSingleResult = context.MethodInfo.ReturnType.IsGenericType && context.MethodInfo.ReturnType.GetGenericTypeDefinition() == ^typeof(SingleResult<>)
+
+            ;If the method (endpoint) is not docorated with {EnableQuery} we don't add anything
+            if (isQueryable)
+            begin
+                ;If there are no existing parameters then we need to create a new parameters collection to add to
+                if (operation.Parameters == ^null)
+                    operation.Parameters = new List<OpenApiParameter>()
+
+                data oap, @OpenApiParameter
+
+                ;Add $select to all queryable endpoints
+                oap = new OpenApiParameter()
+                oap.Name = "$select"
+                oap.Description = "Trim the fields returned using OData syntax"
+                oap.Required = false
+                oap.In = ParameterLocation.Query
+                oap.Schema = new OpenApiSchema()
+                oap.Schema.Type = "string"
+                operation.Parameters.Add(oap)
+                ;Breaking change OpenApiFactory.CreateFor => OpenApiFactory.CreateFromJson
+                ;&    Example = OpenApiAnyFactory.CreateFor(stringSchema, "Id,ProductName"),
+                
+                if (!isSingleResult)
+                begin
+                    ;Add $filter, $orderby, $top and $skip to endpoints that can produce multiple results
+                    oap = new OpenApiParameter()
+                    oap.Name = "$filter"
+                    oap.Description = "Filter the results using OData syntax."
+                    oap.Required = false
+                    oap.In = ParameterLocation.Query
+                    oap.Schema = new OpenApiSchema()
+                    oap.Schema.Type = "string"
+                    operation.Parameters.Add(oap)
+                
+                    oap = new OpenApiParameter()
+                    oap.Name = "$orderby"
+                    oap.Description = "Order the results using OData syntax."
+                    oap.Required = false
+                    oap.In = ParameterLocation.Query
+                    oap.Schema = new OpenApiSchema()
+                    oap.Schema.Type = "string"
+                    operation.Parameters.Add(oap)
+                
+                    oap = new OpenApiParameter()
+                    oap.Name = "$top"
+                    oap.Description = "The number of results to return."
+                    oap.Required = false
+                    oap.In = ParameterLocation.Query
+                    oap.Schema = new OpenApiSchema()
+                    oap.Schema.Type = "integer"
+                    operation.Parameters.Add(oap)
+
+                    oap = new OpenApiParameter()
+                    oap.Name = "$skip"
+                    oap.Description = "The number of results to skip."
+                    oap.Required = false
+                    oap.In = ParameterLocation.Query
+                    oap.Schema = new OpenApiSchema()
+                    oap.Schema.Type = "integer"
+                    operation.Parameters.Add(oap)
+                end
+                
+            end
+
+        endmethod
+
+    endclass
+        
+endnamespace

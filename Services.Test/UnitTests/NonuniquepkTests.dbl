@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Nonuniquepk Tests - Read All")}
-        public method GetNonuniquepks, void
+        public method GetAllNonuniquepks, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Nonuniquepks").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepks, @ODataNonuniquepks, JsonConvert.DeserializeObject<ODataNonuniquepks>(result)
+            data nonuniquepks, @ODataNonuniquepksMultiple, JsonConvert.DeserializeObject<ODataNonuniquepksMultiple>(result)
             Assert.AreEqual(nonuniquepks.Value.Count,TestConstants.Instance.GetNonuniquepks_Count)
         endmethod
 
@@ -45,14 +45,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Nonuniquepk Tests - Read by Primary Key")}
-        public method GetNonuniquepk, void
+        public method GetOneNonuniquepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Nonuniquepks(Pk={1})","",TestConstants.Instance.GetNonuniquepk_Pk)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data nonuniquepk, @ODataNonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepk>(result)
+            data nonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value[0]
+            data doNonuniquepk, @Nonuniquepk, JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value[0]
 
             doNonuniquepk.Pk = TestConstants.Instance.UpdateNonuniquepk_Pk
 
@@ -95,7 +95,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            data results = JsonConvert.DeserializeObject<ODataNonuniquepk>(getResult).Value
+            data results = JsonConvert.DeserializeObject<ODataNonuniquepkSingle>(getResult).Value
             data resultItem, @Nonuniquepk
             doNonuniquepk = results[0]
 
@@ -124,7 +124,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value.FirstOrDefault(lambda (k) {k.Name.Equals("Y")})
+            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value.FirstOrDefault(lambda (k) {k.Name.Equals("Y")})
             Assert.AreEqual(doNonuniquepk.Name, "Y")
 
             ;;Update one non-existant property in the customer
@@ -162,7 +162,7 @@ namespace Services.Test.UnitTests
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a Nonuniquepk object
-            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepk>(getResult).Value[0]
+            doNonuniquepk = JsonConvert.DeserializeObject<OdataNonuniquepkSingle>(getResult).Value[0]
 
             ;;Verify that the property was changed
             Assert.AreEqual(doNonuniquepk.Name, "Z")

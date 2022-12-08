@@ -50,13 +50,13 @@ namespace HarmonyCore.CliTool
             {
                 if(_sourceFiles == null )
                 {
-                    _sourceFiles = MSBuildProject.GetItems("Compile").Select(itm =>
+                    _sourceFiles = MSBuildProject?.GetItems("Compile")?.Select(itm =>
                     {
                         if(Path.IsPathRooted(itm.EvaluatedInclude))
                             return itm.EvaluatedInclude;
                         else
                             return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(FileName), itm.EvaluatedInclude));
-                    }).ToList();
+                    })?.ToList() ?? Enumerable.Empty<string>();
                 }
                 return _sourceFiles;
             }

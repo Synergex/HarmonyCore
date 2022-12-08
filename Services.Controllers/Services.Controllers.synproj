@@ -8,6 +8,16 @@
     <Prefer32Bit>False</Prefer32Bit>
     <IncludeDebugInformation>False</IncludeDebugInformation>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <DocumentationFile>bin\$(Platform)\$(Configuration)\Services.Controllers.xml</DocumentationFile>
+    <UnevaluatedOutputPath>bin\$(Platform)\$(Configuration)</UnevaluatedOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <DocumentationFile>bin\$(Platform)\$(Configuration)\Services.Controllers.xml</DocumentationFile>
+    <UnevaluatedOutputPath>bin\$(Platform)\$(Configuration)</UnevaluatedOutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation">
@@ -103,4 +113,7 @@
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy /Y &quot;$(ProjectDir)bin\$(Platform)\$(Configuration)\Services.Controllers.xml&quot; &quot;$(SolutionDir)XmlDoc&quot; &gt; nul" />
+  </Target>
 </Project>

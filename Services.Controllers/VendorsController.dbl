@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for Vendors
+    ;;; Vendor record
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Vendor record
+    ;;; </remarks>
     public partial class VendorsController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,9 +69,14 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<Vendor>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all Vendors
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetVendors, @IActionResult
         proc
             mreturn Ok(_DbContext.Vendors.AsNoTracking())
@@ -78,12 +88,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single Vendor by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aVendorNumber">Vendor number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aVendorNumber" example="39">Vendor number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetVendor, @SingleResult<Vendor>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method GetVendorByPK, @SingleResult<Vendor>
             required in aVendorNumber, int
         proc
             mreturn new SingleResult<Vendor>(_DbContext.Vendors.AsNoTracking().FindQuery<Vendor>(_DbContext, aVendorNumber))
@@ -95,15 +110,19 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get vendors by alternate key key Vendstate.
+        ;;; Query a single record identified by unique alternate key Vendstate
         ;;; </summary>
-        ;;; <param name="aVendorNumber">Vendor number</param>
-        ;;; <param name="aZipCode">Zip Code</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aVendorNumber" example="39">Vendor number</param>
+        ;;; <param name="aZipCode" example="03214">Zip Code</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetVendorsByVendstate, @IActionResult
-            {FromODataUri}
             required in aVendorNumber, int
-            {FromODataUri}
             required in aZipCode, int
         proc
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("VendorNumber",aVendorNumber,"ZipCode",aZipCode)
@@ -119,12 +138,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get vendors by alternate key key State.
+        ;;; Query a subset of records identified by non-unique alternate key State
         ;;; </summary>
-        ;;; <param name="aState">State</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aState" example="NH">State</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetVendorsByState, @IActionResult
-            {FromODataUri}
             required in aState, String
         proc
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("State",aState)
@@ -140,12 +164,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get vendors by alternate key key Zip.
+        ;;; Query a subset of records identified by non-unique alternate key Zip
         ;;; </summary>
-        ;;; <param name="aZipCode">Zip Code</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aZipCode" example="03214">Zip Code</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetVendorsByZip, @IActionResult
-            {FromODataUri}
             required in aZipCode, int
         proc
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("ZipCode",aZipCode)
@@ -161,12 +190,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get vendors by alternate key key PaymentTerms.
+        ;;; Query a subset of records identified by non-unique alternate key PaymentTerms
         ;;; </summary>
-        ;;; <param name="aPaymentTermsCode">Payment terms code</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aPaymentTermsCode" example="60">Payment terms code</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetVendorsByPaymentTerms, @IActionResult
-            {FromODataUri}
             required in aPaymentTermsCode, String
         proc
             data result = _DbContext.Vendors.AsNoTracking().FindAlternate("PaymentTermsCode",aPaymentTermsCode)
@@ -176,14 +210,21 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(Vendor),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("Vendors")}
         ;;; <summary>
-        ;;; Create a new vendor (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostVendor, @IActionResult
             {FromBody}
             required in aVendor, @Vendor
@@ -217,17 +258,23 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("Vendors(VendorNumber={aVendorNumber})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a vendor.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aVendorNumber">Vendor number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aVendorNumber" example="39">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutVendor, @IActionResult
-            {FromODataUri}
             required in aVendorNumber, int
             {FromBody}
             required in aVendor, @Vendor
@@ -270,17 +317,24 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("Vendors(VendorNumber={aVendorNumber})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a vendor.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aVendorNumber">Vendor number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aVendorNumber" example="39">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchVendor, @IActionResult
-            {FromODataUri}
             required in aVendorNumber, int
             {FromBody}
             required in aVendor, @JsonPatchDocument<Vendor>
@@ -327,12 +381,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a vendor.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aVendorNumber">Vendor number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aVendorNumber" example="39">Vendor number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteVendor, @IActionResult
-            {FromODataUri}
             required in aVendorNumber, int
         proc
             ;;Get the vendor to be deleted

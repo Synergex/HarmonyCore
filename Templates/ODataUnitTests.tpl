@@ -157,11 +157,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-    <IF STRUCTURE_HAS_UNIQUE_PK>
-            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
-    <ELSE>
-            data <structurePlural>, @OData<StructurePlural>Single, JsonConvert.DeserializeObject<OData<StructurePlural>Single>(result)
-    </IF>
+            data <structureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(result)
         endmethod
 ;//
 ;//
@@ -184,7 +180,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
+            data <structureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(result)
         endmethod
       </RELATION_LOOP_RESTRICTED>
 
@@ -203,7 +199,7 @@ namespace <NAMESPACE>
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structureNoplural>, @OData<StructureNoplural>Single, JsonConvert.DeserializeObject<OData<StructureNoplural>Single>(result)
+            data <structureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(result)
         endmethod
     </IF>
   </IF DEFINED_ENABLE_GET_ONE>
@@ -225,11 +221,11 @@ namespace <NAMESPACE>
       <IF DEFINED_ENABLE_AUTHENTICATION>
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",UnitTestEnvironment.AccessToken)
       </IF DEFINED_ENABLE_AUTHENTICATION>
-            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><IF DATE>.ToString("yyyy-MM-dd")</IF DATE><IF TIME_HHMM>.ToString("hh:mm")</IF TIME_HHMM><IF TIME_HHMMSS>.ToString("hh:mm:ss")</IF TIME_HHMMSS><IF BOOLEAN>.ToString().ToLower()</IF BOOLEAN><,></SEGMENT_LOOP>)
+            data request = String.Format("/odata/v<API_VERSION>/<StructurePlural>(<SEGMENT_LOOP><SegmentName>=<IF ALPHA>'</IF ALPHA>{<SEGMENT_NUMBER>}<IF ALPHA>'</IF ALPHA><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)", "", <SEGMENT_LOOP>TestConstants.Instance.Get<StructureNoplural>_ByAltKey_<KeyName>_<SegmentName><IF DATE>.ToString("yyyy-MM-dd")</IF DATE><IF TIME_HHMM>.ToString("yyyy-MM-ddThh:mm:ssZ")</IF TIME_HHMM><IF TIME_HHMMSS>.ToString("yyyy-MM-ddThh:mm:ssZ")</IF TIME_HHMMSS><IF BOOLEAN>.ToString().ToLower()</IF BOOLEAN><,></SEGMENT_LOOP>)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data <structurePlural>, @OData<StructurePlural>Multiple,JsonConvert.DeserializeObject<OData<StructurePlural>Multiple>(result)
+            data <structurePlural> = JsonConvert.DeserializeObject<OData<StructurePlural>Multiple>(result)
         endmethod
     </IF DUPLICATES>
     </ALTERNATE_KEY_LOOP_UNIQUE>
@@ -283,7 +279,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>OData</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
+            data do<StructureNoplural>, @<StructureNoplural>, JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
 
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
@@ -354,7 +350,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value.FirstOrDefault(lambda (k) {k.<COUNTER_1_RESET><FIELD_LOOP><IF NOTKEYSEGMENT AND NOT USED_IN_RELATION><COUNTER_1_INCREMENT><IF COUNTER_1_EQ_1><FieldSqlName></IF COUNTER_1_EQ_1></IF></FIELD_LOOP>.Equals("Y")})</IF>
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value.FirstOrDefault(lambda (k) {k.<COUNTER_1_RESET><FIELD_LOOP><IF NOTKEYSEGMENT AND NOT USED_IN_RELATION><COUNTER_1_INCREMENT><IF COUNTER_1_EQ_1><FieldSqlName></IF COUNTER_1_EQ_1></IF></FIELD_LOOP>.Equals("Y")})</IF>
 
   <COUNTER_1_RESET>
   <FIELD_LOOP>
@@ -419,7 +415,7 @@ namespace <NAMESPACE>
             getResponse.EnsureSuccessStatusCode()
 
             ;;Deserialize the JSON into a <StructureNoplural> object
-            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata</IF><StructureNoplural>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
+            do<StructureNoplural> = JsonConvert.DeserializeObject<<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Odata<StructureNoplural>Single<ELSE><StructureNoplural></IF>>(getResult)<IF NOT STRUCTURE_HAS_UNIQUE_KEY>.Value[0]</IF>
 
             ;;Verify that the property was changed
   <COUNTER_1_RESET>

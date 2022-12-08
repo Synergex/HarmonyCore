@@ -26,6 +26,7 @@ set TestProject=Services.Test
 set TestValuesProject=Services.Test.GenerateValues
 set TraditionalBridgeProject=TraditionalBridge
 set RepositoryProject=HarmonyCore.Test.Repository\HarmonyCore.Test.Repository.synproj
+set VsTestClientTestsDir=HttpTests
 
 rem ================================================================================================================================
 rem Specify the names of the repository structures to generate code from:
@@ -77,6 +78,7 @@ rem set DO_NOT_SET_FILE_LOGICALS=-define DO_NOT_SET_FILE_LOGICALS
 set ENABLE_GET_ALL=-define ENABLE_GET_ALL
 set ENABLE_GET_ONE=-define ENABLE_GET_ONE
 set ENABLE_POSTMAN_TESTS=YES
+set ENABLE_RESTCLIENT_TESTS=YES
 set ENABLE_ALTERNATE_KEYS=-define ENABLE_ALTERNATE_KEYS
 rem set ENABLE_PARTIAL_KEYS=-define ENABLE_PARTIAL_KEYS
 set ENABLE_COUNT=-define ENABLE_COUNT
@@ -236,7 +238,25 @@ if DEFINED ENABLE_POSTMAN_TESTS (
           -t  ODataPostManTests ^
           -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
           -o  %SolutionDir% ^
-              %STDOPTS%
+              %NOREPLACEOPTS%
+  if ERRORLEVEL 1 goto error
+)
+
+rem ================================================================================
+rem Visual Studio REST Client Tests
+
+if DEFINED ENABLE_RESTCLIENT_TESTS (
+
+  echo.
+  echo Generating Visual Studio REST Client tests for OData environment
+
+  codegen -s  %DATA_STRUCTURES% ^
+          -a  %DATA_ALIASES% ^
+          -fo %DATA_FILES% ^
+          -t  ODataVsRestClientTests ^
+          -i  %SolutionDir%Templates%TEMPLATESUBDIR% ^
+          -o  %VsTestClientTestsDir% ^
+              %NOREPLACEOPTS%
   if ERRORLEVEL 1 goto error
 )
 
@@ -544,14 +564,28 @@ rem ============================================================================
   if DEFINED ENABLE_POSTMAN_TESTS (
 
   echo.
-  echo Generating interface Postman tests
+  echo Generating Postman tests for interface
 
   codegen -smc %SMC_XML_FILE% ^
           -interface %1 ^
           -t InterfacePostmanTests ^
           -i %SolutionDir%Templates\TraditionalBridge ^
           -o %SolutionDir% ^
-            %STDOPTS%
+            %NOREPLACEOPTS%
+    if ERRORLEVEL 1 goto error
+  )
+
+  if DEFINED ENABLE_RESTCLIENT_TESTS (
+
+  echo.
+  echo Generating Visual Studio REST Client tests for interface
+
+  codegen -smc %SMC_XML_FILE% ^
+          -interface %1 ^
+          -t InterfaceVsRestClientTests ^
+          -i %SolutionDir%Templates\TraditionalBridge ^
+          -o %VsTestClientTestsDir% ^
+            %NOREPLACEOPTS%
     if ERRORLEVEL 1 goto error
   )
 

@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read All")}
-        public method GetOrderItems, void
+        public method GetAllOrderItems, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/OrderItems").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItems, @ODataOrderItems, JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data orderItems, @ODataOrderItemsMultiple, JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
             Assert.AreEqual(orderItems.Value.Count,TestConstants.Instance.GetOrderItems_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read All")}
-        public method GetOrderItems_Expand_REL_Order, void
+        public method GetAllOrderItems_Expand_REL_Order, void
         proc
             data uri = "/odata/v1/OrderItems?$expand=REL_Order"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read All")}
-        public method GetOrderItems_Expand_REL_Item, void
+        public method GetAllOrderItems_Expand_REL_Item, void
         proc
             data uri = "/odata/v1/OrderItems?$expand=REL_Item"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,7 +73,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read All")}
-        public method GetOrderItems_Expand_All, void
+        public method GetAllOrderItems_Expand_All, void
         proc
             data uri = "/odata/v1/OrderItems?$expand=REL_Order,REL_Item"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -87,14 +87,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read by Primary Key")}
-        public method GetOrderItem, void
+        public method GetOneOrderItem, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})","",TestConstants.Instance.GetOrderItem_OrderNumber,TestConstants.Instance.GetOrderItem_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+            data orderItem = JsonConvert.DeserializeObject<OrderItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -102,14 +102,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read by Primary Key")}
-        public method GetOrderItem_Expand_REL_Order, void
+        public method GetOneOrderItem_Expand_REL_Order, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order","",TestConstants.Instance.GetOrderItem_Expand_REL_Order_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_REL_Order_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+            data orderItem = JsonConvert.DeserializeObject<OrderItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -117,14 +117,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read by Primary Key")}
-        public method GetOrderItem_Expand_REL_Item, void
+        public method GetOneOrderItem_Expand_REL_Item, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Item","",TestConstants.Instance.GetOrderItem_Expand_REL_Item_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_REL_Item_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+            data orderItem = JsonConvert.DeserializeObject<OrderItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -132,14 +132,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("OrderItem Tests - Read by Primary Key")}
-        public method GetOrderItem_Expand_All, void
+        public method GetOneOrderItem_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/OrderItems(OrderNumber={1},ItemNumber={2})?$expand=REL_Order,REL_Item","",TestConstants.Instance.GetOrderItem_Expand_All_OrderNumber,TestConstants.Instance.GetOrderItem_Expand_All_ItemNumber)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItem, @ODataOrderItem, JsonConvert.DeserializeObject<ODataOrderItem>(result)
+            data orderItem = JsonConvert.DeserializeObject<OrderItem>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -154,7 +154,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItems, @ODataOrderItems,JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data orderItems = JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -169,7 +169,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItems, @ODataOrderItems,JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data orderItems = JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -184,7 +184,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data orderItems, @ODataOrderItems,JsonConvert.DeserializeObject<ODataOrderItems>(result)
+            data orderItems = JsonConvert.DeserializeObject<ODataOrderItemsMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------

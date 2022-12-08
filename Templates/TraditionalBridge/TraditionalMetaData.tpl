@@ -86,7 +86,7 @@ namespace <NAMESPACE>
 			record
 				new<StructureNoplural>, @<NAMESPACE>.<StructureNoplural>
 		proc
-			new<StructureNoplural> = new <StructureNoplural>(dataArea) 
+			new<StructureNoplural> = new <NAMESPACE>.<StructureNoplural>(dataArea) 
 			new<StructureNoplural>.GlobalRFA = grfa
 			mreturn new<StructureNoplural>
 		endmethod

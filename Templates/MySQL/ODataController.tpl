@@ -62,6 +62,7 @@ import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
 import System.Linq
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -187,7 +188,6 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
@@ -241,7 +241,6 @@ namespace <NAMESPACE>
   <PRIMARY_KEY>
     <SEGMENT_LOOP>
       <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
       </IF>
     </SEGMENT_LOOP>
@@ -282,7 +281,7 @@ namespace <NAMESPACE>
         {EnableQuery<API_ENABLE_QUERY_PARAMS>}
       </IF DEFINED_ENABLE_FIELD_SECURITY>
         ;;; <summary>
-        ;;; Get <structurePlural> by alternate key key <KeyName>.
+        ;;; Get <structurePlural> by alternate key <KeyName>.
         ;;; </summary>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
@@ -293,7 +292,6 @@ namespace <NAMESPACE>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -336,7 +334,6 @@ namespace <NAMESPACE>
         public method Get<StructureNoplural>By<KeyName>, @SingleResult<<StructureNoplural>>
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -385,7 +382,6 @@ namespace <NAMESPACE>
         public method Get<StructurePlural>By<KeyName>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -415,6 +411,7 @@ namespace <NAMESPACE>
         {Authorize(Roles="<ROLES_POST>")}
     </IF USERTOKEN_ROLES_POST>
   </IF DEFINED_ENABLE_AUTHENTICATION>
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(<StructureNoplural>),StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -482,6 +479,7 @@ namespace <NAMESPACE>
       <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PUT>
         {Authorize(Roles="<ROLES_PUT>")}
       </IF DEFINED_ENABLE_AUTHENTICATION>
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
@@ -501,7 +499,6 @@ namespace <NAMESPACE>
         public method Put<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
       <SEGMENT_LOOP>
         <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
         </IF>
       </SEGMENT_LOOP>
@@ -573,6 +570,7 @@ namespace <NAMESPACE>
     <IF DEFINED_ENABLE_AUTHENTICATION AND USERTOKEN_ROLES_PATCH>
         {Authorize(Roles="<ROLES_PATCH>")}
     </IF DEFINED_ENABLE_AUTHENTICATION>
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
@@ -592,7 +590,6 @@ namespace <NAMESPACE>
         public method Patch<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>
@@ -676,7 +673,6 @@ namespace <NAMESPACE>
         public method Delete<StructureNoplural><IF NOT FIRST_UNIQUE_KEY>By<KeyName></IF>, @IActionResult
         <SEGMENT_LOOP>
           <IF NOT SEG_TAG_EQUAL>
-            {FromODataUri}
             required in a<FieldSqlName>, <IF CUSTOM_HARMONY_AS_STRING>string<ELSE><HARMONYCORE_SEGMENT_DATATYPE></IF>
           </IF>
         </SEGMENT_LOOP>

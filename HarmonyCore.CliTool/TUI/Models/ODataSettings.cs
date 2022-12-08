@@ -314,11 +314,16 @@ namespace HarmonyCore.CliTool.TUI.Models
         [NullableBoolExtractor]
         [NullableBoolOptionsExtractor]
         public bool? SmcPostmanTests { get; private set; }
-        [Prompt("Enable SMC signalR hubs")]
+        [Prompt("Enable SMC SignalR hubs")]
         [NullableBoolInjector]
         [NullableBoolExtractor]
         [NullableBoolOptionsExtractor]
         public bool? SmcSignalRHubs { get; private set; }
+        [Prompt("Enable Custom SignalR hubs")]
+        [NullableBoolInjector]
+        [NullableBoolExtractor]
+        [NullableBoolOptionsExtractor]
+        public bool? SignalRHubs { get; private set; }
         [Prompt("Enable sproc routing")]
         [NullableBoolInjector]
         [NullableBoolExtractor]

@@ -2,6 +2,7 @@ import System
 import System.Text.Json
 import System.Text.Json.Serialization
 import System.IO
+import Harmony.Core.FileIO
 import Services.Test
 
 main GenerateTestValues
@@ -10,8 +11,9 @@ proc
     new GenerateTestValues().SerializeValues()
 endmain
 
-namespace Services.Test.GenerateValues
-    public class GenerateTestValues
+namespace Services.Test
+
+    public partial class GenerateTestValues
 
         .include "CUSTOMERS" repository, record="customer", end
         .include "CUSTOMER_NOTES" repository, record="customerNote", end
@@ -28,17 +30,56 @@ namespace Services.Test.GenerateValues
         .include "TESTCAROWNER2" repository, record="testcarowner2", end
         .include "TESTCAROWNER3" repository, record="testcarowner3", end
 
+        private ChannelManager, @IFileChannelManager
+        
+        public method GenerateTestValues
+        proc
+            CustomServiceInit()
+            if(ChannelManager == ^null)
+                ChannelManager = new FileChannelManager()
+        endmethod
+
+        private mCustomerFileSpec, string, "DAT:customers.ism"
+        private mCustomerNoteFileSpec, string, "DAT:customer_notes.ism"
+        private mItemFileSpec, string, "DAT:items.ism"
+        private mOrderFileSpec, string, "DAT:orders.ism"
+        private mOrderItemFileSpec, string, "DAT:order_items.ism"
+        private mVendorFileSpec, string, "DAT:vendors.ism"
+        private mCustomerExFileSpec, string, "DAT:CUSTOMER_EX.ism"
+        private mNonuniquepkFileSpec, string, "DAT:nonuniquepk.ism"
+        private mDifferentpkFileSpec, string, "DAT:differentpk.ism"
+        private mTestcarFileSpec, string, "DAT:testcar.ism"
+        private mTestcarlotFileSpec, string, "DAT:testcarlot.ism"
+        private mTestcarowner1FileSpec, string, "DAT:testcarowner1.ism"
+        private mTestcarowner2FileSpec, string, "DAT:testcarowner2.ism"
+        private mTestcarowner3FileSpec, string, "DAT:testcarowner3.ism"
+
+        partial method GetCustomFileSpec, void
+            required inout aFileSpec, string
+        endmethod
+
         public method SerializeValues, void
             endparams
         proc
             data chin, int
             data count, int
+            ;------------------------------------------------------------
+            ;Test data for Customer
+
+            Console.WriteLine("Processing file DAT:customers.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mCustomerFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mCustomerFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Customer
-            open(chin=0,i:i,"DAT:customers.ism")
-
+            chin = ChannelManager.GetChannel("DAT:customers.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -53,6 +94,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,customer,^LAST) [ERR=eofCustomer2]
@@ -74,13 +116,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetCustomer_ByAltKey_PaymentTerms_PaymentTermsCode = customer.payment_terms_code
             TestConstants.Instance.UpdateCustomer_CustomerNumber = customer.customer_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for CustomerNote
+
+            Console.WriteLine("Processing file DAT:customer_notes.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mCustomerNoteFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mCustomerNoteFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for CustomerNote
-            open(chin=0,i:i,"DAT:customer_notes.ism")
-
+            chin = ChannelManager.GetChannel("DAT:customer_notes.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -95,6 +148,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,customerNote,^LAST) [ERR=eofCustomerNote2]
@@ -109,13 +163,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetCustomerNote_Expand_All_CustomerNumber = customerNote.customer_number
             TestConstants.Instance.UpdateCustomerNote_CustomerNumber = customerNote.customer_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Item
+
+            Console.WriteLine("Processing file DAT:items.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mItemFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mItemFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Item
-            open(chin=0,i:i,"DAT:items.ism")
-
+            chin = ChannelManager.GetChannel("DAT:items.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -130,6 +195,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,item,^LAST) [ERR=eofItem2]
@@ -149,13 +215,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetItem_ByAltKey_Name_CommonName = item.common_name
             TestConstants.Instance.UpdateItem_ItemNumber = item.item_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Order
+
+            Console.WriteLine("Processing file DAT:orders.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mOrderFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mOrderFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Order
-            open(chin=0,i:i,"DAT:orders.ism")
-
+            chin = ChannelManager.GetChannel("DAT:orders.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -170,6 +247,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,order,^LAST) [ERR=eofOrder2]
@@ -188,13 +266,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetOrder_ByAltKey_DateCompleted_DateCompleted = DecToDateTime(order.date_completed, "YYYYMMDD")
             TestConstants.Instance.UpdateOrder_OrderNumber = order.order_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for OrderItem
+
+            Console.WriteLine("Processing file DAT:order_items.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mOrderItemFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mOrderItemFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for OrderItem
-            open(chin=0,i:i,"DAT:order_items.ism")
-
+            chin = ChannelManager.GetChannel("DAT:order_items.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -209,6 +298,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,orderItem,^LAST) [ERR=eofOrderItem2]
@@ -232,13 +322,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.UpdateOrderItem_OrderNumber = orderItem.order_number + 1
             TestConstants.Instance.UpdateOrderItem_ItemNumber = orderItem.item_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Vendor
+
+            Console.WriteLine("Processing file DAT:vendors.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mVendorFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mVendorFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Vendor
-            open(chin=0,i:i,"DAT:vendors.ism")
-
+            chin = ChannelManager.GetChannel("DAT:vendors.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -253,6 +354,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,vendor,^LAST) [ERR=eofVendor2]
@@ -270,13 +372,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetVendor_ByAltKey_PaymentTerms_PaymentTermsCode = vendor.payment_terms_code
             TestConstants.Instance.UpdateVendor_VendorNumber = vendor.vendor_number + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for CustomerEx
+
+            Console.WriteLine("Processing file DAT:CUSTOMER_EX.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mCustomerExFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mCustomerExFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for CustomerEx
-            open(chin=0,i:i,"DAT:CUSTOMER_EX.ism")
-
+            chin = ChannelManager.GetChannel("DAT:CUSTOMER_EX.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -291,6 +404,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,customerEx,^LAST) [ERR=eofCustomerEx2]
@@ -305,13 +419,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetCustomerEx_Expand_All_Customerid = customerEx.customerid
             TestConstants.Instance.UpdateCustomerEx_Customerid = customerEx.customerid + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Nonuniquepk
+
+            Console.WriteLine("Processing file DAT:nonuniquepk.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mNonuniquepkFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mNonuniquepkFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Nonuniquepk
-            open(chin=0,i:i,"DAT:nonuniquepk.ism")
-
+            chin = ChannelManager.GetChannel("DAT:nonuniquepk.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -326,6 +451,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,nonuniquepk,^LAST) [ERR=eofNonuniquepk2]
@@ -338,13 +464,24 @@ namespace Services.Test.GenerateValues
 
             TestConstants.Instance.UpdateNonuniquepk_Pk = nonuniquepk.pk + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Differentpk
+
+            Console.WriteLine("Processing file DAT:differentpk.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mDifferentpkFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mDifferentpkFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Differentpk
-            open(chin=0,i:i,"DAT:differentpk.ism")
-
+            chin = ChannelManager.GetChannel("DAT:differentpk.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -359,6 +496,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,differentpk,^LAST) [ERR=eofDifferentpk2]
@@ -379,13 +517,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetDifferentpk_ByAltKey_Booleanpk_Booleanpk = differentpk.booleanpk
             TestConstants.Instance.UpdateDifferentpk_Id = differentpk.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Testcar
+
+            Console.WriteLine("Processing file DAT:testcar.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mTestcarFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mTestcarFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Testcar
-            open(chin=0,i:i,"DAT:testcar.ism")
-
+            chin = ChannelManager.GetChannel("DAT:testcar.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -400,6 +549,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,testcar,^LAST) [ERR=eofTestcar2]
@@ -421,13 +571,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetTestcar_ByAltKey_Ownerid3_Owner3 = testcar.owner3
             TestConstants.Instance.UpdateTestcar_Id = testcar.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Testcarlot
+
+            Console.WriteLine("Processing file DAT:testcarlot.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mTestcarlotFileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mTestcarlotFileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Testcarlot
-            open(chin=0,i:i,"DAT:testcarlot.ism")
-
+            chin = ChannelManager.GetChannel("DAT:testcarlot.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -442,6 +603,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,testcarlot,^LAST) [ERR=eofTestcarlot2]
@@ -456,13 +618,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetTestcarlot_Expand_All_Id = testcarlot.id
             TestConstants.Instance.UpdateTestcarlot_Id = testcarlot.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Testcarowner1
+
+            Console.WriteLine("Processing file DAT:testcarowner1.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mTestcarowner1FileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mTestcarowner1FileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Testcarowner1
-            open(chin=0,i:i,"DAT:testcarowner1.ism")
-
+            chin = ChannelManager.GetChannel("DAT:testcarowner1.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -477,6 +650,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,testcarowner1,^LAST) [ERR=eofTestcarowner12]
@@ -491,13 +665,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetTestcarowner1_Expand_All_Id = testcarowner1.id
             TestConstants.Instance.UpdateTestcarowner1_Id = testcarowner1.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Testcarowner2
+
+            Console.WriteLine("Processing file DAT:testcarowner2.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mTestcarowner2FileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mTestcarowner2FileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Testcarowner2
-            open(chin=0,i:i,"DAT:testcarowner2.ism")
-
+            chin = ChannelManager.GetChannel("DAT:testcarowner2.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -512,6 +697,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,testcarowner2,^LAST) [ERR=eofTestcarowner22]
@@ -526,13 +712,24 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetTestcarowner2_Expand_All_Id = testcarowner2.id
             TestConstants.Instance.UpdateTestcarowner2_Id = testcarowner2.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
+            ;------------------------------------------------------------
+            ;Test data for Testcarowner3
+
+            Console.WriteLine("Processing file DAT:testcarowner3.ism")
+
+            ;If there is a GetCustomFileSpec method, call it
+            GetCustomFileSpec(mTestcarowner3FileSpec)
+
+            ;Open the data file
+            Console.WriteLine(" - Opening " + mTestcarowner3FileSpec + "...")
 
             ;;------------------------------------------------------------
             ;;Test data for Testcarowner3
-            open(chin=0,i:i,"DAT:testcarowner3.ism")
-
+            chin = ChannelManager.GetChannel("DAT:testcarowner3.ism", FileOpenMode.InputIndexed)
+            
             ;Total number of records
+            Console.WriteLine(" - Counting records...")
             count = 0
             repeat
             begin
@@ -547,6 +744,7 @@ namespace Services.Test.GenerateValues
                 exitloop
             end
             ;Get by primary key
+            Console.WriteLine(" - Determining parameters for read by primary key...")
             repeat
             begin
                 read(chin,testcarowner3,^LAST) [ERR=eofTestcarowner32]
@@ -561,10 +759,18 @@ namespace Services.Test.GenerateValues
             TestConstants.Instance.GetTestcarowner3_Expand_All_Id = testcarowner3.id
             TestConstants.Instance.UpdateTestcarowner3_Id = testcarowner3.id + 1
 
-            close chin
+            ChannelManager.ReturnChannel(chin)
 
+            ;Determine where to create the output file
             data jsonFilePath = Services.Test.UnitTestEnvironment.FindRelativeFolderForAssembly("Services.Test")
             File.WriteAllText(Path.Combine(jsonFilePath, "TestConstants.Values.json"), JsonSerializer.Serialize(TestConstants.Instance, new JsonSerializerOptions(){ WriteIndented = true }))
         endmethod
+
+        ;;It may be useful to set MultiTenantProvider.TenantId to a predefined tenantid if this is used inside your custom ChannelManager
+        ;;this is where ChannelManager should be set to a custom type
+        partial method CustomServiceInit, void
+        endmethod
+
     endclass
+
 endnamespace

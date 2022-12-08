@@ -99,6 +99,9 @@ namespace <NAMESPACE>
             data status, int
             xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
 
+            ;;Allows connections to older xfServer services
+            xcall setlog("SRV_COMPAT", 1, status)
+
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             UnitTestEnvironment.Configure()
 
@@ -159,12 +162,15 @@ namespace <NAMESPACE>
             ;;Get the file spec of the TestRequests folder
             UnitTestEnvironment.TestRequestsFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestRequests")
 
-            ;;Make sure we have a TestResponses folder
-            UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestResponses")
-            if (String.IsNullOrWhiteSpace(UnitTestEnvironment.TestResponsesFolder))
+            if (!String.IsNullOrWhiteSpace(UnitTestEnvironment.TestRequestsFolder))
             begin
-                UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.TestRequestsFolder.Replace("TestRequests","TestResponses")
-                Directory.CreateDirectory(UnitTestEnvironment.TestResponsesFolder)
+                ;;Make sure we have a TestResponses folder
+                UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestResponses")
+                if (String.IsNullOrWhiteSpace(UnitTestEnvironment.TestResponsesFolder))
+                begin
+                    UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.TestRequestsFolder.Replace("TestRequests","TestResponses")
+                    Directory.CreateDirectory(UnitTestEnvironment.TestResponsesFolder)
+                end
             end
 
 </IF DEFINED_ENABLE_SIGNALR>

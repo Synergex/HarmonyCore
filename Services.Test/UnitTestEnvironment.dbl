@@ -30,6 +30,9 @@ namespace Services.Test
 
         public static Server, @TestServer
 
+        public static TestRequestsFolder, string
+        public static TestResponsesFolder, string
+
         {AssemblyInitialize}
         public static method AssemblyInitialize, void
             required in context, @TestContext
@@ -37,6 +40,9 @@ namespace Services.Test
             ;;Allows select to join when the keys in the file are not the same type as the keys in the code
             data status, int
             xcall setlog("SYNSEL_NUMALPHA_KEYS", 1, status) 
+
+            ;;Allows connections to older xfServer services
+            xcall setlog("SRV_COMPAT", 1, status)
 
             ;;Configure the test environment (set logicals, create files in a known state, etc.)
             UnitTestEnvironment.Configure()
@@ -52,11 +58,25 @@ namespace Services.Test
             else
             begin
                 ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(wwwroot).UseWebRoot(wwwroot).UseStartup<Startup>())
+                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>())
             end
 
             ;;Fake out HTTPS
             Server.BaseAddress = new Uri("https://localhost")
+
+            ;;Get the file spec of the TestRequests folder
+            UnitTestEnvironment.TestRequestsFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestRequests")
+
+            if (!String.IsNullOrWhiteSpace(UnitTestEnvironment.TestRequestsFolder))
+            begin
+                ;;Make sure we have a TestResponses folder
+                UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.FindRelativeFolderForAssembly("TestResponses")
+                if (String.IsNullOrWhiteSpace(UnitTestEnvironment.TestResponsesFolder))
+                begin
+                    UnitTestEnvironment.TestResponsesFolder = UnitTestEnvironment.TestRequestsFolder.Replace("TestRequests","TestResponses")
+                    Directory.CreateDirectory(UnitTestEnvironment.TestResponsesFolder)
+                end
+            end
 
         endmethod
 
@@ -83,6 +103,12 @@ namespace Services.Test
         public static method Cleanup, void
         proc
             deleteFiles()
+        endmethod
+
+        ;;Declare the SetLogicalsCustom partial method
+        ;;This method can be implemented in a partial class to provide custom code to define logical names
+        partial static method SetLogicalsCustom, void
+            required in logicals, @List<string>
         endmethod
 
         private static method setLogicals, void
@@ -204,10 +230,23 @@ namespace Services.Test
                     logicals.Add(logical)
             end
 
+            ;;If we have a SetLogicalsCustom method, call it
+            SetLogicalsCustom(Startup.LogicalNames)
+
+            ;;Now we'll check each logical. If it already has a value we'll do nothing, otherwise
+            ;;we'll set the logical to point to the local folder whose name is identified by the
+            ;;user-defined token DATA_FOLDER
             foreach logical in logicals
             begin
                 data sts, int
-                xcall setlog(logical,sampleDataFolder,sts)
+                data translation, a80
+                ;;Is it set?
+                xcall getlog(logical,translation,sts)
+                if (!sts)
+                begin
+                    ;;No, we'll set it to SampleData
+                    xcall setlog(logical,sampleDataFolder,sts)
+                end
             end
 
         endmethod

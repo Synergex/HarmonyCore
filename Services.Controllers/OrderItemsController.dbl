@@ -24,6 +24,7 @@ import Microsoft.EntityFrameworkCore.Infrastructure
 import Microsoft.Extensions.Options
 import System.Collections.Generic
 import System.ComponentModel.DataAnnotations
+import System.Net.Mime
 import Harmony.Core.EF.Extensions
 import Harmony.Core.Interface
 import Harmony.OData
@@ -33,9 +34,13 @@ import Services.Models
 
 namespace Services.Controllers
 
+    {Produces("application/json")}
     ;;; <summary>
-    ;;; OData controller for OrderItems
+    ;;; Order items
     ;;; </summary>
+    ;;; <remarks>
+    ;;; OData endpoints for Order items
+    ;;; </remarks>
     public partial class OrderItemsController extends ODataController
     
         ;;Services provided via dependency injection
@@ -64,9 +69,14 @@ namespace Services.Controllers
         {ProducesResponseType(^typeof(IEnumerable<OrderItem>),StatusCodes.Status200OK)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get all OrderItems
+        ;;; Query the entire collection of records
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetOrderItems, @IActionResult
         proc
             mreturn Ok(_DbContext.OrderItems.AsNoTracking())
@@ -78,15 +88,19 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get a single OrderItem by primary key.
+        ;;; Query a single record identified by unique primary key
         ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOrderNumber" example="5238">Order number</param>
+        ;;; <param name="aItemNumber" example="1">Line item number</param>
         ;;; <returns>Returns a SingleResult indicating the status of the operation and containing any data that was returned.</returns>
-        public method GetOrderItem, @SingleResult<OrderItem>
-            {FromODataUri}
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
+        public method GetOrderItemByPK, @SingleResult<OrderItem>
             required in aOrderNumber, int
-            {FromODataUri}
             required in aItemNumber, int
         proc
             mreturn new SingleResult<OrderItem>(_DbContext.OrderItems.AsNoTracking().FindQuery<OrderItem>(_DbContext, aOrderNumber,aItemNumber))
@@ -98,12 +112,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get orderItems by alternate key key ItemOrdered.
+        ;;; Query a subset of records identified by non-unique alternate key ItemOrdered
         ;;; </summary>
-        ;;; <param name="aItemOrdered">Item ordered</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aItemOrdered" example="21">Item ordered</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetOrderItemsByItemOrdered, @IActionResult
-            {FromODataUri}
             required in aItemOrdered, int
         proc
             data result = _DbContext.OrderItems.AsNoTracking().FindAlternate("ItemOrdered",aItemOrdered)
@@ -119,12 +138,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get orderItems by alternate key key DateShipped.
+        ;;; Query a subset of records identified by non-unique alternate key DateShipped
         ;;; </summary>
-        ;;; <param name="aDateShipped">Date shipped</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aDateShipped" example="2018-03-17T00:00:00-08:00">Date shipped</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetOrderItemsByDateShipped, @IActionResult
-            {FromODataUri}
             required in aDateShipped, DateTime
         proc
             data result = _DbContext.OrderItems.AsNoTracking().FindAlternate("DateShipped",aDateShipped)
@@ -140,12 +164,17 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         {EnableQuery(MaxExpansionDepth=4)}
         ;;; <summary>
-        ;;; Get orderItems by alternate key key InvoiceNumber.
+        ;;; Query a subset of records identified by non-unique alternate key InvoiceNumber
         ;;; </summary>
-        ;;; <param name="aInvoiceNumber">Invoice number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aInvoiceNumber" example="166825">Invoice number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method GetOrderItemsByInvoiceNumber, @IActionResult
-            {FromODataUri}
             required in aInvoiceNumber, int
         proc
             data result = _DbContext.OrderItems.AsNoTracking().FindAlternate("InvoiceNumber",aInvoiceNumber)
@@ -155,14 +184,21 @@ namespace Services.Controllers
             mreturn Ok(result)
         endmethod
 
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(^typeof(OrderItem),StatusCodes.Status200OK)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {HttpPost("OrderItems")}
         ;;; <summary>
-        ;;; Create a new orderItem (automatically assigned primary key).
+        ;;; Create a new record (automatically assigned primary key)
         ;;; </summary>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="200">OK. The operation completed successfully.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PostOrderItem, @IActionResult
             {FromBody}
             required in aOrderItem, @OrderItem
@@ -197,20 +233,25 @@ namespace Services.Controllers
         endmethod
 
         {HttpPut("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status201Created)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Create (with a client-supplied primary key) or replace a orderItem.
+        ;;; Update a record if it exists otherwise create a new record (primary key provided by client)
         ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOrderNumber" example="5238">Order number</param>
+        ;;; <param name="aItemNumber" example="1">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="201">Created. The entity was created but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PutOrderItem, @IActionResult
-            {FromODataUri}
             required in aOrderNumber, int
-            {FromODataUri}
             required in aItemNumber, int
             {FromBody}
             required in aOrderItem, @OrderItem
@@ -254,20 +295,26 @@ namespace Services.Controllers
 
         endmethod
         {HttpPatch("OrderItems(OrderNumber={aOrderNumber},ItemNumber={aItemNumber})")}
+        {Consumes(MediaTypeNames.Application.Json)}
         {Produces("application/json")}
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status400BadRequest)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Patch  (partial update) a orderItem.
+        ;;; Patch (partial update) an existing record
         ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOrderNumber" example="5238">Order number</param>
+        ;;; <param name="aItemNumber" example="1">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="400">Bad request. The request was malformed or contained inappropriate content.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method PatchOrderItem, @IActionResult
-            {FromODataUri}
             required in aOrderNumber, int
-            {FromODataUri}
             required in aItemNumber, int
             {FromBody}
             required in aOrderItem, @JsonPatchDocument<OrderItem>
@@ -314,15 +361,19 @@ namespace Services.Controllers
         {ProducesResponseType(StatusCodes.Status204NoContent)}
         {ProducesResponseType(StatusCodes.Status404NotFound)}
         ;;; <summary>
-        ;;; Delete a orderItem.
+        ;;; Delete a record
         ;;; </summary>
-        ;;; <param name="aOrderNumber">Order number</param>
-        ;;; <param name="aItemNumber">Line item number</param>
+        ;;; <remarks>
+        ;;;
+        ;;; </remarks>
+        ;;; <param name="aOrderNumber" example="5238">Order number</param>
+        ;;; <param name="aItemNumber" example="1">Line item number</param>
         ;;; <returns>Returns an IActionResult indicating the status of the operation and containing any data that was returned.</returns>
+        ;;; <response code="204">No content. The operation was successful but no data is being returned.</response>
+        ;;; <response code="404">Not found. The entity being addressed does not exist.</response>
+        ;;; <response code="500">Internal server error. Report the issue to the API maintainer.</response>
         public method DeleteOrderItem, @IActionResult
-            {FromODataUri}
             required in aOrderNumber, int
-            {FromODataUri}
             required in aItemNumber, int
         proc
             ;;Get the orderItem to be deleted

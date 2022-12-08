@@ -30,13 +30,13 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read All")}
-        public method GetDifferentpks, void
+        public method GetAllDifferentpks, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Differentpks").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks, JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks, @ODataDifferentpksMultiple, JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
             Assert.AreEqual(differentpks.Value.Count,TestConstants.Instance.GetDifferentpks_Count)
         endmethod
 
@@ -45,7 +45,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read All")}
-        public method GetDifferentpks_Expand_REL_Customer, void
+        public method GetAllDifferentpks_Expand_REL_Customer, void
         proc
             data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -59,7 +59,7 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read All")}
-        public method GetDifferentpks_Expand_All, void
+        public method GetAllDifferentpks_Expand_All, void
         proc
             data uri = "/odata/v1/Differentpks?$expand=REL_Customer"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
@@ -73,14 +73,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read by Primary Key")}
-        public method GetDifferentpk, void
+        public method GetOneDifferentpk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Differentpks(Id={1})","",TestConstants.Instance.GetDifferentpk_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+            data differentpk = JsonConvert.DeserializeObject<Differentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -88,14 +88,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read by Primary Key")}
-        public method GetDifferentpk_Expand_REL_Customer, void
+        public method GetOneDifferentpk_Expand_REL_Customer, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_REL_Customer_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+            data differentpk = JsonConvert.DeserializeObject<Differentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -103,14 +103,14 @@ namespace Services.Test.UnitTests
 
         {TestMethod}
         {TestCategory("Differentpk Tests - Read by Primary Key")}
-        public method GetDifferentpk_Expand_All, void
+        public method GetOneDifferentpk_Expand_All, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             data request = String.Format("/odata/v1/Differentpks(Id={1})?$expand=REL_Customer","",TestConstants.Instance.GetDifferentpk_Expand_All_Id)
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpk, @ODataDifferentpk, JsonConvert.DeserializeObject<ODataDifferentpk>(result)
+            data differentpk = JsonConvert.DeserializeObject<Differentpk>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -125,7 +125,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -140,7 +140,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -155,7 +155,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -170,24 +170,22 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
         ;;Get a single Differentpk by alternate key 4 (Timepk)
 
-		{TestMethod}
-        {Ignore}
+        {TestMethod}
         {TestCategory("Differentpk Tests - Read by Alternate Key")}
         public method GetDifferentpk_ByAltKey_Timepk, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-			;;there appears to be a bug in the odata lib here, there arent direct ways to send timeonly data as a key
-            data request = String.Format("/odata/v1/Differentpks(Timepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Timepk_Timepk.ToString("hh:mm:ss"))
+            data request = String.Format("/odata/v1/Differentpks(Timepk={1})", "", TestConstants.Instance.GetDifferentpk_ByAltKey_Timepk_Timepk.ToString("yyyy-MM-ddThh:mm:ssZ"))
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
@@ -202,7 +200,7 @@ namespace Services.Test.UnitTests
             data response = client.GetAsync(request).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
-            data differentpks, @ODataDifferentpks,JsonConvert.DeserializeObject<ODataDifferentpks>(result)
+            data differentpks = JsonConvert.DeserializeObject<ODataDifferentpksMultiple>(result)
         endmethod
 
         ;;------------------------------------------------------------
