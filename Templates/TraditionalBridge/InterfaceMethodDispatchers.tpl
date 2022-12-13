@@ -65,7 +65,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     ;;; <summary>
     ;;; Dispatcher for method <INTERFACE_NAME>.<METHOD_NAME>
     ;;; </summary>
-    public class <METHOD_NAME>_Dispatcher extends RoutineStub
+    public class <HARMONYCORE_SHORT_METHOD_NAME>_Dispatcher extends RoutineStub
 
         <PARAMETER_LOOP>
         <IF STRUCTURE>
@@ -75,7 +75,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF STRUCTURE>
         </PARAMETER_LOOP>
 
-        public method <METHOD_NAME>_Dispatcher
+        public method <HARMONYCORE_SHORT_METHOD_NAME>_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
             <PARAMETER_LOOP>
@@ -143,10 +143,10 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         <COUNTER_1_RESET>
         <PARAMETER_LOOP>
             <COUNTER_1_INCREMENT>
-            <IF COLLECTION_ARRAY>
+            <IF COLLECTION_ARRAY AND NOT STRUCTURE>
             ;;Temp structure tempstr<COUNTER_1_VALUE>
             structure tempstr<COUNTER_1_VALUE>
-                arry, <IF STRUCTURE>@<ParameterStructureNoplural><ELSE><PARAMETER_DEFINITION_NOARRAY></IF STRUCTURE>
+                arry, <PARAMETER_DEFINITION_NOARRAY>
             endstructure
 
             </IF COLLECTION_ARRAY>
@@ -267,7 +267,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             ;;------------------------------------------------------------
             ;; Call the underlying routine
 
-            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^marray(<IF STRUCTURE><HARMONYCORE_BRIDGE_PARAMETER_DEFINITION><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
+            <IF SUBROUTINE>xcall <ELSE>returnValue = %</IF SUBROUTINE><METHOD_ROUTINE>(<COUNTER_1_RESET><PARAMETER_LOOP><COUNTER_1_INCREMENT><IF HANDLE OR BINARY_HANDLE>arg<COUNTER_1_VALUE>Handle<,><ELSE><IF COLLECTION><IF COLLECTION_ARRAY>^marray(<IF STRUCTURE>str<HARMONYCORE_BRIDGE_PARAMETER_DATAOBJECT><ELSE>tempstr<COUNTER_1_VALUE>.arry</IF STRUCTURE>,arg<COUNTER_1_VALUE>Handle)<,></IF COLLECTION_ARRAY><IF COLLECTION_HANDLE>arg<COUNTER_1_VALUE>Handle<,></IF COLLECTION_HANDLE><IF COLLECTION_ARRAYLIST>arg<COUNTER_1_VALUE><,></IF COLLECTION_ARRAYLIST><ELSE>arg<COUNTER_1_VALUE><,></IF COLLECTION></IF></PARAMETER_LOOP>)
 ;//
 ;//=========================================================================================================================
 ;// Build the JSON response

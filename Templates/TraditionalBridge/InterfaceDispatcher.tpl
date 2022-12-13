@@ -55,7 +55,7 @@ namespace <NAMESPACE>
         proc
             ;;Declare dispatcher classes for the '<INTERFACE_NAME>' interface methods
             <METHOD_LOOP>
-            mDispatchStubs.Add("<METHOD_NAME>", new <METHOD_NAME>_Dispatcher())
+            mDispatchStubs.Add("<METHOD_NAME>", new <HARMONYCORE_SHORT_METHOD_NAME>_Dispatcher())
             </METHOD_LOOP>
 <IF DEFINED_ENABLE_BRIDGE_INIT>
             ;;Initialize all data object metadata
