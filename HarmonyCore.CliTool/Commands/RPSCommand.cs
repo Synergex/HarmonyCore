@@ -67,7 +67,8 @@ namespace HarmonyCore.CliTool.Commands
             else if (opts.ListRelations)
             {
                 var loadedRelations = _solutionInfo.CodeGenSolution.ExtendedStructures.SelectMany(strct => strct.RelationsSpecs).ToList();
-                var relationLookup = new RelationLookup(new CodeGen.Engine.CodeGenContext(new CodeGen.Engine.CodeGenTaskSet()).Structures, loadedRelations);
+
+                var relationLookup = new RelationLookup(_solutionInfo.CodeGenSolution.RPS.Structures, loadedRelations);
 
                 foreach (var rel in selectedStruct.Relations)
                 {
