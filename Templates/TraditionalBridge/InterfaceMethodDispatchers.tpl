@@ -121,7 +121,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <ELSE>
         <IF STRUCTURE>
                 arg<COUNTER_1_VALUE>DataObject,     @DataObjectBase
-                arg<COUNTER_1_VALUE>,               <HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
+                arg<COUNTER_1_VALUE>,               str<HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
         <ELSE HANDLE OR BINARY_HANDLE>
                 arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
                 arg<COUNTER_1_VALUE>Handle,         <PARAMETER_DEFINITION>
