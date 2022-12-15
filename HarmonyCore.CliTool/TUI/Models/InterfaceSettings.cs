@@ -31,7 +31,13 @@ namespace HarmonyCore.CliTool.TUI.Models
 
         public ISingleItemSettings AddItem(IPropertyItemSetting initSetting)
         {
-            var madeInterface = new InterfaceEx { Name = initSetting.Value as string };
+            var madeInterface = new InterfaceEx
+            {
+                Name = initSetting.Value as string, 
+                GenerateInterface = true, 
+                GenerateSignalRHub = _context.CodeGenSolution.SmcSignalRHubs ?? false, 
+                GenerateWebAPIController = _context.CodeGenSolution.TraditionalBridge.EnableXFServerPlusMigration ?? false
+            };
             _context.CodeGenSolution.ExtendedInterfaces.Add(madeInterface);
             var result = MakeSingleInterface(madeInterface);
             Items.Add(result);
@@ -88,11 +94,14 @@ namespace HarmonyCore.CliTool.TUI.Models
             [ComplexObjectExtractor]
             public AuthOptionSettings Authorization { get; set; }
 
-            [IEnumerableExtractor("|")]
-            [IEnumerableInjector(typeof(List<string>), "|")]
-            [GeneratorOptions]
-            [AllowMultiSelection]
-            public List<string> EnabledGenerators { get; set; }
+            [Prompt("Enable OData controller")]
+            public bool? GenerateODataController { get; set; }
+            [Prompt("Enable WebAPI controller")]
+            public bool? GenerateWebAPIController { get; set; }
+            [Prompt("Enable SignalR")]
+            public bool? GenerateSignalRHub { get; set; }
+            [Prompt("Enable basic")]
+            public bool? GenerateInterface { get; set; }
         }
     }
 }

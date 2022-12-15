@@ -215,7 +215,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF IMPLIED>
 ;//
         <IF INTEGER>
-            arg<COUNTER_1_VALUE> = dispatcher.GetInt(arguments[<COUNTER_1_VALUE>])
+            arg<COUNTER_1_VALUE> = dispatcher.<IF COERCE_BOOLEAN>GetBoolean<ELSE>GetInt</IF>(arguments[<COUNTER_1_VALUE>])
         </IF INTEGER>
 ;//
         <IF ENUM>

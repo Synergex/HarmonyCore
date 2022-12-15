@@ -8,7 +8,7 @@
 ;  GENERATED      : 04-OCT-2021, 14:02:52
 ;                 : Version 11.1.1h
 ;  EXPORT OPTIONS : [ALL] 
- 
+  
  
 Format PHONE   Type NUMERIC   "(XXX) XXX-XXXX"   Justify RIGHT
  
@@ -2055,11 +2055,6 @@ Field STR3_DE7   Type DECIMAL   Size 7
  
 Field STR3_AL25   Type ALPHA   Size 25
    Report Heading "Alpha 25"
- 
-Key PRIMARYKEY   ACCESS   Order ASCENDING   Dups NO
-   Description "This is the primary key"
-   Segment FIELD   STR3_AL10
-   Segment FIELD   STR_GRP1
  
 Structure STRTEST30   DBL ISAM
    Description "Structure for an array of 10 test"

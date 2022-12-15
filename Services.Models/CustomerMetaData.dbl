@@ -59,9 +59,6 @@ namespace Services.Models
             ;; Define relations
             AddFieldInfo("REL_CustomerOrders", "COLLECTION", 0, 0, 0, false)
             AddFieldInfo("REL_CustomerFavoriteItem", "DATAOBJECT", 0, 0, 0, false)
-            AddFieldInfo("REL_CustomerNotes", "COLLECTION", 0, 0, 0, false)
-            AddFieldInfo("REL_CustomerEx", "DATAOBJECT", 0, 0, 0, false)
-            AddFieldInfo("REL_Differentpk", "DATAOBJECT", 0, 0, 0, false)
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "CustomerNumber")
@@ -100,7 +97,7 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Customer object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, REL_CustomerNotes,  and ) will not be populated.
+        ;;; The related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, ) will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -114,11 +111,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Customer object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, REL_CustomerNotes,  and ) will be populated.
+        ;;; The related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, ) will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Customer object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, REL_CustomerNotes,  and ) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_CustomerOrders, REL_CustomerFavoriteItem, ) to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -157,27 +154,7 @@ namespace Services.Models
                     if(existing.REL_CustomerFavoriteItem == ^null)
                     begin
                         existing.REL_CustomerFavoriteItem = (@Item)joinedObject.Value
-                    end
-                end
-                ("REL_CustomerNotes"),
-                begin
-                    if(existing.REL_CustomerNotes == ^null)
-                    begin
-                        existing.REL_CustomerNotes = (@ICollection<CustomerNote>)joinedObject.Value
-                    end
-                end
-                ("REL_CustomerEx"),
-                begin
-                    if(existing.REL_CustomerEx == ^null)
-                    begin
-                        existing.REL_CustomerEx = (@CustomerEx)joinedObject.Value
-                    end
-                end
-                ("REL_Differentpk"),
-                begin
-                    if(existing.REL_Differentpk == ^null)
-                    begin
-                        existing.REL_Differentpk = (@Differentpk)joinedObject.Value
+                        existing.REL_CustomerFavoriteItem = (@Item)joinedObject.Value
                     end
                 end
                 endusing
