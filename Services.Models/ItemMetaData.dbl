@@ -64,6 +64,7 @@ namespace Services.Models
 
             ;; Define relations
             AddFieldInfo("REL_Vendor", "DATAOBJECT", 0, 0, 0, false)
+            AddFieldInfo("REL_OrderItems", "COLLECTION", 0, 0, 0, false)
 
             ;; Define all fields that are associated wity key segments
             AddKeyInfo(0, "ItemNumber")
@@ -102,7 +103,7 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Item object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Vendor and ) will not be populated.
+        ;;; The related data properties (REL_Vendor and REL_OrderItems) will not be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Item object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
@@ -116,11 +117,11 @@ namespace Services.Models
 
         ;;; <summary>
         ;;; Returns a new Item object containing data from a record and a GRFA.
-        ;;; The related data properties (REL_Vendor and ) will be populated.
+        ;;; The related data properties (REL_Vendor and REL_OrderItems) will be populated.
         ;;; </summary>
         ;;; <param name="dataArea">The record containing the data for the new Item object.</param>
         ;;; <param name="grfa">The GRFA associated with the current state of the data.</param>
-        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Vendor and ) to be populated.</param>
+        ;;; <param name="joinedObjects">Data to allow the related data properties (REL_Vendor and REL_OrderItems) to be populated.</param>
         ;;; <returns></returns>
         public override method MakeNew, @DataObjectBase
             required in dataArea, a
@@ -152,6 +153,13 @@ namespace Services.Models
                     if(existing.REL_Vendor == ^null)
                     begin
                         existing.REL_Vendor = (@Vendor)joinedObject.Value
+                    end
+                end
+                ("REL_OrderItems"),
+                begin
+                    if(existing.REL_OrderItems == ^null)
+                    begin
+                        existing.REL_OrderItems = (@ICollection<OrderItem>)joinedObject.Value
                     end
                 end
                 endusing

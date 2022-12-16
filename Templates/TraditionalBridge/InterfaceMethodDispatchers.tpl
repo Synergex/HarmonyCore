@@ -121,10 +121,12 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     <ELSE>
         <IF STRUCTURE>
                 arg<COUNTER_1_VALUE>DataObject,     @DataObjectBase
-                arg<COUNTER_1_VALUE>,               str<HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
+                arg<COUNTER_1_VALUE>,               str<StructureNoplural>
         <ELSE HANDLE OR BINARY_HANDLE>
                 arg<COUNTER_1_VALUE>Array,          JSON_ELEMENT
                 arg<COUNTER_1_VALUE>Handle,         <PARAMETER_DEFINITION>
+        <ELSE INTEGER AND COERCE_BOOLEAN>
+                arg<COUNTER_1_VALUE>,               i4
         <ELSE>
                 arg<COUNTER_1_VALUE>,               <HARMONYCORE_BRIDGE_PARAMETER_DEFINITION>
         </IF>
@@ -185,13 +187,13 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             arg<COUNTER_1_VALUE>Array = arguments[<COUNTER_1_VALUE>].GetProperty("PassedValue")
 ;//
         <IF COLLECTION_ARRAY>
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.GetArrayLength())
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.GetArrayLength())
             arg<COUNTER_1_VALUE>HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
         </IF COLLECTION_ARRAY>
 ;//
         <IF COLLECTION_HANDLE>
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.GetArrayLength())
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg<COUNTER_1_VALUE>Array.GetArrayLength())
             arg<COUNTER_1_VALUE>HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg<COUNTER_1_VALUE>Handle),argumentDefinition,arg<COUNTER_1_VALUE>HandlePos,arg<COUNTER_1_VALUE>Array)
         </IF COLLECTION_HANDLE>
@@ -215,7 +217,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         </IF IMPLIED>
 ;//
         <IF INTEGER>
-            arg<COUNTER_1_VALUE> = dispatcher.<IF COERCE_BOOLEAN>GetBoolean<ELSE>GetInt</IF>(arguments[<COUNTER_1_VALUE>])
+            arg<COUNTER_1_VALUE> = <IF COERCE_BOOLEAN>(int)</IF>dispatcher.<IF COERCE_BOOLEAN>GetBoolean<ELSE>GetInt</IF>(arguments[<COUNTER_1_VALUE>])
         </IF INTEGER>
 ;//
         <IF ENUM>
@@ -233,7 +235,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
         <IF HANDLE OR BINARY_HANDLE>
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[<COUNTER_1_VALUE>])
             arg<COUNTER_1_VALUE>Array = arguments[<COUNTER_1_VALUE>].GetProperty("PassedValue")
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,arg<COUNTER_1_VALUE>Array.GetArrayLength())
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC | DM_BLANK,arg<COUNTER_1_VALUE>Array.GetArrayLength())
         </IF>
 ;//
         <IF STRING>
@@ -249,10 +251,10 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     </IF COLLECTION>
     <ELSE OUT>
         <IF HANDLE OR BINARY_HANDLE>
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,4)
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC | DM_ZERO,4)
         <ELSE COLLECTION>
             <IF COLLECTION_HANDLE OR COLLECTION_ARRAY>
-            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC,<PARAMETER_SIZE>)
+            arg<COUNTER_1_VALUE>Handle = %mem_proc(DM_ALLOC | DM_ZERO,<PARAMETER_SIZE>)
             <ELSE COLLECTION_ARRAYLIST>
             arg<COUNTER_1_VALUE> = new ArrayList()
             </IF>
@@ -281,6 +283,8 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
             serializer.ArgumentData(0,returnValue,FieldDataType.DecimalField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE IMPLIED>
             serializer.ArgumentData(0,returnValue,FieldDataType.ImpliedDecimalField,<METHOD_RETURN_SIZE>,<METHOD_RETURN_PRECISION>,false)
+  <ELSE COERCE_BOOLEAN>
+            serializer.ArgumentData(0,returnValue,FieldDataType.BooleanField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE INTEGER OR HATVAL>
             serializer.ArgumentData(0,returnValue,FieldDataType.IntegerField,<METHOD_RETURN_SIZE>,0,false)
   <ELSE STRING>

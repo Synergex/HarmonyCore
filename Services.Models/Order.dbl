@@ -20,6 +20,7 @@ import Harmony.Core.Converters
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Microsoft.Extensions.DependencyInjection
+import System.Runtime.Serialization
 
 namespace Services.Models
 
@@ -162,7 +163,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-            SynergyConverter.ConvertBack(value, mSynergyData.date_ordered, "YYYYMMDD", ^null)
+                mSynergyData.date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -177,7 +178,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-            SynergyConverter.ConvertBack(value, mSynergyData.date_completed, "YYYYMMDD", ^null)
+                mSynergyData.date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -244,13 +245,19 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
-            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
         endmethod
 
 .endregion
 
 .region "Relationships to other entities"
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; ORDER.ORDER_NUMBER (one) <-> (many) ORDER_ITEM.ORDER_NUMBER_AND_LINE_ITEM
+        ;;; </summary>
+        public readwrite property REL_OrderItems, @ICollection<OrderItem>
 
         {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
         ;;; <summary>
@@ -264,7 +271,7 @@ namespace Services.Models
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data for relations
+        ;;; Validate data
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -278,6 +285,11 @@ namespace Services.Models
 
             ;;Get an instance of IDataObjectProvider
             data dataObjectProvider, @IDataObjectProvider, sp.GetService<IDataObjectProvider>()
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 1 (REL_OrderItems)
+
+            ;;Validation mode: None
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 2 (REL_Customer)
@@ -302,17 +314,57 @@ namespace Services.Models
 
         ;;Access keys
 
-        private _KEY_ORDER_NUMBER, string, ""
-        public readonly property KEY_ORDER_NUMBER, string, ""
+        {IgnoreDataMember}
+        public property KEY_ORDER_NUMBER, string
+            method get
+            proc
+                mreturn OrderNumber.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_CUSTOMER_NUMBER, string, ""
-        public readonly property KEY_CUSTOMER_NUMBER, string, ""
+        {IgnoreDataMember}
+        public property KEY_CUSTOMER_NUMBER, string
+            method get
+            proc
+                mreturn CustomerNumber.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_DATE_ORDERED, string, ""
-        public readonly property KEY_DATE_ORDERED, string, ""
+        {IgnoreDataMember}
+        public property KEY_DATE_ORDERED, string
+            method get
+            proc
+                mreturn DateOrdered.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_DATE_COMPLETED, string, ""
-        public readonly property KEY_DATE_COMPLETED, string, ""
+        {IgnoreDataMember}
+        public property KEY_DATE_COMPLETED, string
+            method get
+            proc
+                mreturn DateCompleted.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
 .endregion
 

@@ -2,7 +2,7 @@ import TraditionalBridge.Test.Methods
 import System.Collections
 import Harmony.TraditionalBridge
 import Json
-import TraditionalBridge.Test.Models
+import TraditionalBridge.Models
 
 .ifdef DBLV11
 import System.Text.Json
@@ -71,9 +71,9 @@ namespace TraditionalBridge.Test.Dispatcher
                 arg5Handle,         D_HANDLE
                 arg5Def,            @ArgumentDataDefinition
                 arg5BufPos,         int
-                arg6,               [#]TraditionalBridge.Test.Models.strCustomer
+                arg6,               [#]TraditionalBridge.Models.strCustomer
                 arg7,				@ArrayList
-                strCustomerBuffer,  TraditionalBridge.Test.Models.strCustomer
+                strCustomerBuffer,  TraditionalBridge.Models.strCustomer
             endrecord
 
         proc
@@ -100,7 +100,7 @@ namespace TraditionalBridge.Test.Dispatcher
             arg5Handle = %mem_proc(DM_ALLOC, ^size(strCustomer) * arg1Array.GetArrayLength())
             dispatcher.UnwrapObjectCollection(arg5Handle, arg5Def, arg5BufPos, arg1Array)
 
-            arg6 = new TraditionalBridge.Test.Models.strCustomer[arg1Array.GetArrayLength()]
+            arg6 = new TraditionalBridge.Models.strCustomer[arg1Array.GetArrayLength()]
             dispatcher.UnwrapObjectCollection(arg1Array, arg6, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.AlphaField, ^size(strCustomer), 0)
             arg7 = new ArrayList()
             dispatcher.UnwrapObjectCollection(dispatcher.GetArray(arguments[2]), arg7, false, DataObjectMetadataBase.LookupType("CUSTOMER"), strCustomerBuffer, FieldDataType.AlphaField, ^size(strCustomer), 0)

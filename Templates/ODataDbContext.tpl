@@ -218,8 +218,7 @@ namespace <NAMESPACE>
             ;;--------------------------------------
             ;; Relationships from <STRUCTURE_NOPLURAL>
 
-            <RELATION_LOOP>
-            <IF TO_STRUCTURE_INCLUDED>
+            <RELATION_LOOP_RESTRICTED>
 ;// A
             <IF MANY_TO_ONE_TO_MANY>
              ;; <STRUCTURE_NOPLURAL>.<RELATION_FROMKEY> (many) --> (one) --> (many) <RELATION_TOSTRUCTURE_NOPLURAL>.<RELATION_TOKEY>
@@ -265,8 +264,7 @@ namespace <NAMESPACE>
 
             parm.AddOneToManyRelation<<StructureNoplural>, <RelationTostructureNoplural>>("<HARMONYCORE_RELATION_NAME>", "KEY_<RELATION_FROMKEY>", "KEY_<RELATION_TOKEY>")
             </IF ONE_TO_MANY>
-            </IF TO_STRUCTURE_INCLUDED>
-            </RELATION_LOOP>
+            </RELATION_LOOP_RESTRICTED>
             </IF STRUCTURE_RELATIONS>
             </STRUCTURE_LOOP>
 .endregion

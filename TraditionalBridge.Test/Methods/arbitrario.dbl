@@ -1,7 +1,7 @@
 
 import Harmony.TraditionalBridge
 import System.Collections
-import TraditionalBridge.Test.Models
+import TraditionalBridge.Models
 
 namespace TraditionalBridge.Test.Methods
 
@@ -46,8 +46,12 @@ namespace TraditionalBridge.Test.Methods
             intArrayList = new ArrayList()
             intArrayList.Add((@int)intValue)
 
-            xcall PopMessageBox()
-            Logger.Instance.Log("exited Pop")
+            if(stringValue == "maybe")
+            begin
+                xcall PopMessageBox()
+                Logger.Instance.Log("exited Pop")
+            end
+
             foreach stringElement in stringArray
                 stringArrayList.Add(stringElement)
 
@@ -59,14 +63,15 @@ namespace TraditionalBridge.Test.Methods
             required inout customerArray, [#]@Customer
             required inout customerArrayList, @ArrayList
             required inout customer1, @Customer
-            required in customer2, TraditionalBridge.Test.Models.strCustomer
-            required in customerSynergyArray, [*]TraditionalBridge.Test.Models.strCustomer
-            required in customerStrSynergyArray, [#]TraditionalBridge.Test.Models.strCustomer
+            required in customer2, TraditionalBridge.Models.strCustomer
+            required in customerSynergyArray, [*]TraditionalBridge.Models.strCustomer
+            required in customerStrSynergyArray, [#]TraditionalBridge.Models.strCustomer
             required in customerStrArrayList, @ArrayList
             endparams
             record
                 tempCustomer, @Customer
-                tempStrCustomer, TraditionalBridge.Test.Models.strCustomer
+                tempStrCustomer, TraditionalBridge.Models.strCustomer
+                tempStrCustomer2, TraditionalBridge.Models.strCustomer
                 i, int
         proc
             if(^argdim(%argnum(customerSynergyArray), 1) != customerStrSynergyArray.Length)
@@ -78,16 +83,17 @@ namespace TraditionalBridge.Test.Methods
 
             for i from 1 thru customerArrayList.Count by 1
             begin
-                tempStrCustomer = (TraditionalBridge.Test.Models.strCustomer)customerStrArrayList[i - 1]
-                tempCustomer = (@Customer)customerArrayList[i - 1]
-                if(tempCustomer.Name != tempStrCustomer.name)
+                tempStrCustomer = (TraditionalBridge.Models.strCustomer)customerStrArrayList[i - 1]
+                tempStrCustomer2 = ((@Customer)customerArrayList[i - 1]).SynergyRecord
+                if(tempStrCustomer2.Name != tempStrCustomer.name)
                     throw new Exception("Object array list and structure array list failed to match")
             end
             
             for i from 1 thru customerArray.Length by 1
             begin
-                if(customerArray[i].Name != customerSynergyArray[i].name || customerArray[i].Name != customerStrSynergyArray[i].name)
-                    throw new Exception("Object array and structure array failed to match " + %atrim(customerArray[i].Name) + ", " + %atrim(customerSynergyArray[i].name) + ", " + %atrim(customerStrSynergyArray[i].name))
+                tempStrCustomer2 = customerArray[i].SynergyRecord
+                if(tempStrCustomer2.Name != customerSynergyArray[i].name || tempStrCustomer2.Name != customerStrSynergyArray[i].name)
+                    throw new Exception("Object array and structure array failed to match " + %atrim(tempStrCustomer2.Name) + ", " + %atrim(customerSynergyArray[i].name) + ", " + %atrim(customerStrSynergyArray[i].name))
             end
 
             for i from 1 thru customerArrayList.Count by 1

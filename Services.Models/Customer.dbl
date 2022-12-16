@@ -20,6 +20,7 @@ import Harmony.Core.Converters
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Microsoft.Extensions.DependencyInjection
+import System.Runtime.Serialization
 
 namespace Services.Models
 
@@ -339,7 +340,6 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
-            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[13]
         endmethod
 
@@ -361,12 +361,33 @@ namespace Services.Models
         ;;; </summary>
         public readwrite property REL_CustomerFavoriteItem, @Item
 
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; CUSTOMER.CUSTOMER_NUMBER (one) <-> (many) CUSTOMER_NOTE.CUSTOMER_NUMBER
+        ;;; </summary>
+        public readwrite property REL_CustomerNotes, @ICollection<CustomerNote>
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type B)
+        ;;; CUSTOMER.CUSTOMER_NUMBER (one) --> (one) --> (one) CUSTOMER_EX.PRIMARY
+        ;;; </summary>
+        public readwrite property REL_CustomerEx, @CustomerEx
+
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type B)
+        ;;; CUSTOMER.CUSTOMER_NUMBER (one) --> (one) --> (one) DIFFERENTPK.ID
+        ;;; </summary>
+        public readwrite property REL_Differentpk, @Differentpk
+
 .endregion
 
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data for relations
+        ;;; Validate data
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -421,6 +442,21 @@ namespace Services.Models
             end
 
             ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 3 (REL_CustomerNotes)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 4 (REL_CustomerEx)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 5 (REL_Differentpk)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
             ;;If we have a ValidateCustom method, call it
 
             ValidateCustom(vType,sp)
@@ -438,22 +474,72 @@ namespace Services.Models
 
         ;;Access keys
 
-        private _KEY_CUSTOMER_NUMBER, string, ""
-        public readonly property KEY_CUSTOMER_NUMBER, string, ""
+        {IgnoreDataMember}
+        public property KEY_CUSTOMER_NUMBER, string
+            method get
+            proc
+                mreturn CustomerNumber.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_STATE, string, ""
-        public readonly property KEY_STATE, string, ""
+        {IgnoreDataMember}
+        public property KEY_STATE, string
+            method get
+            proc
+                mreturn State.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_ZIP, string, ""
-        public readonly property KEY_ZIP, string, ""
+        {IgnoreDataMember}
+        public property KEY_ZIP, string
+            method get
+            proc
+                mreturn ZipCode.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_PAYMENT_TERMS, string, ""
-        public readonly property KEY_PAYMENT_TERMS, string, ""
+        {IgnoreDataMember}
+        public property KEY_PAYMENT_TERMS, string
+            method get
+            proc
+                mreturn PaymentTermsCode.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
         ;;Foreign keys
 
-        private _KEY_FAVORITE_ITEM, string, ""
-        public readonly property KEY_FAVORITE_ITEM, string, ""
+        {IgnoreDataMember}
+        public property KEY_FAVORITE_ITEM, string
+            method get
+            proc
+                mreturn FavoriteItem.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
 .endregion
 

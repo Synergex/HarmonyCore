@@ -13,7 +13,7 @@
 import Json
 import Harmony.TraditionalBridge
 import System.Collections
-import TraditionalBridge.Test.Models
+import TraditionalBridge.Models
 
 .ifdef DBLV11
 import System.Text.Json
@@ -22,7 +22,7 @@ import System.Text.Json
 .define JSON_ELEMENT @JsonValue
 .endc
 
-namespace TraditionalBridge.Test.syntst
+namespace TraditionalBridge.Dispatchers.syntst
 
 
     ;;-------------------------------------------------------------------------
@@ -87,7 +87,7 @@ namespace TraditionalBridge.Test.syntst
                 arg19,               a5
                 ;;Argument 20 (REQUIRED IN p20 a5)
                 arg20,               a5
-                ;;Argument 21 (REQUIRED INOUT p21[*]a7)
+                ;;Argument 21 (REQUIRED INOUT p21 [*]a7)
                 arg21Array,          JSON_ELEMENT
                 arg21Handle,         D_HANDLE
                 arg21HandlePos,      int
@@ -188,11 +188,11 @@ namespace TraditionalBridge.Test.syntst
 
             arg20 = dispatcher.GetText(arguments[20])
 
-            ;;Argument 21 (REQUIRED INOUT p21 [*]a7)
+            ;;Argument 21 (REQUIRED INOUT p21 [*][*]a7)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[21],7)
             arg21Array = arguments[21].GetProperty("PassedValue")
-            arg21Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg21Array.GetArrayLength())
+            arg21Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg21Array.GetArrayLength())
             arg21HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg21Handle),argumentDefinition,arg21HandlePos,arg21Array)
 
@@ -206,7 +206,7 @@ namespace TraditionalBridge.Test.syntst
             xcall array21(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18,arg19,arg20,^marray(tempstr21.arry,arg21Handle),arg22)
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 21 (REQUIRED INOUT p21 [*]a7)
+            ;;Argument 21 (REQUIRED INOUT p21 [*][*]a7)
             
             serializer.ArgumentHandleData(21,arg21Handle,FieldDataType.AlphaArrayField,7,0,%mem_proc(DM_GETSIZE,arg21Handle)/7,false)
         endmethod
@@ -544,11 +544,11 @@ namespace TraditionalBridge.Test.syntst
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (OPTIONAL INOUT p1 [*]a20)
+            ;;Argument 1 (OPTIONAL INOUT p1 [*][*]a20)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],20)
             arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -558,7 +558,7 @@ namespace TraditionalBridge.Test.syntst
             xcall function_sixteen(^marray(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (OPTIONAL INOUT p1 [*]a20)
+            ;;Argument 1 (OPTIONAL INOUT p1 [*][*]a20)
             
             serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.AlphaArrayField,20,0,%mem_proc(DM_GETSIZE,arg1Handle)/20,false)
         endmethod
@@ -2516,10 +2516,10 @@ namespace TraditionalBridge.Test.syntst
     ;;; <summary>
     ;;; Dispatcher for method syntst.function_onehundredandone
     ;;; </summary>
-    public class function_onehundredandone_Dispatcher extends RoutineStub
+    public class function_onehundreda69A_Dispatcher extends RoutineStub
 
 
-        public method function_onehundredandone_Dispatcher
+        public method function_onehundreda69A_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -2628,10 +2628,10 @@ namespace TraditionalBridge.Test.syntst
     ;;; <summary>
     ;;; Dispatcher for method syntst.function_onehundredandfour
     ;;; </summary>
-    public class function_onehundredandfour_Dispatcher extends RoutineStub
+    public class function_onehundreda496_Dispatcher extends RoutineStub
 
 
-        public method function_onehundredandfour_Dispatcher
+        public method function_onehundreda496_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -2740,10 +2740,10 @@ namespace TraditionalBridge.Test.syntst
     ;;; <summary>
     ;;; Dispatcher for method syntst.function_onehundredandfive
     ;;; </summary>
-    public class function_onehundredandfive_Dispatcher extends RoutineStub
+    public class function_onehundreda6CE_Dispatcher extends RoutineStub
 
 
-        public method function_onehundredandfive_Dispatcher
+        public method function_onehundreda6CE_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -2823,10 +2823,10 @@ namespace TraditionalBridge.Test.syntst
     ;;; <summary>
     ;;; Dispatcher for method syntst.function_onehundredandseven
     ;;; </summary>
-    public class function_onehundredandseven_Dispatcher extends RoutineStub
+    public class function_onehundreda797_Dispatcher extends RoutineStub
 
 
-        public method function_onehundredandseven_Dispatcher
+        public method function_onehundreda797_Dispatcher
         proc
             ;;Initialize the meta data for any data objects that are used by parameters to the method
         endmethod
@@ -3142,11 +3142,11 @@ namespace TraditionalBridge.Test.syntst
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED INOUT p1 [*]d5)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]d5)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],5)
             arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3156,7 +3156,7 @@ namespace TraditionalBridge.Test.syntst
             xcall msc_arytst_dec(^marray(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT p1 [*]d5)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]d5)
             
             serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.DecimalArrayField,5,0,%mem_proc(DM_GETSIZE,arg1Handle)/5,false)
         endmethod
@@ -3204,11 +3204,11 @@ namespace TraditionalBridge.Test.syntst
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED INOUT p1 [*]d10.3)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]d10.3)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],10,3)
             arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3218,7 +3218,7 @@ namespace TraditionalBridge.Test.syntst
             xcall msc_arytst_imp(^marray(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT p1 [*]d10.3)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]d10.3)
             
             serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.ImpliedDecimalArrayField,10,3,%mem_proc(DM_GETSIZE,arg1Handle)/10,false)
         endmethod
@@ -3266,11 +3266,11 @@ namespace TraditionalBridge.Test.syntst
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED INOUT p1 [*]i4)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]i4)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],4)
             arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3280,7 +3280,7 @@ namespace TraditionalBridge.Test.syntst
             xcall msc_arytst_int(^marray(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT p1 [*]i4)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]i4)
             
             serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.IntegerArrayField,4,0,%mem_proc(DM_GETSIZE,arg1Handle)/4,false)
         endmethod
@@ -3328,11 +3328,11 @@ namespace TraditionalBridge.Test.syntst
 
             arguments = callFrame.GetProperty("params")
 
-            ;;Argument 1 (REQUIRED INOUT p1 [*]a20)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]a20)
 
             argumentDefinition = dispatcher.GetArgumentDataDefForCollection(arguments[1],20)
             arg1Array = arguments[1].GetProperty("PassedValue")
-            arg1Handle = %mem_proc(DM_ALLOC,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
+            arg1Handle = %mem_proc(DM_ALLOC | DM_BLANK,argumentDefinition.ElementSize*arg1Array.GetArrayLength())
             arg1HandlePos = 1
             dispatcher.UnwrapObjectCollection(^m(arg1Handle),argumentDefinition,arg1HandlePos,arg1Array)
 
@@ -3342,7 +3342,7 @@ namespace TraditionalBridge.Test.syntst
             xcall msc_arytst_str(^marray(tempstr1.arry,arg1Handle))
 
             ;;--------------------------------------------------------------------------------
-            ;;Argument 1 (REQUIRED INOUT p1 [*]a20)
+            ;;Argument 1 (REQUIRED INOUT p1 [*][*]a20)
             
             serializer.ArgumentHandleData(1,arg1Handle,FieldDataType.AlphaArrayField,20,0,%mem_proc(DM_GETSIZE,arg1Handle)/20,false)
         endmethod
@@ -5022,10 +5022,10 @@ namespace TraditionalBridge.Test.syntst
 
 endnamespace
 
-;; This is here to ensure that the TraditionalBridge.Test.Models namespace exists.
+;; This is here to ensure that the TraditionalBridge.Models namespace exists.
 ;; If the Synergy methods don't expsoe any structure or collection of structure
 ;; parameters then there won't be anything in the Models folder, and the import above will fail.
-namespace TraditionalBridge.Test.Models
+namespace TraditionalBridge.Models
     public class syntstDummyModel
     endclass
 endnamespace

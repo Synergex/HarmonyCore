@@ -20,6 +20,7 @@ import Harmony.Core.Converters
 import Harmony.Core.Context
 import Harmony.Core.FileIO
 import Microsoft.Extensions.DependencyInjection
+import System.Runtime.Serialization
 
 namespace Services.Models
 
@@ -469,7 +470,6 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
-            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[21]
         endmethod
 
@@ -484,12 +484,19 @@ namespace Services.Models
         ;;; </summary>
         public readwrite property REL_Vendor, @Vendor
 
+        {Newtonsoft.Json.JsonProperty(DefaultValueHandling=DefaultValueHandling.Ignore)}
+        ;;; <summary>
+        ;;; Relationship (Type D)
+        ;;; ITEM.ITEM_NUMBER (one) <-> (many) ORDER_ITEM.ITEM_ORDERED
+        ;;; </summary>
+        public readwrite property REL_OrderItems, @ICollection<OrderItem>
+
 .endregion
 
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data for relations
+        ;;; Validate data
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -506,6 +513,11 @@ namespace Services.Models
 
             ;;--------------------------------------------------------------------------------
             ;;Validate data for relation 1 (REL_Vendor)
+
+            ;;Validation mode: None
+
+            ;;--------------------------------------------------------------------------------
+            ;;Validate data for relation 2 (REL_OrderItems)
 
             ;;Validation mode: None
 
@@ -527,20 +539,70 @@ namespace Services.Models
 
         ;;Access keys
 
-        private _KEY_ITEM_NUMBER, string, ""
-        public readonly property KEY_ITEM_NUMBER, string, ""
+        {IgnoreDataMember}
+        public property KEY_ITEM_NUMBER, string
+            method get
+            proc
+                mreturn ItemNumber.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_VENDOR_NUMBER, string, ""
-        public readonly property KEY_VENDOR_NUMBER, string, ""
+        {IgnoreDataMember}
+        public property KEY_VENDOR_NUMBER, string
+            method get
+            proc
+                mreturn VendorNumber.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_COLOR, string, ""
-        public readonly property KEY_COLOR, string, ""
+        {IgnoreDataMember}
+        public property KEY_COLOR, string
+            method get
+            proc
+                mreturn FlowerColor.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_SIZE, string, ""
-        public readonly property KEY_SIZE, string, ""
+        {IgnoreDataMember}
+        public property KEY_SIZE, string
+            method get
+            proc
+                mreturn Size.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
-        private _KEY_NAME, string, ""
-        public readonly property KEY_NAME, string, ""
+        {IgnoreDataMember}
+        public property KEY_NAME, string
+            method get
+            proc
+                mreturn CommonName.ToString()
+                
+            endmethod
+            method set
+            proc
+                
+            endmethod
+        endproperty
 
 .endregion
 

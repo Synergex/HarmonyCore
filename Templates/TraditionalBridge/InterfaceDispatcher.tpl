@@ -61,8 +61,8 @@ namespace <NAMESPACE>
             ;;Initialize all data object metadata
             this.initMetaData()
 </IF DEFINED_ENABLE_BRIDGE_INIT>
+            InitHook()
         endmethod
-
     endclass
 
 endnamespace
