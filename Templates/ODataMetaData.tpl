@@ -67,7 +67,7 @@ namespace <NAMESPACE>
 ;//
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-  <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <IF CUSTOM_NOT_HARMONY_EXCLUDE AND NOT IS_FIELD_RESERVED>
     <COUNTER_1_INCREMENT>
     <IF COUNTER_1_EQ_1>
         ;; Define custom property formatters
@@ -82,6 +82,12 @@ namespace <NAMESPACE>
         <IF DATE_YYYYPP>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYPP")
         </IF DATE_YYYYPP>
+        <IF DATE_YYYYJJJ>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYJJJ")
+        </IF DATE_YYYYJJJ>
+        <IF DATE_YYJJJ>
+        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYJJJ")
+        </IF DATE_YYJJJ>
         <IF DATE_YYMMDD>
           <IF CUSTOM_HARMONY_AS_STRING>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalConverter.LiteralFormatter("XX-XX-XX")
@@ -96,12 +102,6 @@ namespace <NAMESPACE>
         private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYMMDD")
           </IF CUSTOM_HARMONY_AS_STRING>
         </IF DATE_YYYYMMDD>
-        <IF DATE_YYYYJJJ>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYYYJJJ")
-        </IF DATE_YYYYJJJ>
-        <IF DATE_YYJJJ>
-        private m<FieldSqlname>Formatter, @ILiteralFormatter, new SynergyDecimalDateConverter.LiteralFormatter("YYJJJ")
-        </IF DATE_YYJJJ>
         <IF TIME>
           <IF CUSTOM_HARMONY_AS_STRING>
             <IF TIME_HHMM>
@@ -143,7 +143,7 @@ namespace <NAMESPACE>
 
             ;; Define fields
 <FIELD_LOOP>
-  <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <IF CUSTOM_NOT_HARMONY_EXCLUDE AND NOT IS_FIELD_RESERVED>
     <IF HARMONYCORE_CUSTOM_FIELD>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
     <ELSE>
@@ -337,9 +337,17 @@ namespace <NAMESPACE>
                         existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
       </IF>
 ;//
+      <IF ONE_TO_ONE>
+                        existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
+      </IF ONE_TO_ONE>
+;//
       <IF ONE_TO_MANY_TO_ONE OR ONE_TO_MANY>
                         existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
       </IF>
+;//
+      <IF ONE_TO_MANY>
+                        existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
+      </IF ONE_TO_MANY>
 ;//
                     end
                 end

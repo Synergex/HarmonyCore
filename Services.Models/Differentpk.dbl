@@ -143,7 +143,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-                mSynergyData.datepk = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
+            SynergyConverter.ConvertBack(value, mSynergyData.datepk, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -158,7 +158,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-                mSynergyData.timepk = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+                SynergyConverter.ConvertBack(value, mSynergyData.timepk, "HHMMSS", ^null)
             endmethod
         endproperty
 
@@ -240,6 +240,7 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
+            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
         endmethod
 
@@ -259,7 +260,7 @@ namespace Services.Models
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -302,11 +303,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Id.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -315,11 +316,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Alphapk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -328,11 +329,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Decimalpk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -341,11 +342,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Intergerpk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -354,11 +355,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Datepk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -367,11 +368,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Timepk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -380,11 +381,11 @@ namespace Services.Models
             method get
             proc
                 mreturn Booleanpk.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 

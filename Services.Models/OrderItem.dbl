@@ -163,7 +163,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-                mSynergyData.date_shipped = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
+            SynergyConverter.ConvertBack(value, mSynergyData.date_shipped, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -246,6 +246,7 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
+            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
         endmethod
 
@@ -272,7 +273,7 @@ namespace Services.Models
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -320,11 +321,11 @@ namespace Services.Models
             method get
             proc
                 mreturn string.Join('|',  OrderNumber,ItemNumber)
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -333,11 +334,11 @@ namespace Services.Models
             method get
             proc
                 mreturn ItemOrdered.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -346,11 +347,11 @@ namespace Services.Models
             method get
             proc
                 mreturn DateShipped.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -359,11 +360,11 @@ namespace Services.Models
             method get
             proc
                 mreturn InvoiceNumber.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 

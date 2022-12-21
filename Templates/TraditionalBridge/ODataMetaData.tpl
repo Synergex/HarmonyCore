@@ -67,7 +67,7 @@ namespace <NAMESPACE>
 ;//
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-  <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <IF CUSTOM_NOT_HARMONY_EXCLUDE AND NOT IS_FIELD_RESERVED>
     <COUNTER_1_INCREMENT>
     <IF COUNTER_1_EQ_1>
         ;; Define custom property formatters
@@ -143,7 +143,7 @@ namespace <NAMESPACE>
 
             ;; Define fields
 <FIELD_LOOP>
-  <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+  <IF CUSTOM_NOT_HARMONY_EXCLUDE AND NOT IS_FIELD_RESERVED>
     <IF HARMONYCORE_CUSTOM_FIELD>
             AddFieldInfo("<FieldSqlname>", "<FIELD_TYPE_NAME>", <FIELD_SIZE>, <FIELD_POSITION>, 0<FIELD_PRECISION>, false, m<FieldSqlname>Formatter)
     <ELSE>

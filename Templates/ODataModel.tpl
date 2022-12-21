@@ -115,7 +115,7 @@ namespace <NAMESPACE>
 </IF STRUCTURE_RELATIVE>
 <COUNTER_1_RESET>
 <FIELD_LOOP>
-    <IF CUSTOM_NOT_HARMONY_EXCLUDE>
+    <IF CUSTOM_NOT_HARMONY_EXCLUDE AND NOT IS_FIELD_RESERVED>
         ;;; <summary>
         ;;; <FIELD_DESC_DOUBLE>
         ;;; </summary>
@@ -175,16 +175,12 @@ namespace <NAMESPACE>
       <ELSE DATE>
         <IF CUSTOM_HARMONY_AS_STRING>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX-XX-XX")
-        <ELSE DATE_YYYYMMDD>
-                mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "YYYYMMDD", ^null)
-        <ELSE DATE_YYMMDD>
-                mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "YYMMDD", ^null)
-        <ELSE DATE_YYYYJJJ>
-                mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "YYYYJJJ", ^null)
         <ELSE DATE_YYYYPP>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XXXX/XX")
         <ELSE DATE_YYPP>
                 mreturn %string(mSynergyData.<field_original_name_modified>,"XX/XX")
+        <ELSE>
+                mreturn (<FIELD_SNTYPE>)SynergyDecimalDateConverter.Convert(mSynergyData.<field_original_name_modified>, ^null, "<FIELD_CLASS>", ^null)
         </IF>
       <ELSE TIME_HHMM>
         <IF CUSTOM_HARMONY_AS_STRING>
@@ -212,7 +208,7 @@ namespace <NAMESPACE>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
           </IF PRECISION>
         </IF CUSTOM_HARMONY_AS_STRING>
-      <ELSE INTEGER>
+      <ELSE INTEGER OR ENUM>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
       <ELSE BOOLEAN>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
@@ -222,6 +218,8 @@ namespace <NAMESPACE>
                 mreturn (<FIELD_SNTYPE>)mSynergyData.<field_original_name_modified>
       <ELSE STRUCTFIELD>
                 mreturn (String)mSynergyData.<field_original_name_modified>
+      <ELSE BINARY>
+                mreturn Convert.ToBase64String(([#]byte)mSynergyData.<field_original_name_modified>)
       </IF>
             endmethod
 ;//
@@ -239,32 +237,24 @@ namespace <NAMESPACE>
       <ELSE DATE>
         <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX-XX-XX")
-        <ELSE DATE_YYYYMMDD>
-                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
-        <ELSE DATE_YYMMDD>
-                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYMMDD", ^null)
-        <ELSE DATE_YYYYJJJ>
-                mSynergyData.<field_original_name_modified> = (<FIELD_TYPE>)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYJJJ", ^null)
         <ELSE DATE_YYYYPP>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XXXX/XX")
         <ELSE DATE_YYPP>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX/XX")
+        <ELSE>
+            SynergyConverter.ConvertBack(value, mSynergyData.<field_original_name_modified>, "<FIELD_CLASS>", ^null)
         </IF>
       <ELSE TIME_HHMM>
         <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX")
-        <ELSE DATE_NULLABLE>
-                mSynergyData.<field_original_name_modified> = (value.Value.Hour * 100) + value.Value.Minute
         <ELSE>
-                mSynergyData.<field_original_name_modified> = (value.Hour * 100) + value.Minute
+                SynergyConverter.ConvertBack(value, mSynergyData.<field_original_name_modified>, "<FIELD_CLASS>", ^null)
         </IF>
       <ELSE TIME_HHMMSS>
         <IF CUSTOM_HARMONY_AS_STRING>
                 mSynergyData.<field_original_name_modified> = SynergyDecimalConverter.ConvertBack(value,"XX:XX:XX")
-        <ELSE DATE_NULLABLE>
-                mSynergyData.<field_original_name_modified> = (value.Value.Hour * 10000) + (value.Value.Minute * 100) + value.Value.Second
         <ELSE>
-                mSynergyData.<field_original_name_modified> = (value.Hour * 10000) + (value.Minute * 100) + value.Second
+                SynergyConverter.ConvertBack(value, mSynergyData.<field_original_name_modified>, "<FIELD_CLASS>", ^null)
         </IF>
       <ELSE DECIMAL>
         <IF CUSTOM_HARMONY_AS_STRING>
@@ -276,8 +266,8 @@ namespace <NAMESPACE>
         <ELSE>
                 mSynergyData.<field_original_name_modified> = value
         </IF>
-      <ELSE INTEGER>
-                mSynergyData.<field_original_name_modified> = value
+      <ELSE INTEGER OR ENUM>
+                mSynergyData.<field_original_name_modified> = <IF ENUM>(<NAMESPACE>.<FIELD_TYPE>)</IF>value
       <ELSE BOOLEAN>
                 mSynergyData.<field_original_name_modified> = value
       <ELSE AUTO_SEQUENCE>
@@ -286,6 +276,8 @@ namespace <NAMESPACE>
                 mSynergyData.<field_original_name_modified> = value
       <ELSE STRUCTFIELD>
                 mSynergyData.<field_original_name_modified> = value
+      <ELSE BINARY>
+                mSynergyData.<field_original_name_modified> = (a)Convert.FromBase64String(value)
       </IF>
             endmethod
 ;//
@@ -361,6 +353,7 @@ namespace <NAMESPACE>
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
+            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[<COUNTER_1_VALUE>]
         endmethod
 
@@ -443,7 +436,7 @@ namespace <NAMESPACE>
 ;// VALIDATION IF RELATIONS ARE ENABLED
 ;//=========================================
         ;;; <summary>
-        ;;; Validate data
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -501,7 +494,7 @@ namespace <NAMESPACE>
             rel<RELATION_NUMBER>FromKey.<segment_name> = mSynergyData.<segment_name>
             rel<RELATION_NUMBER>FromKeyNoTag.<segment_name> = mSynergyData.<segment_name>
         <ELSE SEG_TYPE_LITERAL>
-            <COUNTER_1_INCREMENT>
+          <COUNTER_1_INCREMENT>
             rel<RELATION_NUMBER>FromKey.litseg<COUNTER_1_VALUE> = "<SEGMENT_LITVAL>"
         </IF SEG_TYPE_FIELD>
       </FROM_KEY_SEGMENT_LOOP>
@@ -614,7 +607,7 @@ namespace <NAMESPACE>
   </IF STRUCTURE_RELATIONS>
 </IF DEFINED_ENABLE_RELATIONS>
 
-<IF STRUCTURE_FILES AND STRUCTURE_ISAM>
+<IF STRUCTURE_FILES AND STRUCTURE_ISAM AND STRUCTURE_HAS_UNIQUE_KEY>
 .region "Properties to represent keys"
 
         ;;Access keys
@@ -631,11 +624,11 @@ namespace <NAMESPACE>
             <ELSE>
                 mreturn string.Join('|',  <SEGMENT_LOOP><IF SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"<ELSE><FieldSqlname></IF><,></SEGMENT_LOOP>)
             </IF>
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -656,11 +649,11 @@ namespace <NAMESPACE>
             <ELSE>
                 mreturn string.Join('|',  <SEGMENT_LOOP><IF SEG_TYPE_LITERAL>"<SEGMENT_LITVAL>"<ELSE><FieldSqlname></IF><,></SEGMENT_LOOP>)
             </IF>
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 

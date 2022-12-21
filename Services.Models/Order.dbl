@@ -163,7 +163,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-                mSynergyData.date_ordered = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
+            SynergyConverter.ConvertBack(value, mSynergyData.date_ordered, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -178,7 +178,7 @@ namespace Services.Models
             endmethod
             method set
             proc
-                mSynergyData.date_completed = (D)SynergyDecimalDateConverter.ConvertBack(value, ^null, "YYYYMMDD", ^null)
+            SynergyConverter.ConvertBack(value, mSynergyData.date_completed, "YYYYMMDD", ^null)
             endmethod
         endproperty
 
@@ -245,6 +245,7 @@ namespace Services.Models
         ;;; </summary>
         public override method InternalGetValues, [#]@object
         proc
+            ;;TODO: This should be returning boxed values for each of our fields
             mreturn new Object[7]
         endmethod
 
@@ -271,7 +272,7 @@ namespace Services.Models
 .region "Data validation"
 
         ;;; <summary>
-        ;;; Validate data
+        ;;; Validate data for relations
         ;;; </summary>
         ;;; <param name="type">Validation type (create, update or delete)</param>
         ;;; <param name="sp">Serices provider</param>
@@ -319,11 +320,11 @@ namespace Services.Models
             method get
             proc
                 mreturn OrderNumber.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -332,11 +333,11 @@ namespace Services.Models
             method get
             proc
                 mreturn CustomerNumber.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -345,11 +346,11 @@ namespace Services.Models
             method get
             proc
                 mreturn DateOrdered.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
@@ -358,11 +359,11 @@ namespace Services.Models
             method get
             proc
                 mreturn DateCompleted.ToString()
-                
+
             endmethod
             method set
             proc
-                
+
             endmethod
         endproperty
 
