@@ -62,3 +62,30 @@ proc
 		Logger.Instance.CloseLog()
 
 endmain
+
+;;override u_message to log to the traditional bridge log mechanism
+subroutine u_message
+    in req    a_msg       ,a      ;The message to display
+    in opt    a_wflg_1    ,n 
+    in opt    a_wflg_2    ,n
+proc
+    if(Logger.Instance != ^null)
+        Logger.Instance.Log("u_message: " + a_msg)
+	xreturn
+endsubroutine
+
+;;override u_abort to log to the traditional bridge log mechanism and terminate the process
+subroutine u_abort
+    in req  a_msg1    ,a 
+    in opt  a_msg2    ,a
+    in opt  a_msg3    ,a
+    in opt  a_msg4    ,a
+    in opt  a_msg5    ,a
+proc
+    if(Logger.Instance != ^null)
+        Logger.Instance.Log("u_abort: " + a_msg1)
+
+    stop
+
+    xreturn
+endsubroutine
