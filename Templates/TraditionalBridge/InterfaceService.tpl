@@ -50,6 +50,7 @@
 
 import Harmony.Core
 import Harmony.Core.Context
+import Harmony.Core.Converters
 import Harmony.Core.Interface
 import Harmony.Core.EF.Extensions
 import Harmony.OData
@@ -123,10 +124,33 @@ namespace <NAMESPACE>
             data response = new <DTOS_NAMESPACE>.<METHOD_NAME>_Response()
 
   </IF RETURNS_DATA>
+;//
+;// --------------------------------------------------------------------------------------------------------------------------------
+;// Define temp fields for date parameters
+;//
+<COUNTER_1_RESET><PARAMETER_LOOP><IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE><COUNTER_1_INCREMENT></IF></PARAMETER_LOOP><IF COUNTER_1>
+            ;;Temp fields for date parameters
+  <COUNTER_1_RESET>
+  <PARAMETER_LOOP><COUNTER_1_INCREMENT>
+    <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
+            data dateParam<COUNTER_1_VALUE>, d8
+      <IF IN OR INOUT>
+            SynergyConverter.ConvertBack(args.<PARAMETER_NAME>, dateParam<COUNTER_1_VALUE>, "<PARAMETER_DATE_FORMAT>", ^null)
+      </IF>
+
+    </IF>
+  </PARAMETER_LOOP>
+</IF>
+;// --------------------------------------------------------------------------------------------------------------------------------
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("<METHOD_NAME>"
-    <PARAMETER_LOOP>
+    <COUNTER_1_RESET>
+    <PARAMETER_LOOP><COUNTER_1_INCREMENT>
+      <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
+            &   ,dateParam<COUNTER_1_VALUE>
+      <ELSE>
             &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE (STRUCTURE OR COLLECTION OR ALPHA OR STRING) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME>)<ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
+      </IF>
     </PARAMETER_LOOP>
             &   )
   <IF RETURNS_DATA>
@@ -146,13 +170,16 @@ namespace <NAMESPACE>
     </PARAMETER_LOOP>
 
     <PARAMETER_LOOP>
-      <IF OUT_OR_INOUT>
-      <IF OPTIONAL>
+      <IF OUT OR INOUT>
+        <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
+            SynergyConverter.Convert(dateParam<COUNTER_1_VALUE>, args.<PARAMETER_NAME>, "<PARAMETER_DATE_FORMAT>", ^null)
+        </IF>
+        <IF OPTIONAL>
             response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
-      <ELSE>
+        <ELSE>
             ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
+        </IF>
       </IF>
-      </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>
 
             ;;Return the response
