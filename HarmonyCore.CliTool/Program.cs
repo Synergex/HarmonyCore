@@ -266,7 +266,24 @@ Known structure properties:
             var solutionDir = Environment.GetEnvironmentVariable("SolutionDir");
 
             if (string.IsNullOrWhiteSpace(solutionDir))
-                solutionDir = Environment.CurrentDirectory;
+            {
+                var startingDirectory = Environment.CurrentDirectory;
+                while(!Directory.EnumerateFiles(startingDirectory, "*.sln").Any())
+                {
+                    var nextPath = Path.GetFullPath(Path.Combine(startingDirectory, ".." + Path.DirectorySeparatorChar));
+                    if (nextPath == startingDirectory)
+                    {
+                        logger("Failed to locate solution starting from current working directory, move to the target folder or set the 'SolutionDir' environment variable to point to your target solution");
+                        throw new InvalidOperationException("failure during initialization, see logged message");
+                    }
+                    else
+                    {
+                        startingDirectory = nextPath;
+                    }
+                }
+
+                solutionDir = startingDirectory;
+            }
             else
                 Environment.SetEnvironmentVariable("SolutionDir", solutionDir);
 

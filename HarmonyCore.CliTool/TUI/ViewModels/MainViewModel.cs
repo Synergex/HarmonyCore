@@ -213,11 +213,20 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddTraditionalBridge(GenerationEvents events)
         {
-            await DotnetTool.AddTemplateToSolution("harmonycore-tb",
+            try
+            {
+                await DotnetTool.AddTemplateToSolution("harmonycore-tb",
                 Path.Combine(_context.SolutionDir, "TraditionalBridge"), _context.SolutionPath, events.Message);
-
-            _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
-            Save();
+                events.Message("Instantiated and added traditional bridge project to solution");
+                _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
+                Save();
+                events.Message("Saved initial feature settings to harmony core config file");
+                events.Message("Completed");
+            }
+            finally
+            {
+                events.OnLoaded();
+            }
         }
 
         async Task CollectTestData(GenerationEvents events)

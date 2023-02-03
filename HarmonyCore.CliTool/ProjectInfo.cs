@@ -246,7 +246,7 @@ namespace HarmonyCore.CliTool
                 foreach (var import in imports)
                 {
                     var projectPath = import.Attributes["Project"]?.Value ?? "";
-                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets") || projectPath.Contains("Synergex.SynergyDE.Repository.targets"))
+                    if (projectPath.Contains("Synergex.SynergyDE.Build.targets", StringComparison.CurrentCultureIgnoreCase) || projectPath.Contains("Synergex.SynergyDE.Repository.targets", StringComparison.CurrentCultureIgnoreCase))
                     {
                         import.ParentNode.RemoveChild(import);
                     }

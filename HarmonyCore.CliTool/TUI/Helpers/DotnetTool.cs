@@ -12,21 +12,23 @@ namespace HarmonyCore.CliTool.TUI.Helpers
     {
         public static async Task<bool> UpdateTemplates(Action<string> errorLogger)
         {
-            //var dotnetInfo = new Process();
-            //dotnetInfo.StartInfo = new ProcessStartInfo("dotnet", "new install Harmony.Core.ProjectTemplates");
-            //dotnetInfo.StartInfo.RedirectStandardOutput = true;
-            //dotnetInfo.Start();
-            //var dotnetInfoOutput = await dotnetInfo.StandardOutput.ReadToEndAsync();
-            //if (dotnetInfo.HasExited && dotnetInfo.ExitCode != 0)
-            //{
-            //    errorLogger(dotnetInfoOutput);
-            //    return false;
-            //}
-            //else
-            //{
-            //    return true;
-            //}
-            return true;
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("LOCAL_HC_TEMPLATES")))
+                return true;
+
+            var dotnetInfo = new Process();
+            dotnetInfo.StartInfo = new ProcessStartInfo("dotnet", "new install Harmony.Core.ProjectTemplates");
+            dotnetInfo.StartInfo.RedirectStandardOutput = true;
+            dotnetInfo.Start();
+            var dotnetInfoOutput = await dotnetInfo.StandardOutput.ReadToEndAsync();
+            if (dotnetInfo.HasExited && dotnetInfo.ExitCode != 0)
+            {
+                errorLogger(dotnetInfoOutput);
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
         public static async Task<bool> InstantiateTemplate(string solutionPath, string templateName, string outputFolder, Action<string> logger, Action<string> fileWatcher)
         {
