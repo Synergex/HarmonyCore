@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HarmonyCoreGenerator.Model;
 
 namespace HarmonyCore.CliTool.TUI.Models
 {
@@ -24,6 +25,7 @@ namespace HarmonyCore.CliTool.TUI.Models
             EnableOptionalParameters = solution.TraditionalBridge?.EnableOptionalParameters;
             EnableSampleDispatchers = solution.TraditionalBridge?.EnableSampleDispatchers;
             EnableXFServerPlusMigration = solution.TraditionalBridge?.EnableXFServerPlusMigration;
+            XFServerSMCPath = solution.TraditionalBridge?.XFServerSMCPath;
 
             if (solution.TraditionalBridge != null)
                 EnableTraditionalBridge = true;
@@ -37,6 +39,10 @@ namespace HarmonyCore.CliTool.TUI.Models
             BaseInterface.SaveSameProperties(solution);
             if (EnableTraditionalBridge)
             {
+                if (solution.TraditionalBridge == null)
+                    solution.TraditionalBridge = new TraditionalBridge();
+
+                solution.TraditionalBridge.XFServerSMCPath = XFServerSMCPath;
                 solution.TraditionalBridge.EnableOptionalParameters = EnableOptionalParameters;
                 solution.TraditionalBridge.EnableSampleDispatchers = EnableSampleDispatchers;
                 solution.TraditionalBridge.EnableXFServerPlusMigration = EnableXFServerPlusMigration;
@@ -74,5 +80,8 @@ namespace HarmonyCore.CliTool.TUI.Models
         [NullableBoolExtractor]
         [NullableBoolOptionsExtractor]
         public bool? EnableXFServerPlusMigration { get; set; }
+
+        [Prompt("SMC path")]
+        public string XFServerSMCPath { get; set; }
     }
 }
