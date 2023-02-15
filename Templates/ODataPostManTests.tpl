@@ -411,11 +411,11 @@
                     "url": {
                         "raw": "{{ServerBaseUri}}/{{ODataPath}}/v{{ApiVersion}}/<StructurePlural>",
                         "host": [
-                            "{{ODataPath}}",
-                            "v{{ApiVersion}}",
                             "{{ServerBaseUri}}"
                         ],
                         "path": [
+                            "{{ODataPath}}",
+                            "v{{ApiVersion}}",
                             "<StructurePlural>"
                         ]
                     }
