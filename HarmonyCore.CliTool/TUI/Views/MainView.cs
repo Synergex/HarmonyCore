@@ -16,6 +16,8 @@ namespace HarmonyCore.CliTool.TUI.Views
         MainViewModel _mainViewModel;
         TabView _tabView;
         private static int MainThread;
+        public int ExitCode = 0;
+
         public MainView(Func<Action<string>, Task<SolutionInfo>> context)
         {
             MainThread = System.Threading.Thread.CurrentThread.ManagedThreadId;
@@ -79,7 +81,11 @@ namespace HarmonyCore.CliTool.TUI.Views
                 new MenuBarItem("_File", new MenuItem[]
                 {
                     new MenuItem("_Save", "Save Harmony Core Customization file", _mainViewModel.Save),
-                    new MenuItem("_Import", "Import regen.bat settings into the current Harmony Core Customization file", _mainViewModel.Save),
+                    new MenuItem("_Import", "Import regen.bat settings into the current Harmony Core Customization file", () =>
+                    {
+                        ExitCode = Program.RELOAD_SOLUTION;
+                        Application.RequestStop();
+                    }),
                     new MenuItem("_Validate", "Validate customization scripts and settings", _mainViewModel.Validate),
                     new MenuItem("_Quit", "Exit the program", Quit)
                 }),

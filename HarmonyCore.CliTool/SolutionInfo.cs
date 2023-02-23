@@ -42,6 +42,8 @@ namespace HarmonyCore.CliTool
                 var basePath = Solution.GetDotnetBasePath();
                 var projectOptions = new Microsoft.Build.Definition.ProjectOptions();
                 var evalContext = Microsoft.Build.Evaluation.Context.EvaluationContext.Create(Microsoft.Build.Evaluation.Context.EvaluationContext.SharingPolicy.Isolated);
+                //make sure we dont have any leftovers before we start a new load operation
+                Microsoft.Build.Evaluation.ProjectCollection.GlobalProjectCollection.UnloadAllProjects();
 
                 projectOptions.EvaluationContext = evalContext;
                 projectOptions.GlobalProperties = new Dictionary<String, String>();

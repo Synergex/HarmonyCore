@@ -222,6 +222,7 @@ Known structure properties:
 
     class Program
     {
+        public const int RELOAD_SOLUTION = 1337;
         const int STD_INPUT_HANDLE = -10;
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint lpMode);
@@ -263,7 +264,14 @@ Known structure properties:
 
         static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
         {
-            var solutionDir = Environment.GetEnvironmentVariable("SolutionDir");
+            var rawSolDir = Environment.GetEnvironmentVariable("SolutionDir");
+            var solutionDir = string.IsNullOrEmpty(rawSolDir) ? string.Empty : Environment.ExpandEnvironmentVariables(rawSolDir);
+
+            if(!Directory.Exists(solutionDir))
+            {
+                logger($"Detected invalid solution dir '{solutionDir}', ignoring and using standard search path");
+                solutionDir = string.Empty;
+            }
 
             if (string.IsNullOrWhiteSpace(solutionDir))
             {
@@ -344,56 +352,70 @@ Known structure properties:
             }
             AppDomain.CurrentDomain.ProcessExit += (sender, e) => File.WriteAllText(configData, JsonConvert.SerializeObject(AppSettings));
 
-            var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
-
-            _ = Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
-            .MapResult<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, int>(
-
-              (UpgradeLatestOptions opts) =>
-              {
-                  Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
-
-
-                  Console.WriteLine("Type YES to proceed: ");
-                  if (string.Compare(Console.ReadLine(), "YES", true) != 0)
-                  {
-                      Console.WriteLine("exiting without changes");
-                      return 1;
-                  }
-
-                  Console.WriteLine("Checking for current version info");
-                  var versionInfo = LoadVersionInfoSync(true);
-                  if (opts.ProjectOnly)
-                      UpgradeProjects(defaultLoader().Result, versionInfo);
-                  else
-                      UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
-                  return 0;
-              },
-              new CodegenCommand(defaultLoader).List,
-              new CodegenCommand(defaultLoader).Add,
-              new CodegenCommand(defaultLoader).Remove,
-              new RPSCommand(defaultLoader).Run,
-              new RegenCommand(defaultLoader).Run,
-              new XMLGenCommand().Run,
-              new GUICommand(LoadSolutionInfo).Run,
-              (ReloadBatOptions opts) =>
-              {
-                  var solutionInfo = defaultLoader().Result;
-                  var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
-                  var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
-                  var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");
-                  solutionInfo.LoadFromBat(solutionInfo.SolutionDir, File.Exists(regenPath) ? regenPath : regenConfigPath, userTokenFile);
-                  return 0;
-              },
-              errs =>
-              {
-                  foreach (var error in errs)
-                  {
-                      Console.WriteLine(error);
-                  }
-                  return 1;
-              });
             
+
+            while(ProcessCommandArgs(args) == RELOAD_SOLUTION)
+            {
+                var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
+                ReloadBatFile(defaultLoader);
+            }
+        }
+
+        private static int ProcessCommandArgs(string[] args)
+        {
+            var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
+            return Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
+                        .MapResult(
+
+                          (UpgradeLatestOptions opts) =>
+                          {
+                              Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
+
+
+                              Console.WriteLine("Type YES to proceed: ");
+                              if (string.Compare(Console.ReadLine(), "YES", true) != 0)
+                              {
+                                  Console.WriteLine("exiting without changes");
+                                  return 1;
+                              }
+
+                              Console.WriteLine("Checking for current version info");
+                              var versionInfo = LoadVersionInfoSync(true);
+                              if (opts.ProjectOnly)
+                                  UpgradeProjects(defaultLoader().Result, versionInfo);
+                              else
+                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                              return 0;
+                          },
+                          (Func<CodegenListOptions, int>)new CodegenCommand(defaultLoader).List,
+                          (Func<CodegenAddOptions, int>)new CodegenCommand(defaultLoader).Add,
+                          (Func<CodegenRemoveOptions, int>)new CodegenCommand(defaultLoader).Remove,
+                          (Func<RpsOptions, int>)new RPSCommand(defaultLoader).Run,
+                          (Func<RegenOptions, int>)new RegenCommand(defaultLoader).Run,
+                          (Func<XMLGenOptions, int>)new XMLGenCommand().Run,
+                          (Func<GUIOptions, int>)new GUICommand(LoadSolutionInfo).Run,
+                          (ReloadBatOptions opts) =>
+                          {
+                              ReloadBatFile(defaultLoader);
+                              return 0;
+                          },
+                          errs =>
+                          {
+                              foreach (var error in errs)
+                              {
+                                  Console.WriteLine(error);
+                              }
+                              return 1;
+                          });
+        }
+
+        private static void ReloadBatFile(Func<Task<SolutionInfo>> defaultLoader)
+        {
+            var solutionInfo = defaultLoader().Result;
+            var regenPath = Path.Combine(solutionInfo.SolutionDir, "regen.bat");
+            var regenConfigPath = Path.Combine(solutionInfo.SolutionDir, "regen_config.bat");
+            var userTokenFile = Path.Combine(solutionInfo.SolutionDir, "UserDefinedTokens.tkn");
+            solutionInfo.LoadFromBat(solutionInfo.SolutionDir, File.Exists(regenPath) ? regenPath : regenConfigPath, userTokenFile);
         }
 
         public static VersionTargetingInfo LoadVersionInfoSync(bool skipCache)

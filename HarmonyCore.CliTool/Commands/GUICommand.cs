@@ -21,13 +21,13 @@ namespace HarmonyCore.CliTool.Commands
             Console.OutputEncoding = System.Text.Encoding.Default;
             Application.Init();
             Application.HeightAsBuffer = false;
-            
-            Application.Run(new MainView(_solutionLoader), ex =>
+            var mainView = new MainView(_solutionLoader);
+            Application.Run(mainView, ex =>
             {
                 Trace.WriteLine(ex);
                 return false;
             });
-            return 0;
+            return mainView.ExitCode;
         }
     }
 }
