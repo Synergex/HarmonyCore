@@ -203,11 +203,6 @@ namespace HarmonyCore.CliTool.TUI.Views
                 }
             }
         }
-
-        private void Rg_SelectedItemChanged(SelectedItemChangedArgs obj)
-        {
-            throw new NotImplementedException();
-        }
         void OkPressed()
         {
             try
