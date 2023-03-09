@@ -1,4 +1,5 @@
 ﻿using HarmonyCore.CliTool.TUI.Models;
+using Microsoft.Build.Tasks;
 using NStack;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             if (oldValue is IMultiItemSettingsBase)
             {
                 var multiItemView = new MultiItemSettingsView(oldValue as IMultiItemSettingsBase)
-                { 
+                {
                     X = 0,
                     Y = 0,
                     Width = Dim.Fill(),
@@ -45,7 +46,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                 multiItemView.SetFocus();
                 _getResult = () => oldValue;
             }
-            else if(oldValue is ISingleItemSettings)
+            else if (oldValue is ISingleItemSettings)
             {
                 var singleItemView = new SingleItemSettingsView(oldValue as ISingleItemSettings)
                 {
@@ -101,16 +102,42 @@ namespace HarmonyCore.CliTool.TUI.Views
                         X = 0,
                         Y = 2,
                         Width = Dim.Fill(),
-                        Height = Dim.Fill() - 1, //leave room for the buttons at the bottom
+                        Height = Dim.Fill() - 8, //leave room for the buttons and help text at the bottom
                         RadioLabels = options.Select(obj => ustring.Make(obj.ToString())).ToArray(),
                         SelectedItem = options.IndexOf(oldValue.Value),
-                        
                     };
-                    Add(lbl, rg);
+                    var helpText = "Click an item to select it, or use arrow keys to move to an item," 
+                                 + "and press the spacebar to select it. Then click Ok or press Enter.";
+                    var helpTextView = new TextView() 
+                    {
+                        Text = helpText,
+                        X = 2,
+                        Y = 11,
+                        Width = Dim.Fill() - 4,
+                        Height = 3,
+                        ReadOnly = true,
+                        WordWrap = true,
+                    };
+                    Add(lbl, rg, helpTextView);
+                    ok.Enabled = false;
+                    helpTextView.CanFocus = false;
                     rg.SetFocus();
+                    rg.SelectedItemChanged += item =>
+                    {
+                        //If a radio button is selected (e.g., with mouse click), enable the OK button.
+                        ok.Enabled = true;
+                    };
+                    rg.KeyPress += key =>
+                    {
+                        //If a key is pressed and a radio button is selected, enable OK.
+                        if (rg.SelectedItem >= 0)
+                        {
+                            ok.Enabled = true;
+                        }
+                    };
                     _getResult = () => options[rg.SelectedItem].ToString();
                 }
-                else if(!allowsMultiSelection)
+                else if (!allowsMultiSelection)
                 {
                     var cf = new ComboBox()
                     {
@@ -138,7 +165,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                     var delimiter = navigationObject.Context.MultiSelectionDelimiterForProperty(oldValue.Source);
                     var listSource = new ListWrapper(options);
 
-                    if(oldValue.Value is string stringValue)
+                    if (oldValue.Value is string stringValue)
                     {
                         var splitItems = stringValue.Split(delimiter);
                         foreach (var item in splitItems)
@@ -164,9 +191,9 @@ namespace HarmonyCore.CliTool.TUI.Views
                         //get all marked items
                         //join using delimiter
                         var result = new List<string>();
-                        for(int i = 0; i < listSource.Count; i++)
+                        for (int i = 0; i < listSource.Count; i++)
                         {
-                            if(listSource.IsMarked(i))
+                            if (listSource.IsMarked(i))
                             {
                                 result.Add(options[i].ToString());
                             }
@@ -176,7 +203,6 @@ namespace HarmonyCore.CliTool.TUI.Views
                 }
             }
         }
-
         void OkPressed()
         {
             try
@@ -184,6 +210,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                 _navigationResult.Result = _navigationResult.Context.UpdateSettingValue(_navigationResult.Model, _getResult());
                 _navigationResult.Success = true;
             }
+
             catch (Exception ex)
             {
                 _navigationResult.Success = false;
