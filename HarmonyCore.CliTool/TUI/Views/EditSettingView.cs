@@ -102,13 +102,13 @@ namespace HarmonyCore.CliTool.TUI.Views
                         X = 0,
                         Y = 2,
                         Width = Dim.Fill(),
-                        Height = Dim.Fill() - 5, //leave room for the buttons at the bottom
+                        Height = Dim.Fill() - 8, //leave room for the buttons and help text at the bottom
                         RadioLabels = options.Select(obj => ustring.Make(obj.ToString())).ToArray(),
                         SelectedItem = options.IndexOf(oldValue.Value),
                     };
                     var helpText = "Click an item to select it, or use arrow keys to move to an item," 
                                  + "and press the spacebar to select it. Then click Ok or press Enter.";
-                    var affordance = new TextView() 
+                    var helpTextView = new TextView() 
                     {
                         Text = helpText,
                         X = 2,
@@ -118,8 +118,9 @@ namespace HarmonyCore.CliTool.TUI.Views
                         ReadOnly = true,
                         WordWrap = true,
                     };
-                    Add(lbl, rg, affordance);
+                    Add(lbl, rg, helpTextView);
                     ok.Enabled = false;
+                    helpTextView.CanFocus = false;
                     rg.SetFocus();
                     rg.SelectedItemChanged += item =>
                     {
