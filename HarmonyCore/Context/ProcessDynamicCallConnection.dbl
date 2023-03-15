@@ -23,6 +23,27 @@ namespace Harmony.Core.Context
 		private mDisconnectToken, @CancellationTokenSource
 		private mLastSeenBytes, ArraySegment<byte>
 
+		private static mFileBufferSize, int
+        static method ProcessDynamicCallConnection
+        proc
+            data bufSizeVar = Environment.GetEnvironmentVariable("HARMONYCORE_TBIOBUF")
+            if(string.IsNullOrWhiteSpace(bufSizeVar)) then
+            begin
+                if(!Int32.TryParse(bufSizeVar, mFileBufferSize))
+                    mFileBufferSize = 4096 * 16
+
+                if((mFileBufferSize .mod. 4096) != 0)
+                begin
+                    Console.WriteLine("HARMONYCORE_TBIOBUF was set to {0} but must be a multiple of 4096, defaulting to 64k", mFileBufferSize)
+                    mFileBufferSize = 4096 * 16
+                end
+            end
+            else
+                mFileBufferSize = 4096 * 16
+
+        endmethod
+
+
 		public method ProcessDynamicCallConnection
 			startInfo, @ProcessStartInfo
 		proc
@@ -178,8 +199,8 @@ namespace Harmony.Core.Context
 				data inputFileStream = ^as(mTargetProcess.StandardInput.BaseStream, @FileStream)
 				data outputFileStream = ^as(mTargetProcess.StandardOutput.BaseStream, @FileStream)
 
-				targetInput = new FileStream(inputFileStream.SafeFileHandle, FileAccess.Write, 4096 * 16, false)
-				targetOutput = new FileStream(outputFileStream.SafeFileHandle, FileAccess.Read, 4096 * 16, false)
+				targetInput = new FileStream(inputFileStream.SafeFileHandle, FileAccess.Write, mFileBufferSize, false)
+				targetOutput = new FileStream(outputFileStream.SafeFileHandle, FileAccess.Read, mFileBufferSize, false)
 			end
 			else
 			begin
@@ -235,165 +256,6 @@ namespace Harmony.Core.Context
 		proc
 			mLastSeenBytes = bytes
 		endmethod
-
-		private class StreamWrapper extends Stream
-
-			public override method Read, int
-				buffer, [#]byte 
-				offset, int 
-				count, int 
-				endparams
-			proc
-				data returnedCount = mReader.BaseStream.Read(buffer, offset, count)
-				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-				begin
-					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, returnedCount))
-				end
-				mreturn returnedCount
-			endmethod
-
-
-			private mReader, @StreamReader
-			private mWriter, @StreamWriter
-			;private mEvent, @AutoResetEvent
-			public method StreamWrapper
-				reader, @StreamReader
-				writer, @StreamWriter
-			proc
-				mReader = reader
-				mWriter = writer
-				;mEvent = new AutoResetEvent(false)
-			endmethod
-
-
-			public override property CanRead, Boolean
-				method get
-				proc
-					mreturn mReader.BaseStream.CanRead
-				endmethod
-			endproperty
-
-
-
-			public override method Flush, void
-				endparams
-			proc
-				mWriter.BaseStream.Flush()
-			endmethod
-
-			public override async method ReadAsync, @Task<int> 
-				buffer, [#]byte 
-				offset, int 
-				count, int 
-				token, CancellationToken
-				endparams
-			proc
-				data readBytes = await mReader.BaseStream.ReadAsync(buffer, offset, count, token)
-				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
-				begin
-					DebugLogSession.Logging.LogTrace("ProcessDynamicCallConnection read ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, readBytes)))
-				end
-				mreturn readBytes
-			endmethod
-
-
-			public override async method WriteAsync, @Task
-				buffer, [#]byte
-				offset, int
-				count, int
-				cancellationToken, CancellationToken
-			proc
-				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
-				begin
-					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
-				end
-
-				await mWriter.BaseStream.WriteAsync(buffer, offset, count, cancellationToken)
-				await mWriter.BaseStream.FlushAsync()
-			endmethod
-
-
-			public override property CanTimeout, boolean
-				method get
-				proc
-					mreturn true
-				endmethod
-			endproperty
-
-
-			public override property CanSeek, Boolean
-				method get
-				proc
-					mreturn false
-				endmethod
-			endproperty
-
-
-
-			public override property Position, long
-				method get
-				proc
-					mreturn mReader.BaseStream.Position
-				endmethod
-				method set
-				proc
-					mReader.BaseStream.Position = value
-				endmethod
-			endproperty
-
-
-
-			public override property Length, long
-				method get
-				proc
-					mreturn mReader.BaseStream.Length
-				endmethod
-			endproperty
-
-
-
-			public override method Seek, long
-				offset, long 
-				origin, SeekOrigin 
-				endparams
-			proc
-				throw new NotImplementedException()
-			endmethod
-
-
-
-			public override property CanWrite, Boolean
-				method get
-				proc
-					mreturn true
-				endmethod
-			endproperty
-
-
-
-			public override method Write, void
-				buffer, [#]byte 
-				offset, int 
-				count, int 
-				endparams
-			proc
-				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Debug)
-				begin
-					DebugLogSession.Logging.LogDebug("ProcessDynamicCallConnection write ascii string: {0}", new ASCIIArrayDebugLogHelper(buffer, offset, Math.Min(50, count)))
-				end
-				mWriter.BaseStream.Write(buffer, offset, count)
-				mWriter.BaseStream.Flush()
-			endmethod
-
-
-
-			public override method SetLength, void
-				value, long 
-				endparams
-			proc
-				throw new NotImplementedException()
-			endmethod
-		endclass
 	endclass
 
 endnamespace
