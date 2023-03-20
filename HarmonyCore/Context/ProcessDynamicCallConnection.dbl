@@ -159,12 +159,31 @@ namespace Harmony.Core.Context
 			mTargetProcess.StartInfo.StandardOutputEncoding = ASCIIEncoding.ASCII
 			mTargetProcess.Start()
 			mProcessStarted = true
-			
-			readLine = await mTargetProcess.StandardOutput.ReadLineAsync()
-			while(!mTargetProcess.HasExited && readLine != "READY")
+            try
 			begin
-				readLine += await mTargetProcess.StandardOutput.ReadLineAsync()
-			end
+                data timeoutTokenSource = CancellationTokenSource.CreateLinkedTokenSource(mDisconnectToken.Token)
+				timeoutTokenSource.CancelAfter(30 * 1000) ;;timeout if we cant start the process within 30 seconds
+                data timeoutToken = timeoutTokenSource.Token
+                data tmpTsk = mTargetProcess.StandardOutput.ReadLineAsync()
+                data untypedTask, @Task, tmpTsk
+                await untypedTask.WaitAsync(timeoutToken)
+                readLine = tmpTsk.Result
+
+                Console.WriteLine("first readline returned {0}", tmpTsk.Result)
+
+				while(!mTargetProcess.HasExited && !readLine.EndsWith("READY"))
+                begin
+                    tmpTsk = mTargetProcess.StandardOutput.ReadLineAsync()
+                    untypedTask = tmpTsk
+                    await untypedTask.WaitAsync(timeoutToken)
+                    readLine += tmpTsk.Result
+				end
+            end
+            catch(ex, @OperationCanceledException)
+            begin
+                throw new BridgeConnectionException("TraditionalBridge was unable to start dbr process after 30 second timeout expired", new string[#] { readLine })
+            end
+            endtry
 
 			if(mTargetProcess.HasExited)
 			begin
