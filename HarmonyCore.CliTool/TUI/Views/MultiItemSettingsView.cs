@@ -32,7 +32,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             };
 
             _leftFrame = new FrameView(settings.Name);
-            _currentItemFrame = new FrameView(" ");
+            _currentItemFrame = new FrameView($"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar");
 
             _leftFrame.Add(_structureListView);
             _structureListView.SelectedItemChanged += _structureListView_SelectedItemChanged;
@@ -151,10 +151,9 @@ namespace HarmonyCore.CliTool.TUI.Views
         {
             _statusBar = target;
             if (_settings.CanAddItems)
-            {
-                _statusBar.AddItemAt(0, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove " + _settings.Name.ToLower(), OnRemoveThing));
                 _statusBar.AddItemAt(0, new StatusItem(Key.CtrlMask | Key.A, "~^A~ Add " + _settings.Name.ToLower(), OnAddThing));
-            }
+            if (_settings.Items.Count > 0 && _statusBar.Items.Length < 2)
+                _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
         }
 
         private class ThingPicker : IHasNavigationResult
@@ -178,25 +177,43 @@ namespace HarmonyCore.CliTool.TUI.Views
             var picker = (await EditSettingView.PushEditSettingsView("Add " + _settings.Name.ToLower(), new ThingPicker(_settings), false)) as ThingPicker;
             if(picker.Success)
             {
-                //need to run a wizzard after selecting the structure or possible as part of selecting the structure
+                //need to run a wizard after selecting the structure or possible as part of selecting the structure
                 //must at the least populate the enabled generators. Would like to multi select structures.
                 _settings.AddItem(picker.Result);
                 _structureListView.SetSource(_settings.Items.Select(itm => itm.Name).ToList());
+                if (_statusBar.Items.Length < 2)
+                    _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
+                SelectItem(_settings.Items.Last());
             }
         }
 
         private void OnRemoveThing()
         {
-            throw new NotImplementedException();
+            var selectedItem = _settings.Items.ElementAtOrDefault(_structureListView.SelectedItem);
+            var n = MessageBox.Query("Remove item", $"Are you sure you want to remove {selectedItem.Name}?", "Yes", "No");
+            if (n != 0) return;
+            if (_settings is IRemovableItem removableSettings)
+                removableSettings.RemoveItem(selectedItem);
+            UpdateViewsWhenLastItemRemoved();
+            _structureListView.SetSource(_settings.Items.Select(itm => itm.Name).ToList());
+            SelectItem(_settings.Items.LastOrDefault());
+        }
+
+        private void UpdateViewsWhenLastItemRemoved()
+        {
+            if (_settings.Items.Count < 1)
+            {
+                _statusBar.RemoveItem(1);
+                _currentItemFrame.Title = $"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar";
+                _currentItemFrame.RemoveAll();
+            }
         }
 
         public void DetachStatusBar()
         {
             if (_settings.CanAddItems)
-            {
-                _statusBar.RemoveItem(0);
-                _statusBar.RemoveItem(0);
-            }
+                while (_statusBar.Items.Length > 0)
+                    _statusBar.RemoveItem(0);
             _statusBar = null;
         }
 

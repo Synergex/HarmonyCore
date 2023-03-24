@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace HarmonyCore.CliTool.TUI.Models
 {
-    internal class StructureSettings : IMultiItemSettingsBase
+    internal class StructureSettings : IMultiItemSettingsBase, IRemovableItem
     {
         SolutionInfo _context;
         Dictionary<string, Dictionary<string, object>> _structureProperties;
@@ -19,6 +19,8 @@ namespace HarmonyCore.CliTool.TUI.Models
         public List<ISingleItemSettings> Items { get; } = new List<ISingleItemSettings>();
 
         public bool CanAddItems => true;
+
+        public bool CanRemoveItems { get; set; } = false;
 
         public StructureSettings(SolutionInfo context) 
         {
@@ -40,7 +42,16 @@ namespace HarmonyCore.CliTool.TUI.Models
             _context.CodeGenSolution.ExtendedStructures.Add(madeStructure);
             var result = new SingleStructureSettings(_context, madeStructure);
             Items.Add(result);
+            CanRemoveItems = true;
             return result;
+        }
+
+        public void RemoveItem(ISingleItemSettings itemToRemove)
+        {
+            Items.Remove(itemToRemove);
+            var itemFromEtendedStructuresList = _context.CodeGenSolution.ExtendedStructures.FirstOrDefault(item => item.Name == itemToRemove.Name);
+            _context.CodeGenSolution.ExtendedStructures.Remove(itemFromEtendedStructuresList);
+            CanRemoveItems = Items.Count < 1 ? false : true;
         }
 
         class StructurePickerHelper : SingleItemSettingsBase, IContextWithFilter
