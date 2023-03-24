@@ -153,7 +153,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             if (_settings.CanAddItems)
                 _statusBar.AddItemAt(0, new StatusItem(Key.CtrlMask | Key.A, "~^A~ Add " + _settings.Name.ToLower(), OnAddThing));
             if (_settings.Items.Count > 0 && _statusBar.Items.Length < 2)
-                _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove " + _settings.Name.ToLower(), OnRemoveThing));
+                _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
         }
 
         private class ThingPicker : IHasNavigationResult
@@ -182,7 +182,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                 _settings.AddItem(picker.Result);
                 _structureListView.SetSource(_settings.Items.Select(itm => itm.Name).ToList());
                 if (_statusBar.Items.Length < 2)
-                    _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove " + _settings.Name.ToLower(), OnRemoveThing));
+                    _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
                 SelectItem(_settings.Items.Last());
             }
         }
