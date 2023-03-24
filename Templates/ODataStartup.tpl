@@ -595,8 +595,14 @@ namespace <NAMESPACE>
             app.UseSwaggerUI(swaggerUiOptions)
 
             ;;Enable serving static files
+
+            data staticFilesProvider, @FileExtensionContentTypeProvider
+            AddCustomMimeTypes(staticFilesProvider)
             app.UseDefaultFiles()
-            app.UseStaticFiles()
+            if (staticFilesProvider == ^null) then
+                app.UseStaticFiles()
+            else
+                app.UseStaticFiles(new StaticFileOptions() { ContentTypeProvider = staticFilesProvider })
 
             app.UsePathBase(new PathString("/<SERVER_BASE_PATH>/v1"))
 
@@ -681,6 +687,19 @@ namespace <NAMESPACE>
         ;;; <param name="serviceProvider">Data object provider</param>
         partial method AddDataObjectMappingsCustom, void
             required in provider, @DataObjectProvider
+        endmethod
+
+        ;;; <summary>
+        ;;; Declare the AddCustomMimeTypes partial method.
+        ;;; Developers can use this to add support for custom mime types to the kestrel server
+        ;;; </summary>
+        ;;; <param name="provider">Returns an instance of FileExtensionContentTypeProvider</param>
+        partial method AddCustomMimeTypes, void
+            required out provider, @FileExtensionContentTypeProvider
+        ;An example of how to implement this partial method:
+        ;proc
+        ;    provider = new FileExtensionContentTypeProvider()
+        ;    provider.Mappings.Add(".apk","application/vnd.android.package-archive")
         endmethod
 
 .endregion
