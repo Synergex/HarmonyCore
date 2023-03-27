@@ -5,9 +5,14 @@ import System.Collections.Concurrent
 import Harmony.Core.Utility
 import System.Linq
 import Microsoft.Extensions.Caching.Memory
+import System.Threading
 namespace Harmony.Core.FileIO
 
-    public class FileChannelManager implements IFileChannelManager, IDisposable
+	public class FileChannelManager implements IFileChannelManager, IDisposable
+		; declare a number of xfServer connections
+		private static xfConnections, int, 2
+		private static counter, int, xfConnections - 1
+
         public virtual method Dispose, void
             endparams
         proc
@@ -18,9 +23,14 @@ namespace Harmony.Core.FileIO
             disposing, boolean
             endparams
         proc
-            data channelTpl, KeyValuePair<int, Tuple<string, FileOpenMode>>
+            data channelTpl, KeyValuePair<int, Tuple<int, Tuple<string, FileOpenMode>>>
             foreach channelTpl in mAllOpenChannels
-                close channelTpl.Key
+			    close channelTpl.Key
+
+			data connectionTpl, KeyValuePair<string, int>
+			data handle, D_HANDLE
+			foreach connectionTpl in mAllOpenConnections
+				handle = %DESTROY_SERVER_CONNECTION(connectionTpl.Value)
 
             if(disposing)
                 GC.SuppressFinalize(this)
@@ -50,15 +60,127 @@ namespace Harmony.Core.FileIO
 
         endclass
 
+		public static method GetConnections, int
+		proc
+			mreturn xfConnections
+		endmethod
+				
+		public static class Transaction
+			static AsyncLocalTransaction, @AsyncLocal<int>, new AsyncLocal<int>()
+			public static method SetTransactionId, void
+				tid, int
+			proc
+				AsyncLocalTransaction.Value = tid
+			endmethod
+			public static property CurrentTransactionId, int
+				method get
+				proc
+					mreturn AsyncLocalTransaction.Value
+				endmethod
+			endproperty
+		endclass
+
+		private class Connections
+			private tid, int
+			private server, @string
+			private port, int
+
+		endclass
+
+		private method RemoteFile, boolean
+			fileName, @string
+		proc
+			data envVar, @string, ""
+			data sep, int
+			sep = fileName.IndexOf(":", StringComparison.Ordinal)
+			if (sep > 0)
+				envVar = fileName.Substring(0, sep)
+			envVar = Environment.GetEnvironmentVariable(envVar)
+			if (envVar)
+				if(envVar.Contains('@'))
+					mreturn true
+			mreturn false
+		endmethod
+
+		private method GetEnvVar, string
+			fileName, @string
+		proc
+			data envVar, @string, ""
+			data sep, int
+			sep = fileName.IndexOf(":", StringComparison.Ordinal)
+			if (sep > 0)
+				envVar = fileName.Substring(0, sep)
+			mreturn envVar
+		endmethod		
+
+		private method GetServerName, string
+			fileName, @string
+		proc
+			data serv, @string, ""
+			if (RemoteFile(fileName))
+			begin
+				data envVar, @string
+				data sep, int
+				sep = fileName.IndexOf(":", StringComparison.Ordinal)
+				if (sep > 0)
+					envVar = fileName.Substring(0, sep)
+				envVar = Environment.GetEnvironmentVariable(envVar)
+				serv = envVar.Substring(envVar.LastIndexOf('@') + 1)
+			end
+			mreturn serv
+		endmethod
+
+		private method GetPortNumber, string
+			fileName, @string
+		proc
+			data port, @string
+			if (RemoteFile(fileName))
+			begin
+				port = Environment.GetEnvironmentVariable("SCSPORT")
+				if (!port)
+					port = "2330"		
+			end
+			mreturn port
+		endmethod
+
+		private method GetFileName, string
+			fileName, @string
+		proc
+			data newFileName, @string
+			if (RemoteFile(fileName))
+			begin
+				data envVar, @string
+				data file, @string
+				data sep, int
+				sep = fileName.IndexOf(":", StringComparison.Ordinal)
+				if (sep > 0)
+				begin
+					file = fileName.Substring(sep)
+					envVar = fileName.Substring(0, sep)
+					envVar = Environment.GetEnvironmentVariable(envVar)
+					if (envVar) then
+					begin
+						sep = envVar.IndexOf(":", StringComparison.Ordinal)
+						envVar = envVar.Substring(0, sep)
+						if (sep > 0)
+							newFileName = envVar + file
+					end
+					else
+						newFileName = fileName
+				end
+			end
+			mreturn newFileName
+		endmethod
+
         private method MakeCacheEntry, @FileChannelManager.ChannelCacheEntry
             fileName, @string
         proc
             mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
         endmethod
 
-
-        protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<string, FileOpenMode>>, new ConcurrentDictionary<int, Tuple<string, FileOpenMode>>()
-        protected mChannelLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>, new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>()
+		protected mAllOpenConnections, @ConcurrentDictionary<string, int>, new ConcurrentDictionary<string, int>()
+		protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>, new ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>()
+        protected mChannelLookup, @ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>, new ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>()
         protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
         public static readwrite property SoftChannelLimit, int, 512
 
@@ -66,8 +188,17 @@ namespace Harmony.Core.FileIO
             fileName, @string
             openMode, FileOpenMode
         proc
-            (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
-            data fileModeLookup = mChannelLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
+			if (RemoteFile(fileName)) then
+			begin
+				counter = Interlocked.Increment(counter)
+				Transaction.SetTransactionId((counter .mod. xfConnections) + 1)
+			end
+			else
+				Transaction.SetTransactionId(0)
+
+			(void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
+			data transactionLookup = mChannelLookup.GetOrAdd(Transaction.CurrentTransactionId, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
+			data fileModeLookup = transactionLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
             data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
             data channel, int, 0
             if(fileChannelBag.TryTake(channel)) then
@@ -84,50 +215,104 @@ namespace Harmony.Core.FileIO
             fileName, @string
             openMode, FileOpenMode
         proc
-            data channel, i4, 0
-            try
-            begin
+			data handle, D_HANDLE
+			data channel, i4, 0
+			data remoteFileName, @string, ""
+			data envVar, @string, ""
+			data envVarTranslation, @string, ""
+			data envVarLength, int, 0
+
+			try
+			begin
+				if (RemoteFile(fileName))
+				begin
+					data server, @string
+					data port, @string
+
+					server = GetServerName(fileName)
+					port = GetPortNumber(fileName)
+					
+					try
+					begin
+						if (!mAllOpenConnections.TryGetValue(server, handle))
+						begin
+							Monitor.Enter(mAllOpenConnections)
+							handle = mAllOpenConnections.GetOrAdd(server, %create_server_connection(server, Int32.Parse(port)))
+						end
+					end
+					finally
+					begin
+							if (RemoteFile(fileName) .and. Monitor.IsEntered(mAllOpenConnections))
+							begin
+								Monitor.Exit(mAllOpenConnections)
+							end
+					end
+					endtry
+				end
+
                 using openMode select
                 (FileOpenMode.UpdateRelative),
                 begin
-                    open(channel, 'u:r', fileName)
+					if (handle) then
+						open(channel, 'u:r', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'u:r', fileName)
                 end
                 (FileOpenMode.Update, FileOpenMode.UpdateIndexed),
-                begin
-                    open(channel, 'u:i', fileName)
+				begin
+					if (handle) then
+						open(channel, 'u:i', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'u:i', fileName)
                 end
                 (FileOpenMode.InputSequential),
-                begin
-                    open(channel, 'i:s', fileName)
+				begin
+					if (handle) then
+						open(channel, 'i:s', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'i:s', fileName)
                 end
                 (FileOpenMode.InputRelative),
-                begin
-                    open(channel, 'i:r', fileName)
+				begin
+					if (handle) then
+						open(channel, 'i:r', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'i:r', fileName)
                 end
                 (FileOpenMode.OutputSequential),
                 begin
-                    open(channel, 'o:s', fileName)
+					if (handle) then
+						open(channel, 'o:s', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'o:s', fileName)
                 end
                 (FileOpenMode.Input,FileOpenMode.InputIndexed),
                 begin
-                    open(channel, 'i:i', fileName)
+					if (handle) then
+						open(channel, 'i:i', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'i:i', fileName)
                 end
                 (FileOpenMode.AppendSequential),
-                begin
-                    open(channel, 'a:s', fileName)
+				begin
+					if (handle) then
+						open(channel, 'a:s', GetFileName(fileName), SERVERCONNECTION:handle)
+					else
+						open(channel, 'a:s', fileName)
                 end
                 endusing
 			
                 DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
-                mAllOpenChannels[channel] = Tuple.Create(fileName, openMode)
-			
+				
+				mAllOpenChannels[channel] = Tuple.Create(Transaction.CurrentTransactionId, Tuple.Create(fileName, openMode))
+
                 mreturn channel
             end
             catch(ex, @NoFileFoundException)
             begin
                 DebugLogSession.Logging.LogInfo("FileChannelManager: failed to open channel {0} with mode {1} using path {2}", channel, openMode, fileName)
                 throw
-            end
+			end
             endtry
             throw new ApplicationException("impossible execution")
         endmethod
@@ -137,16 +322,19 @@ namespace Harmony.Core.FileIO
         proc
             DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
             xcall free(channelId)
-            data channelInfo, @Tuple<string, FileOpenMode>
-            if(!mAllOpenChannels.TryGetValue(channelId, channelInfo)) then
+			data transactionInfo, @Tuple<int, Tuple<string, FileOpenMode>>
+
+			if(!mAllOpenChannels.TryGetValue(channelId, transactionInfo)) then
             begin
                 close channelId
             end
             else
             begin
-                data openModeLookup = mChannelLookup[channelInfo.Item1]
-                data channelBag = openModeLookup[channelInfo.Item2]
-                channelBag.Add(channelId)
+				data transactionLookup = mChannelLookup[transactionInfo.Item1]
+				data fileInfo = transactionInfo.Item2
+				data openModeLookup = transactionLookup[fileInfo.Item1]
+				data channelBag = openModeLookup[fileInfo.Item2]
+				channelBag.Add(channelId)
             end
 
         endmethod
@@ -157,7 +345,8 @@ namespace Harmony.Core.FileIO
         proc
             data closedChannelCount = 0
             data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
-            if(mChannelLookup.TryGetValue(fileName, openDictionary))
+			data fileNameLookup = mChannelLookup[Transaction.CurrentTransactionId]
+			if(fileNameLookup.TryGetValue(fileName, openDictionary))
             begin
                 data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
                 foreach openDictionaryItem in openDictionary
