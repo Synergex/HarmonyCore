@@ -10,7 +10,7 @@ namespace Harmony.Core.FileIO
 
 	public class FileChannelManager implements IFileChannelManager, IDisposable
 		; declare a number of xfServer connections
-		private static xfConnections, int, 2
+		private static xfConnections, int, 1
 		private static counter, int, xfConnections - 1
 
         public virtual method Dispose, void
@@ -188,7 +188,7 @@ namespace Harmony.Core.FileIO
             fileName, @string
             openMode, FileOpenMode
         proc
-			if (RemoteFile(fileName)) then
+			if (RemoteFile(fileName) .and. xfConnections > 1) then
 			begin
 				counter = Interlocked.Increment(counter)
 				LoadInfo.SetLoadId((counter .mod. xfConnections) + 1)
@@ -217,14 +217,9 @@ namespace Harmony.Core.FileIO
         proc
 			data handle, D_HANDLE
 			data channel, i4, 0
-			data remoteFileName, @string, ""
-			data envVar, @string, ""
-			data envVarTranslation, @string, ""
-			data envVarLength, int, 0
-
 			try
 			begin
-				if (RemoteFile(fileName))
+				if (RemoteFile(fileName) .and. xfConnections > 1)
 				begin
 					data server, @string
 					data port, @string
