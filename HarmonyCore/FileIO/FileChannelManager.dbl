@@ -65,23 +65,23 @@ namespace Harmony.Core.FileIO
 			mreturn xfConnections
 		endmethod
 				
-		public static class Transaction
-			static AsyncLocalTransaction, @AsyncLocal<int>, new AsyncLocal<int>()
-			public static method SetTransactionId, void
-				tid, int
+		public static class LoadInfo
+			static AsyncLocalLoad, @AsyncLocal<int>, new AsyncLocal<int>()
+			public static method SetLoadId, void
+				lid, int
 			proc
-				AsyncLocalTransaction.Value = tid
+				AsyncLocalLoad.Value = lid
 			endmethod
-			public static property CurrentTransactionId, int
+			public static property CurrentLoadId, int
 				method get
 				proc
-					mreturn AsyncLocalTransaction.Value
+					mreturn AsyncLocalLoad.Value
 				endmethod
 			endproperty
 		endclass
 
 		private class Connections
-			private tid, int
+			private lid, int
 			private server, @string
 			private port, int
 
@@ -191,21 +191,21 @@ namespace Harmony.Core.FileIO
 			if (RemoteFile(fileName)) then
 			begin
 				counter = Interlocked.Increment(counter)
-				Transaction.SetTransactionId((counter .mod. xfConnections) + 1)
+				LoadInfo.SetLoadId((counter .mod. xfConnections) + 1)
 			end
 			else
-				Transaction.SetTransactionId(0)
+				LoadInfo.SetLoadId(0)
 
 			(void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
-			data transactionLookup = mChannelLookup.GetOrAdd(Transaction.CurrentTransactionId, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
-			data fileModeLookup = transactionLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
+			data loadIdLookup = mChannelLookup.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
+			data fileModeLookup = loadIdLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
             data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
             data channel, int, 0
             if(fileChannelBag.TryTake(channel)) then
                 mreturn channel
             else
             begin
-                channel = OpenChannel(fileName, openMode)
+               channel = OpenChannel(fileName, openMode)
                 mreturn channel
             end
 			
@@ -304,7 +304,7 @@ namespace Harmony.Core.FileIO
 			
                 DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
 				
-				mAllOpenChannels[channel] = Tuple.Create(Transaction.CurrentTransactionId, Tuple.Create(fileName, openMode))
+				mAllOpenChannels[channel] = Tuple.Create(LoadInfo.CurrentLoadId, Tuple.Create(fileName, openMode))
 
                 mreturn channel
             end
@@ -322,17 +322,17 @@ namespace Harmony.Core.FileIO
         proc
             DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
             xcall free(channelId)
-			data transactionInfo, @Tuple<int, Tuple<string, FileOpenMode>>
+			data loadInfo, @Tuple<int, Tuple<string, FileOpenMode>>
 
-			if(!mAllOpenChannels.TryGetValue(channelId, transactionInfo)) then
+			if(!mAllOpenChannels.TryGetValue(channelId, loadInfo)) then
             begin
                 close channelId
             end
             else
             begin
-				data transactionLookup = mChannelLookup[transactionInfo.Item1]
-				data fileInfo = transactionInfo.Item2
-				data openModeLookup = transactionLookup[fileInfo.Item1]
+				data loadIdLookup = mChannelLookup[loadInfo.Item1]
+				data fileInfo = loadInfo.Item2
+				data openModeLookup = loadIdLookup[fileInfo.Item1]
 				data channelBag = openModeLookup[fileInfo.Item2]
 				channelBag.Add(channelId)
             end
@@ -345,7 +345,7 @@ namespace Harmony.Core.FileIO
         proc
             data closedChannelCount = 0
             data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
-			data fileNameLookup = mChannelLookup[Transaction.CurrentTransactionId]
+			data fileNameLookup = mChannelLookup[LoadInfo.CurrentLoadId]
 			if(fileNameLookup.TryGetValue(fileName, openDictionary))
             begin
                 data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
