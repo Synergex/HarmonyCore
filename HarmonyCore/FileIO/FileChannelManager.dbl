@@ -10,7 +10,7 @@ namespace Harmony.Core.FileIO
 
 	public class FileChannelManager implements IFileChannelManager, IDisposable
 		; declare a number of xfServer connections
-		private static xfConnections, int, 1
+		private static xfConnections, int, 2
 		private static counter, int, xfConnections - 1
 
         public virtual method Dispose, void
@@ -27,10 +27,12 @@ namespace Harmony.Core.FileIO
             foreach channelTpl in mAllOpenChannels
 			    close channelTpl.Key
 
-			data connectionTpl, KeyValuePair<string, int>
+			data lid, KeyValuePair<int, Tuple<string, int>>
 			data handle, D_HANDLE
-			foreach connectionTpl in mAllOpenConnections
-				handle = %DESTROY_SERVER_CONNECTION(connectionTpl.Value)
+			foreach lid in mAllOpenConnections
+			begin
+				handle = %DESTROY_SERVER_CONNECTION(lid.Value.Item2)
+			end
 
             if(disposing)
                 GC.SuppressFinalize(this)
@@ -44,7 +46,12 @@ namespace Harmony.Core.FileIO
         public virtual method AbandonOpenChannels, void
         proc
             mAllOpenChannels.Clear()
-        endmethod
+		endmethod
+
+		public virtual method AbandonOpenConnections, void
+		proc
+			mAllOpenConnections.Clear()
+		endmethod
 
         private class ChannelCacheEntry implements IDisposable
 
@@ -178,7 +185,7 @@ namespace Harmony.Core.FileIO
             mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
         endmethod
 
-		protected mAllOpenConnections, @ConcurrentDictionary<string, int>, new ConcurrentDictionary<string, int>()
+		protected mAllOpenConnections, @ConcurrentDictionary<int, Tuple<string, int>>, new ConcurrentDictionary<int, Tuple<string, int>>()
 		protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>, new ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>()
         protected mChannelLookup, @ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>, new ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>()
         protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
@@ -229,10 +236,13 @@ namespace Harmony.Core.FileIO
 					
 					try
 					begin
-						if (!mAllOpenConnections.TryGetValue(server, handle))
+						data serverHandleTuple, @Tuple<string, int>
+						if (!mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, serverHandleTuple))
 						begin
 							Monitor.Enter(mAllOpenConnections)
-							handle = mAllOpenConnections.GetOrAdd(server, %create_server_connection(server, Int32.Parse(port)))
+							data lid = mAllOpenConnections.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) { new Tuple<string, int>(server, %create_server_connection(server, Int32.Parse(port))) } )
+							if (lid.Item2)
+								handle = lid.Item2
 						end
 					end
 					finally
