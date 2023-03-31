@@ -11,7 +11,7 @@ namespace Harmony.Core.FileIO
 	public class FileChannelManager implements IFileChannelManager, IDisposable
 		; declare a number of xfServer connections
 		private static xfConnections, int, 2
-		private static counter, int, xfConnections - 1
+		private static counter, int
 
         public virtual method Dispose, void
             endparams
@@ -27,11 +27,13 @@ namespace Harmony.Core.FileIO
             foreach channelTpl in mAllOpenChannels
 			    close channelTpl.Key
 
-			data lid, KeyValuePair<int, Tuple<string, int>>
+			data lid, KeyValuePair<int, Tuple<Object, ConcurrentDictionary<string, int>>>
 			data handle, D_HANDLE
 			foreach lid in mAllOpenConnections
 			begin
-				handle = %DESTROY_SERVER_CONNECTION(lid.Value.Item2)
+				data serverHandle, KeyValuePair<string, int>
+				foreach serverHandle in lid.Value.Item2
+					handle = %DESTROY_SERVER_CONNECTION(serverHandle.Value)
 			end
 
             if(disposing)
@@ -74,11 +76,17 @@ namespace Harmony.Core.FileIO
 				
 		public static class LoadInfo
 			static AsyncLocalLoad, @AsyncLocal<int>, new AsyncLocal<int>()
-			public static method SetLoadId, void
-				lid, int
+			public static method GetLoadId, void
 			proc
-				AsyncLocalLoad.Value = lid
+				if (CurrentLoadId == 0)
+				begin
+					data lid, int
+					counter = Interlocked.Increment(counter)
+					lid = (counter .mod. xfConnections) + 1
+					AsyncLocalLoad.Value = lid
+				end
 			endmethod
+	
 			public static property CurrentLoadId, int
 				method get
 				proc
@@ -87,11 +95,38 @@ namespace Harmony.Core.FileIO
 			endproperty
 		endclass
 
-		private class Connections
+		private class LoadStats
 			private lid, int
-			private server, @string
-			private port, int
+			private totalConnections, int
+			private totalFiles, int
+			
+			public method LoadStats
+				lid, int
+			proc
+				this.lid = lid
+				this.totalConnections = 0
+				this.totalFiles = 0
+			endmethod
 
+			public method AddConnection, void
+			proc
+				this.totalConnections += 1
+			endmethod
+
+			public method AddFile, void
+			proc
+				this.totalFiles += 1
+			endmethod
+
+			public method GetTotalConnections, int
+			proc
+				mreturn this.totalConnections
+			endmethod
+
+			public method GetTotalFiles, int
+			proc
+				mreturn this.totalFiles
+			endmethod
 		endclass
 
 		private method RemoteFile, boolean
@@ -185,7 +220,7 @@ namespace Harmony.Core.FileIO
             mreturn new ChannelCacheEntry() { FileChannelManager = this, FileName = fileName }
         endmethod
 
-		protected mAllOpenConnections, @ConcurrentDictionary<int, Tuple<string, int>>, new ConcurrentDictionary<int, Tuple<string, int>>()
+		protected mAllOpenConnections, @ConcurrentDictionary<int, Tuple<Object, ConcurrentDictionary<string, int>>>, new ConcurrentDictionary<int, Tuple<Object, ConcurrentDictionary<string, int>>>()
 		protected mAllOpenChannels, @ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>, new ConcurrentDictionary<int, Tuple<int, Tuple<string, FileOpenMode>>>()
         protected mChannelLookup, @ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>, new ConcurrentDictionary<int, ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>>()
         protected mChannelLRU, @BitFaster.Caching.Lru.FastConcurrentLru<string, FileChannelManager.ChannelCacheEntry>, new BitFaster.Caching.Lru.FastConcurrentLru<string, ChannelCacheEntry>(SoftChannelLimit)
@@ -195,16 +230,12 @@ namespace Harmony.Core.FileIO
             fileName, @string
             openMode, FileOpenMode
         proc
-			if (RemoteFile(fileName) .and. xfConnections > 1) then
-			begin
-				counter = Interlocked.Increment(counter)
-				LoadInfo.SetLoadId((counter .mod. xfConnections) + 1)
-			end
-			else
-				LoadInfo.SetLoadId(0)
+			if (RemoteFile(fileName) && xfConnections > 1)
+				LoadInfo.GetLoadId()
+
 
 			(void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
-			data loadIdLookup = mChannelLookup.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
+			data loadIdLookup = mChannelLookup.GetOrAdd(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
 			data fileModeLookup = loadIdLookup.GetOrAdd(fileName, lambda(keyValue) { new ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>() })
             data fileChannelBag = fileModeLookup.GetOrAdd(openMode, lambda(keyValue) { new ConcurrentBag<int>() })
             data channel, int, 0
@@ -213,7 +244,7 @@ namespace Harmony.Core.FileIO
             else
             begin
                channel = OpenChannel(fileName, openMode)
-                mreturn channel
+               mreturn channel
             end
 			
         endmethod
@@ -226,7 +257,7 @@ namespace Harmony.Core.FileIO
 			data channel, i4, 0
 			try
 			begin
-				if (RemoteFile(fileName) .and. xfConnections > 1)
+				if (RemoteFile(fileName) && xfConnections > 1)
 				begin
 					data server, @string
 					data port, @string
@@ -236,18 +267,18 @@ namespace Harmony.Core.FileIO
 					
 					try
 					begin
-						data serverHandleTuple, @Tuple<string, int>
-						if (!mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, serverHandleTuple))
+						data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+						; there are no connections under the CurrentLoadId or we have server and handle tuple where server is different from the one specified filename
+						if ((!mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple)) || ((lidTuple != ^null) && !lidTuple.Item2.TryGetValue(server, handle)))
 						begin
 							Monitor.Enter(mAllOpenConnections)
-							data lid = mAllOpenConnections.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) { new Tuple<string, int>(server, %create_server_connection(server, Int32.Parse(port))) } )
-							if (lid.Item2)
-								handle = lid.Item2
+							data lid = mAllOpenConnections.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) { new Tuple<Object, ConcurrentDictionary<string, int>>(new LoadStats(LoadInfo.CurrentLoadId), new ConcurrentDictionary<string, int>() ) })
+							handle = lid.Item2.GetOrAdd(server, lambda(keyValue) { %create_server_connection(server, Int32.Parse(port)) })
 						end
 					end
 					finally
 					begin
-							if (RemoteFile(fileName) .and. Monitor.IsEntered(mAllOpenConnections))
+							if (RemoteFile(fileName) && Monitor.IsEntered(mAllOpenConnections))
 							begin
 								Monitor.Exit(mAllOpenConnections)
 							end
@@ -309,7 +340,7 @@ namespace Harmony.Core.FileIO
 			
                 DebugLogSession.Logging.LogInfo("FileChannelManager: Opened channel {0} with mode {1} using path {2}", channel, openMode, fileName)
 				
-				mAllOpenChannels[channel] = Tuple.Create(LoadInfo.CurrentLoadId, Tuple.Create(fileName, openMode))
+				mAllOpenChannels[channel] = Tuple.Create(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, Tuple.Create(fileName, openMode))
 
                 mreturn channel
             end
@@ -350,7 +381,7 @@ namespace Harmony.Core.FileIO
         proc
             data closedChannelCount = 0
             data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
-			data fileNameLookup = mChannelLookup[LoadInfo.CurrentLoadId]
+			data fileNameLookup = mChannelLookup[RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0]
 			if(fileNameLookup.TryGetValue(fileName, openDictionary))
             begin
                 data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
