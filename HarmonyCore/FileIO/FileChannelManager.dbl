@@ -31,9 +31,15 @@ namespace Harmony.Core.FileIO
 			data handle, D_HANDLE
 			foreach lid in mAllOpenConnections
 			begin
-				data serverHandle, KeyValuePair<string, int>
-				foreach serverHandle in lid.Value.Item2
-					handle = %DESTROY_SERVER_CONNECTION(serverHandle.Value)
+				data lidVal, @Tuple<Object, ConcurrentDictionary<string, int>>
+				if (mAllOpenConnections.TryRemove(lid.Key, lidVal))
+				begin
+					data serverHandle, KeyValuePair<string, int>
+					foreach serverHandle in lidVal.Item2
+					begin
+						handle = %DESTROY_SERVER_CONNECTION(serverHandle.Value)
+					end
+				end
 			end
 
             if(disposing)
@@ -380,23 +386,26 @@ namespace Harmony.Core.FileIO
             fileName, @string
         proc
             data closedChannelCount = 0
-            data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
-			data fileNameLookup = mChannelLookup[RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0]
-			if(fileNameLookup.TryGetValue(fileName, openDictionary))
-            begin
-                data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
-                foreach openDictionaryItem in openDictionary
-                begin
-                    data targetChannel, int
-                    data bag, @ConcurrentBag<int>, openDictionaryItem.Value
-                    while(bag.TryTake(targetChannel))
-                    begin
-                        DebugLogSession.Logging.LogInfo("FileChannelManager: Closed channel {0}", targetChannel)
-                        incr closedChannelCount
-                        close targetChannel
-                    end
-                end
-            end
+			data fileNameLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>
+			if (mChannelLookup.TryGetValue(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, fileNameLookup))
+			begin	
+				data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
+				if(fileNameLookup.TryGetValue(fileName, openDictionary))
+				begin
+					data openDictionaryItem, @KeyValuePair<FileOpenMode, ConcurrentBag<int>>
+					foreach openDictionaryItem in openDictionary
+					begin
+						data targetChannel, int
+						data bag, @ConcurrentBag<int>, openDictionaryItem.Value
+						while(bag.TryTake(targetChannel))
+						begin
+							DebugLogSession.Logging.LogInfo("FileChannelManager: Closed channel {0}", targetChannel)
+							incr closedChannelCount
+							close targetChannel
+						end
+					end
+				end
+			end
             mreturn closedChannelCount
         endmethod
 
