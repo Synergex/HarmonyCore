@@ -235,8 +235,14 @@ namespace Harmony.Core.FileIO.Queryable
 
 			if(FailedDueToNetwork)
 			begin
-				DataObjectProvider.ChannelManager.AbandonOpenChannels()
-				DataObjectProvider.ChannelManager.AbandonOpenConnections()
+				;abandon channels for a particular connection only
+				data tempbuf, @QueryBuffer.TypeBuffer
+				foreach tempbuf in allBuffers
+				begin
+					data ch, int
+					ch = tempbuf.IOChannel
+					DataObjectProvider.ChannelManager.AbandonOpenChannels(ch)
+				end
 			end
 
 			foreach buf in allBuffers

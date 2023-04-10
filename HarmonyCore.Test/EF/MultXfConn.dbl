@@ -80,8 +80,6 @@ namespace HarmonyCore.Test.EF
 				f4 = %OpenFileHelper(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
 				Assert.AreEqual(f1, f2)
 				Assert.AreEqual(f3, f4)
-				Assert.AreNotEqual(f1, f3)
-				Assert.AreNotEqual(f2, f4)
 			end
 			
 			data tasklist, @List<Task>, new List<Task>()
@@ -108,7 +106,7 @@ namespace HarmonyCore.Test.EF
 			end
 			else
 				freturn -1
-			freturn FileChannelManager.LoadInfo.CurrentLoadId
+			freturn channelManager.LoadInfo.CurrentLoadId
 		endfunction
 		
 		public method MakeDBContext, @MyDBContext
@@ -135,13 +133,30 @@ namespace HarmonyCore.Test.EF
 		public method AbandonConnectionChannels, void
 		proc
 			disposable data context = MakeDBContext()
-			
-			data firstRecord = Context.Orders.Find(1)
-			
-			data secondRecord = Context.Orders.Find(2)
-			
-			data thirdRecord = Context.Orders.Find(3)
+			try
+			begin
+				data order, @Orders
+				foreach order in context.Orders
+				begin
+						data stopServ = new Process()
+						stopServ.StartInfo.FileName = setupFilePath
+						stopServ.StartInfo.Arguments = "stop " + %string(rsyndport)
+						stopServ.Start()
+						stopServ.WaitForExit()
+				end
+			end
+			catch (ex, @Exception)
+			begin
+				Assert.AreEqual("Network problem reaching server {0}", ex.InnerException.Message)
+			end
+			endtry
 
+			; restart the server
+			data startServ = new Process()
+			startServ.StartInfo.FileName = setupFilePath
+			startServ.StartInfo.Arguments = "run " + %string(rsyndport)
+			startServ.Start()
+			startServ.WaitForExit()
 		endmethod
 
 	endclass

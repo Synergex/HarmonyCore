@@ -51,14 +51,38 @@ namespace Harmony.Core.FileIO
             Dispose(false)
         endmethod
 
+		; abandon channels associated with same connection
         public virtual method AbandonOpenChannels, void
-        proc
-            mAllOpenChannels.Clear()
-		endmethod
-
-		public virtual method AbandonOpenConnections, void
+			channelId, int
 		proc
-			mAllOpenConnections.Clear()
+			data lid, int
+			data lidFilenameTuple, @Tuple<int, Tuple<string, FileOpenMode>>
+			if (mAllOpenChannels.TryGetValue(channelId, lidFilenameTuple)) 
+				lid = lidFilenameTuple.Item1
+			if (lid)
+			begin
+				; remove all channels with same lid from mAllOpenChannels
+				data ch, KeyValuePair<int, Tuple<int, Tuple<string, FileOpenMode>>>
+				foreach ch in mAllOpenChannels
+				begin
+					if (mAllOpenChannels.TryGetValue(ch.Key, lidFilenameTuple)) 
+					begin
+						if (lid == lidFilenameTuple.Item1)
+						begin
+							if (mAllOpenChannels.TryRemove(ch.Key, lidFilenameTuple))
+								nop
+						end
+					end
+				end
+				; remove all values from mAllOpenConnections having the same lid
+				data connectionTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+				if (mAllOpenConnections.TryRemove(lid, connectionTuple))
+					nop
+				; remove all values from mChannelLookup having the same lid
+				data lookupDict, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>
+				if (mChannelLookup.TryRemove(lid, lookupDict))
+					nop
+			end
 		endmethod
 
         private class ChannelCacheEntry implements IDisposable
@@ -79,7 +103,7 @@ namespace Harmony.Core.FileIO
 		proc
 			mreturn xfConnections
 		endmethod
-				
+
 		public static class LoadInfo
 			static AsyncLocalLoad, @AsyncLocal<int>, new AsyncLocal<int>()
 			public static method GetLoadId, void
