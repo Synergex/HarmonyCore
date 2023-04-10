@@ -345,6 +345,22 @@ Known structure properties:
             // Ensure the directory and all its parents exist.
             Directory.CreateDirectory(AppFolder);
 
+            var currentDir = Environment.CurrentDirectory;
+            var isSlnInCurrDir = Directory.EnumerateFiles(currentDir, "*.sln").Any();
+
+            var solutionDir = Environment.ExpandEnvironmentVariables("%SolutionDir%") ?? "";
+            var isSlnInSolutionDir = Directory.Exists(solutionDir) && Directory.EnumerateFiles(solutionDir, "*.sln").Any();
+
+            if (!isSlnInCurrDir && !isSlnInSolutionDir)
+            {
+                var loadErrorMessage = "Solution Load Error: No solution file (.sln) can be found.\n"
+                                     + "Open the Harmony Core CLI tool in a directory with the .sln\n"
+                                     + "file for the target solution, or set the SolutionDir\n"
+                                     + "environment variable to the directory with the solution file.";
+                Console.WriteLine(loadErrorMessage);
+                return;
+            }
+
             var configData = Path.Combine(AppFolder, "config.json");
             if (File.Exists(configData))
             {
