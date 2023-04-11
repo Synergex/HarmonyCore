@@ -19,12 +19,12 @@ import System.Diagnostics
 
 namespace HarmonyCore.Test.EF
 	
-	{TestClass}
-	{DoNotParallelize()}
-	public class MultXfConn
-		public static scsport, a254
-		public static rsyndport, int, 6020
-		public static setupFilePath, @string
+    {TestClass}
+    {DoNotParallelize()}
+    public class MultXfConn
+        public static scsport, a254
+        public static rsyndport, int, 6020
+        public static setupFilePath, @string
 
 		{ClassInitialize()}
 		public static method ClassInit, void
@@ -63,75 +63,75 @@ namespace HarmonyCore.Test.EF
 			xcall setlog("SCSPORT", %atrimtostring(scsport), scsportsts)
 		endmethod
 
-		{TestMethod}
-		public method LoadInfoTest, void
-		proc
-			disposable data channelManager = new FileChannelManager()
+        {TestMethod}
+        public method LoadInfoTest, void
+        proc
+            disposable data channelManager = new FileChannelManager()
 
-			lambda openFiles()
-			begin
-				data f1, int
-				data f2, int
-				data f3, int
-				data f4, int
-				f1 = %OpenFileHelper(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
-				f2 = %OpenFileHelper(channelManager, "DAT:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
-				f3 = %OpenFileHelper(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
-				f4 = %OpenFileHelper(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
-				Assert.AreEqual(f1, f2)
-				Assert.AreEqual(f3, f4)
-			end
+            lambda openFiles()
+            begin
+                data f1, int
+                data f2, int
+                data f3, int
+                data f4, int
+                f1 = %OpenFileHelper(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
+                f2 = %OpenFileHelper(channelManager, "DAT:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
+                f3 = %OpenFileHelper(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
+                f4 = %OpenFileHelper(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
+                Assert.AreEqual(f1, f2)
+                Assert.AreEqual(f3, f4)
+            end
 			
-			data tasklist, @List<Task>, new List<Task>()
-			data i, int
-			for i from 0 thru 1000
-				tasklist.Add(Task.Run(openFiles))
-			Task.WaitAll(tasklist.ToArray())
-			channelManager.Dispose()
-		endmethod
+            data tasklist, @List<Task>, new List<Task>()
+            data i, int
+            for i from 0 thru 1000
+                tasklist.Add(Task.Run(openFiles))
+            Task.WaitAll(tasklist.ToArray())
+            channelManager.Dispose()
+        endmethod
 
-		function OpenFileHelper, int
-			channelManager, @FileChannelManager
-			filename, string
-			openmode, FileOpenMode
-			model, string
-		proc
-			if (model .eq. "Orders") then
-			begin
-				data file = new IsamDataObjectIO<Orders>(channelManager, filename, openmode)
-			end
-			else if (model .eq. "Customer") then 
-			begin
-				data file = new IsamDataObjectIO<Customer>(channelManager, filename, openmode)
-			end
-			else
-				freturn -1
-			freturn channelManager.LoadInfo.CurrentLoadId
-		endfunction
+        function OpenFileHelper, int
+            channelManager, @FileChannelManager
+            filename, string
+            openmode, FileOpenMode
+            model, string
+        proc
+            if (model .eq. "Orders") then
+            begin
+                data file = new IsamDataObjectIO<Orders>(channelManager, filename, openmode)
+            end
+            else if (model .eq. "Customer") then 
+            begin
+                data file = new IsamDataObjectIO<Customer>(channelManager, filename, openmode)
+            end
+            else
+                freturn -1
+            freturn channelManager.LoadInfo.CurrentLoadId
+        endfunction
 		
-		public method MakeDBContext, @MyDBContext
-		proc
-			lambda AddDataObjectMappings(serviceProvider)
-			begin
-				data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
-				objectProvider.AddDataObjectMapping<Orders>("TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
-				mreturn objectProvider
-			end
-			data serviceBuilder = new ServiceCollection()
-			serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
-			serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
-			serviceBuilder.AddDbContext<MyDBContext>()
-			data sp = serviceBuilder.BuildServiceProvider()
-			data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
-			dboBuilder.UseApplicationServiceProvider(sp)
-			dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
-			data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
-			mreturn new MyDBContext(contextOptions, sp)
-		endmethod
+        public method MakeDBContext, @MyDBContext
+        proc
+            lambda AddDataObjectMappings(serviceProvider)
+            begin
+                data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+                objectProvider.AddDataObjectMapping<Orders>("TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                mreturn objectProvider
+            end
+            data serviceBuilder = new ServiceCollection()
+            serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
+            serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+            serviceBuilder.AddDbContext<MyDBContext>()
+            data sp = serviceBuilder.BuildServiceProvider()
+            data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
+            dboBuilder.UseApplicationServiceProvider(sp)
+            dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
+            data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
+            mreturn new MyDBContext(contextOptions, sp)
+        endmethod
 
-		{TestMethod}
-		public method AbandonConnectionChannels, void
-		proc
+        {TestMethod}
+        public method AbandonConnectionChannels, void
+        proc
 			disposable data context = MakeDBContext()
 			try
 			begin
@@ -157,8 +157,8 @@ namespace HarmonyCore.Test.EF
 			startServ.StartInfo.Arguments = "run " + %string(rsyndport)
 			startServ.Start()
 			startServ.WaitForExit()
-		endmethod
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace

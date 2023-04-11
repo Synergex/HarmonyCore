@@ -8,264 +8,264 @@ import Newtonsoft.Json
 
 namespace Harmony.Core.FileIO.Queryable
 
-	public class QueryBuffer implements IDisposable
-		public class TypeBuffer
-			public MemoryHandle, int?
-			public IOChannel, int?
-			public RemoteIO, boolean?
-			public Metadata, @DataObjectMetadataBase
-			public IsCollection, boolean
-			public ParentFieldName, @string
-			public DataObjectType, @Type
-			public JoinOn, @object
-			public JoinedBuffers, @List<TypeBuffer>
-			public IsInnerJoin, boolean
-			{JsonIgnore}
-			public OrderBy, @Delegate
-			{JsonIgnore}
-			public SelectResult, @Func<QueryBuffer, QueryBuffer.TypeBuffer, Object, Object>
-			{JsonIgnore}
-			public Top, @Func<Object, long>
-			{JsonIgnore}
-			public Skip, @Func<Object, long>
+    public class QueryBuffer implements IDisposable
+        public class TypeBuffer
+            public MemoryHandle, int?
+            public IOChannel, int?
+            public RemoteIO, boolean?
+            public Metadata, @DataObjectMetadataBase
+            public IsCollection, boolean
+            public ParentFieldName, @string
+            public DataObjectType, @Type
+            public JoinOn, @object
+            public JoinedBuffers, @List<TypeBuffer>
+            public IsInnerJoin, boolean
+            {JsonIgnore}
+            public OrderBy, @Delegate
+            {JsonIgnore}
+            public SelectResult, @Func<QueryBuffer, QueryBuffer.TypeBuffer, Object, Object>
+            {JsonIgnore}
+            public Top, @Func<Object, long>
+            {JsonIgnore}
+            public Skip, @Func<Object, long>
 .ifdef DEBUG
-			private AllocationTrace, @StackTrace
-			public method TypeBuffer
-			proc
-				AllocationTrace = new StackTrace()
-			endmethod
+            private AllocationTrace, @StackTrace
+            public method TypeBuffer
+            proc
+                AllocationTrace = new StackTrace()
+            endmethod
 
 
-			method ~TypeBuffer
-			proc
-				if(IOChannel != ^null)
-					throw new Exception("channel leaked")
-			endmethod
+            method ~TypeBuffer
+            proc
+                if(IOChannel != ^null)
+                    throw new Exception("channel leaked")
+            endmethod
 .endc
-			public override method ToString, @string
-			proc
-				mreturn JsonConvert.SerializeObject(this)
-			endmethod
+            public override method ToString, @string
+            proc
+                mreturn JsonConvert.SerializeObject(this)
+            endmethod
 
-		endclass
+        endclass
 		
-		public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
-		public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
-		public readwrite property Context, @object
-		private DrivingBuffers, @List<QueryBuffer.TypeBuffer>
-		public readwrite property FailedDueToNetwork, boolean, false
+        public readwrite property TypeBuffers, @List<QueryBuffer.TypeBuffer>
+        public readwrite property Parameters, @IReadOnlyDictionary<string, Object>
+        public readwrite property Context, @object
+        private DrivingBuffers, @List<QueryBuffer.TypeBuffer>
+        public readwrite property FailedDueToNetwork, boolean, false
 
-		public method GetTop, long?
-			targetBufferIndex, int
-		proc
-			data targetBuffer = TypeBuffers[targetBufferIndex]
-			mreturn GetTop(targetBuffer)
-		endmethod
+        public method GetTop, long?
+            targetBufferIndex, int
+        proc
+            data targetBuffer = TypeBuffers[targetBufferIndex]
+            mreturn GetTop(targetBuffer)
+        endmethod
 
-		public method GetTop, long?
-			targetBuffer, @QueryBuffer.TypeBuffer
-		proc
-			if(targetBuffer.Top != ^null) then
-			begin
-				mreturn targetBuffer.Top(Context)
-			end
-			else
-			begin
-				mreturn ^null
-			end
+        public method GetTop, long?
+            targetBuffer, @QueryBuffer.TypeBuffer
+        proc
+            if(targetBuffer.Top != ^null) then
+            begin
+                mreturn targetBuffer.Top(Context)
+            end
+            else
+            begin
+                mreturn ^null
+            end
 
-		endmethod
+        endmethod
 
-		public method GetSkip, long
-			targetBufferIndex, int
-		proc
-			data targetBuffer = TypeBuffers[targetBufferIndex]
-			mreturn GetSkip(targetBuffer)
-		endmethod
+        public method GetSkip, long
+            targetBufferIndex, int
+        proc
+            data targetBuffer = TypeBuffers[targetBufferIndex]
+            mreturn GetSkip(targetBuffer)
+        endmethod
 
-		public method GetSkip, long
-			targetBuffer, @QueryBuffer.TypeBuffer
-		proc
-			if(targetBuffer.Skip != ^null) then
-			begin
-				mreturn targetBuffer.Skip(Context)
-			end
-			else
-			begin
-				mreturn 0
-			end
-		endmethod
+        public method GetSkip, long
+            targetBuffer, @QueryBuffer.TypeBuffer
+        proc
+            if(targetBuffer.Skip != ^null) then
+            begin
+                mreturn targetBuffer.Skip(Context)
+            end
+            else
+            begin
+                mreturn 0
+            end
+        endmethod
 
-		private DataObjectProvider, @IDataObjectProvider
-		;;these buffers should not have their memory handles set, this is used as a prototype for the real buffers
-		public method QueryBuffer
-			buffers, @IEnumerable<QueryBuffer.TypeBuffer>
-		proc
-			if(buffers.Any(lambda (buf) { buf.MemoryHandle != ^null || buf.IOChannel != ^null }))
-				throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
+        private DataObjectProvider, @IDataObjectProvider
+        ;;these buffers should not have their memory handles set, this is used as a prototype for the real buffers
+        public method QueryBuffer
+            buffers, @IEnumerable<QueryBuffer.TypeBuffer>
+        proc
+            if(buffers.Any(lambda (buf) { buf.MemoryHandle != ^null || buf.IOChannel != ^null }))
+                throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
 			
-			TypeBuffers = buffers.ToList()
-		endmethod
+            TypeBuffers = buffers.ToList()
+        endmethod
 
-		public method MakeDrivingBuffer, @QueryBuffer.TypeBuffer
-			buf, @QueryBuffer.TypeBuffer
-		proc
-			if(DrivingBuffers == ^null)
-				DrivingBuffers = new List<QueryBuffer.TypeBuffer>()
+        public method MakeDrivingBuffer, @QueryBuffer.TypeBuffer
+            buf, @QueryBuffer.TypeBuffer
+        proc
+            if(DrivingBuffers == ^null)
+                DrivingBuffers = new List<QueryBuffer.TypeBuffer>()
 
-			data newTypeBuf = new QueryBuffer.TypeBuffer() 
-				&	{ 
-				&	Metadata = buf.Metadata,
-				&	IsCollection = buf.IsCollection,
-				&	ParentFieldName = buf.ParentFieldName,
-				&	DataObjectType = buf.DataObjectType,
-				&	JoinOn = buf.JoinOn,
-				&	JoinedBuffers = buf.JoinedBuffers,
-				&	IsInnerJoin = buf.IsInnerJoin,
-				&	OrderBy = buf.OrderBy,
-				&	SelectResult = buf.SelectResult,
-				&	Top = buf.Top,
-				&	Skip = buf.Skip
-				&	}
+            data newTypeBuf = new QueryBuffer.TypeBuffer() 
+            &    { 
+            &    Metadata = buf.Metadata,
+            &    IsCollection = buf.IsCollection,
+            &    ParentFieldName = buf.ParentFieldName,
+            &    DataObjectType = buf.DataObjectType,
+            &    JoinOn = buf.JoinOn,
+            &    JoinedBuffers = buf.JoinedBuffers,
+            &    IsInnerJoin = buf.IsInnerJoin,
+            &    OrderBy = buf.OrderBy,
+            &    SelectResult = buf.SelectResult,
+            &    Top = buf.Top,
+            &    Skip = buf.Skip
+            &    }
 
-			newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
-			data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
-			;;this is read only, performance is significantly improved by using an input channel 
-			data fileOpenMode = fileInfo.Item2
-			if(fileOpenMode == FileOpenMode.Update) then
-				fileOpenMode = FileOpenMode.Input
-			else if(fileOpenMode == FileOpenMode.UpdateIndexed)
-				fileOpenMode = FileOpenMode.InputIndexed
+            newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
+            data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
+            ;;this is read only, performance is significantly improved by using an input channel 
+            data fileOpenMode = fileInfo.Item2
+            if(fileOpenMode == FileOpenMode.Update) then
+                fileOpenMode = FileOpenMode.Input
+            else if(fileOpenMode == FileOpenMode.UpdateIndexed)
+                fileOpenMode = FileOpenMode.InputIndexed
 
-			newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileOpenMode)
-			data remoteBuf, d1
-			xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
-			newTypeBuf.RemoteIO = remoteBuf == 1
-			DrivingBuffers.Add(newTypeBuf)
-			mreturn newTypeBuf
-		endmethod
-
-
-		private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
-			buf, @QueryBuffer.TypeBuffer
-			dataObjectProvider, @IDataObjectProvider
-			bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
-		proc
-			data madeBuffer, @QueryBuffer.TypeBuffer
-			if(bufferMap != ^null && bufferMap.TryGetValue(buf,madeBuffer)) then
-				mreturn madeBuffer
-			else
-			begin
-				data newTypeBuf = new QueryBuffer.TypeBuffer() 
-				&	{ 
-				&	Metadata = buf.Metadata,
-				&	IsCollection = buf.IsCollection,
-				&	ParentFieldName = buf.ParentFieldName,
-				&	DataObjectType = buf.DataObjectType,
-				&	JoinOn = buf.JoinOn,
-				&	JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
-				&	IsInnerJoin = buf.IsInnerJoin,
-				&	OrderBy = buf.OrderBy,
-				&	SelectResult = buf.SelectResult,
-				&	Top = buf.Top,
-				&	Skip = buf.Skip
-				&	}
-
-				newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
-				data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
-				;;this is read only, performance is significantly improved by using an input channel 
-				data fileOpenMode = fileInfo.Item2
-				if(fileOpenMode == FileOpenMode.Update) then
-					fileOpenMode = FileOpenMode.Input
-				else if(fileOpenMode == FileOpenMode.UpdateIndexed)
-					fileOpenMode = FileOpenMode.InputIndexed
-
-				newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileOpenMode)
-				data remoteBuf, d1
-				xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
-				newTypeBuf.RemoteIO = remoteBuf == 1
-				bufferMap?.Add(buf, newTypeBuf)
-				mreturn newTypeBuf
-			end
-
-		endmethod
+            newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileOpenMode)
+            data remoteBuf, d1
+            xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
+            newTypeBuf.RemoteIO = remoteBuf == 1
+            DrivingBuffers.Add(newTypeBuf)
+            mreturn newTypeBuf
+        endmethod
 
 
-		public method QueryBuffer
-			bufferProtoType, @QueryBuffer
-			dataObjectProvider, @IDataObjectProvider
-			params, @IReadOnlyDictionary<string, Object>
-			context, @object
-		proc
-			Parameters = params
-			this.Context = context
-			this.DataObjectProvider = dataObjectProvider
-			TypeBuffers = new List<QueryBuffer.TypeBuffer>()
-			data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
-			data buf, @QueryBuffer.TypeBuffer
-			foreach buf in bufferProtoType.TypeBuffers
-			begin
-				if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
-					throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
+        private static method MakeTypeBuffer, @QueryBuffer.TypeBuffer
+            buf, @QueryBuffer.TypeBuffer
+            dataObjectProvider, @IDataObjectProvider
+            bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
+        proc
+            data madeBuffer, @QueryBuffer.TypeBuffer
+            if(bufferMap != ^null && bufferMap.TryGetValue(buf,madeBuffer)) then
+                mreturn madeBuffer
+            else
+            begin
+                data newTypeBuf = new QueryBuffer.TypeBuffer() 
+                &    { 
+                &    Metadata = buf.Metadata,
+                &    IsCollection = buf.IsCollection,
+                &    ParentFieldName = buf.ParentFieldName,
+                &    DataObjectType = buf.DataObjectType,
+                &    JoinOn = buf.JoinOn,
+                &    JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
+                &    IsInnerJoin = buf.IsInnerJoin,
+                &    OrderBy = buf.OrderBy,
+                &    SelectResult = buf.SelectResult,
+                &    Top = buf.Top,
+                &    Skip = buf.Skip
+                &    }
+
+                newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
+                data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
+                ;;this is read only, performance is significantly improved by using an input channel 
+                data fileOpenMode = fileInfo.Item2
+                if(fileOpenMode == FileOpenMode.Update) then
+                    fileOpenMode = FileOpenMode.Input
+                else if(fileOpenMode == FileOpenMode.UpdateIndexed)
+                    fileOpenMode = FileOpenMode.InputIndexed
+
+                newTypeBuf.IOChannel = dataObjectProvider.ChannelManager.GetChannel(fileInfo.Item1, fileOpenMode)
+                data remoteBuf, d1
+                xcall getfa(newTypeBuf.IOChannel.Value, "RMT", remoteBuf)
+                newTypeBuf.RemoteIO = remoteBuf == 1
+                bufferMap?.Add(buf, newTypeBuf)
+                mreturn newTypeBuf
+            end
+
+        endmethod
+
+
+        public method QueryBuffer
+            bufferProtoType, @QueryBuffer
+            dataObjectProvider, @IDataObjectProvider
+            params, @IReadOnlyDictionary<string, Object>
+            context, @object
+        proc
+            Parameters = params
+            this.Context = context
+            this.DataObjectProvider = dataObjectProvider
+            TypeBuffers = new List<QueryBuffer.TypeBuffer>()
+            data protoBufferMap = new Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>()
+            data buf, @QueryBuffer.TypeBuffer
+            foreach buf in bufferProtoType.TypeBuffers
+            begin
+                if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
+                    throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
 				
-				TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
-			end
-		endmethod
+                TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
+            end
+        endmethod
 		
-		method ~QueryBuffer
-		proc
-			Dispose(true)
-		endmethod
+        method ~QueryBuffer
+        proc
+            Dispose(true)
+        endmethod
 
-		public virtual method Dispose, void
-			endparams
-		proc
-			GC.SuppressFinalize(this)
-			Dispose(false)
-		endmethod
+        public virtual method Dispose, void
+            endparams
+        proc
+            GC.SuppressFinalize(this)
+            Dispose(false)
+        endmethod
 		
-		protected virtual method Dispose, void
-			isFinalizer, boolean
-			endparams
-		proc
-			data buf, @QueryBuffer.TypeBuffer
-			data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
-			if(DrivingBuffers != ^null)
-				allBuffers = allBuffers.Concat(DrivingBuffers)
+        protected virtual method Dispose, void
+            isFinalizer, boolean
+            endparams
+        proc
+            data buf, @QueryBuffer.TypeBuffer
+            data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
+            if(DrivingBuffers != ^null)
+                allBuffers = allBuffers.Concat(DrivingBuffers)
 
-			if(FailedDueToNetwork)
-			begin
-				;abandon channels for a particular connection only
-				data tempbuf, @QueryBuffer.TypeBuffer
-				foreach tempbuf in allBuffers
-				begin
-					data ch, int
-					ch = tempbuf.IOChannel
-					DataObjectProvider.ChannelManager.AbandonOpenChannels(ch)
-				end
-			end
+            if(FailedDueToNetwork)
+            begin
+                ;abandon channels for a particular connection only
+                data tempbuf, @QueryBuffer.TypeBuffer
+                foreach tempbuf in allBuffers
+                begin
+                    data ch, int
+                    ch = tempbuf.IOChannel
+                    DataObjectProvider.ChannelManager.AbandonOpenChannels(ch)
+                end
+            end
 
-			foreach buf in allBuffers
-			begin
-				if(buf.MemoryHandle != ^null)
-					buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
-				buf.MemoryHandle = ^null
-				if(DataObjectProvider != ^null && buf.IOChannel != ^null)
-				begin
-					DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
-					buf.IOChannel = ^null
-				end
+            foreach buf in allBuffers
+            begin
+                if(buf.MemoryHandle != ^null)
+                    buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
+                buf.MemoryHandle = ^null
+                if(DataObjectProvider != ^null && buf.IOChannel != ^null)
+                begin
+                    DataObjectProvider.ChannelManager.ReturnChannel(buf.IOChannel.Value)
+                    buf.IOChannel = ^null
+                end
 .ifdef DEBUG
-				if(DataObjectProvider == ^null)
-					throw new Exception("invalid query buffer")
+                if(DataObjectProvider == ^null)
+                    throw new Exception("invalid query buffer")
 .endc
 
-			end
-			TypeBuffers.Clear()
-			DataObjectProvider = ^null
-			DrivingBuffers = ^null
-		endmethod
+            end
+            TypeBuffers.Clear()
+            DataObjectProvider = ^null
+            DrivingBuffers = ^null
+        endmethod
 
-	endclass
+    endclass
 
 endnamespace
