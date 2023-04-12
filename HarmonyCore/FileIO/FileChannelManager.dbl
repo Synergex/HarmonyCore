@@ -6,6 +6,7 @@ import Harmony.Core.Utility
 import System.Linq
 import Microsoft.Extensions.Caching.Memory
 import System.Threading
+import System.Diagnostics
 namespace Harmony.Core.FileIO
 
     public class FileChannelManager implements IFileChannelManager, IDisposable
@@ -139,7 +140,12 @@ namespace Harmony.Core.FileIO
         proc
             mreturn connectionLoadCount
         endmethod
-
+.ifdef DEBUG
+        public static method ResetConnectionLoadCount, void
+        proc
+            connectionLoadCount = SetConnectionLoadCount()
+        endmethod
+.endc     
         public static class LoadInfo
             static AsyncLocalLoad, @AsyncLocal<int>, new AsyncLocal<int>()
             public static method GetLoadId, void

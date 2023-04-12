@@ -158,20 +158,21 @@ namespace HarmonyCore.Test.EF
 			startServ.Start()
 			startServ.WaitForExit()
         endmethod
-     
+.ifdef DEBUG
         public method ConnectionLoadTestHelper, void
-            varval, @string
+            conncount, @string
         proc
             lambda test()
             begin
                 try
                 begin
                     data sts, int
-                    xcall setlog("XFCONNECTIONLOAD", varval, sts)
-                    disposable data channelManager = new FileChannelManager()
+                    xcall setlog("XFCONNECTIONLOAD", conncount, sts)
+                    FileChannelManager.ResetConnectionLoadCount()    
+                    Assert.AreEqual(Int32.Parse(conncount), FileChannelManager.GetConnectionLoadCount())
                 end    
-                catch (e, @TypeInitializationException)
-                    Assert.AreEqual("FileChannelManager: invalid value for XFCONNECTIONLOAD, must be an integer between 1 and 128", e.InnerException.Message)    
+                catch (e, @Exception)
+                    Assert.AreEqual("FileChannelManager: invalid value for XFCONNECTIONLOAD, must be an integer between 1 and 128", e.Message)    
                 endtry
             end
             data t = Task.Run(test)
@@ -182,8 +183,12 @@ namespace HarmonyCore.Test.EF
         public method ConnectionLoadTest, void
         proc
             ConnectionLoadTestHelper("hello")
+            ConnectionLoadTestHelper("0")
+            ConnectionLoadTestHelper("129")
+            ConnectionLoadTestHelper("128")
+            ConnectionLoadTestHelper("1")
         endmethod
-
+.endc
     endclass
 
 endnamespace
