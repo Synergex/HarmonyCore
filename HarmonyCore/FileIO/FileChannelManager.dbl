@@ -108,26 +108,26 @@ namespace Harmony.Core.FileIO
 
         private static method SetConnectionLoadCount, int
         proc
-            data envvar, @string
-            data val, a3
-            data len, d3
-            envvar = "XFCONNECTIONLOAD"
-            xcall getlog(envvar, val, len)
-            if (len) then
+            data HC_envvar, @string
+            data HC_envvarVal, a3
+            data HC_envvarLen, d3
+            HC_envvar = "XFCONNECTIONLOAD"
+            xcall getlog(HC_envvar, HC_envvarVal, HC_envvarLen)
+            if (HC_envvarLen) then
             begin
                 data connload, int, 1
                 try
-                    connload = Int32.Parse(val)
+                    connload = Int32.Parse(HC_envvarVal)
                 catch (e, @Exception)
                 begin
-                    DebugLogSession.Logging.LogInfo("FileChannelManager: invalid value {0} for XFCONNECTIONLOAD, must be an integer between 1 and 128", %atrim(val))
+                    DebugLogSession.Logging.LogInfo("FileChannelManager: invalid value {0} for XFCONNECTIONLOAD, must be an integer between 1 and 128", %atrim(HC_envvarVal))
                     throw new ApplicationException("FileChannelManager: invalid value for XFCONNECTIONLOAD, must be an integer between 1 and 128")
                 end
                 endtry
 
                 if (connload < 1 || connload > 128)
                 begin
-                    DebugLogSession.Logging.LogInfo("FileChannelManager: invalid value {0} for XFCONNECTIONLOAD, must be an integer between 1 and 128", %atrim(val))
+                    DebugLogSession.Logging.LogInfo("FileChannelManager: invalid value {0} for XFCONNECTIONLOAD, must be an integer between 1 and 128", %atrim(HC_envvarVal))
                     throw new ApplicationException("FileChannelManager: invalid value for XFCONNECTIONLOAD, must be an integer between 1 and 128")
                 end
                 mreturn connload
@@ -303,9 +303,8 @@ namespace Harmony.Core.FileIO
             fileName, @string
             openMode, FileOpenMode
         proc
-            if (RemoteFile(fileName) && connectionLoadCount > 1)
+            if (connectionLoadCount > 1 && RemoteFile(fileName))
                 LoadInfo.GetLoadId()
-
 
             (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
             data loadIdLookup = mChannelLookup.GetOrAdd(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
@@ -330,7 +329,7 @@ namespace Harmony.Core.FileIO
             data channel, i4, 0
             try
             begin
-                if (RemoteFile(fileName) && connectionLoadCount > 1)
+                if (connectionLoadCount > 1 && RemoteFile(fileName))
                 begin
                     data server, @string
                     data port, @string
@@ -457,7 +456,7 @@ namespace Harmony.Core.FileIO
         proc
             data closedChannelCount = 0
             data fileNameLookup, @ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>
-            if (mChannelLookup.TryGetValue(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, fileNameLookup))
+            if (mChannelLookup.TryGetValue((connectionLoadCount > 1 && RemoteFile(fileName)) ? LoadInfo.CurrentLoadId : 0, fileNameLookup))
             begin	
                 data openDictionary, @ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>
                 if(fileNameLookup.TryGetValue(fileName, openDictionary))
