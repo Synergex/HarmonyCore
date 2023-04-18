@@ -67,7 +67,7 @@ namespace HarmonyCore.Test.EF
         public method LoadInfoTest, void
         proc
             data xfconnloadsts, int
-            xcall setlog("XFCONNECTIONLOAD", 2, xfconnloadsts)
+            xcall setlog("HC_XFCONNECTIONLOAD", 2, xfconnloadsts)
             disposable data channelManager = new FileChannelManager()
 
             lambda openFiles()
@@ -169,12 +169,12 @@ namespace HarmonyCore.Test.EF
                 try
                 begin
                     data sts, int
-                    xcall setlog("XFCONNECTIONLOAD", conncount, sts)
+                    xcall setlog("HC_XFCONNECTIONLOAD", conncount, sts)
                     FileChannelManager.ResetConnectionLoadCount()    
                     Assert.AreEqual(Int32.Parse(conncount), FileChannelManager.GetConnectionLoadCount())
                 end    
                 catch (e, @Exception)
-                    Assert.AreEqual("FileChannelManager: invalid value for XFCONNECTIONLOAD, must be an integer between 1 and 128", e.Message)    
+                    Assert.AreEqual("FileChannelManager: invalid value for HC_XFCONNECTIONLOAD, must be an integer between 1 and 128", e.Message)    
                 endtry
             end
             data t = Task.Run(test)
