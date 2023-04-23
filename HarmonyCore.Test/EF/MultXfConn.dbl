@@ -1,0 +1,196 @@
+import Harmony.Core.FileIO
+import Microsoft.Extensions.DependencyInjection
+import System
+import System.Linq
+import System.Collections.Generic
+import System.Text
+import Microsoft.EntityFrameworkCore
+import Harmony.Core.Test.FileIO.Models
+import Harmony.Core.Test
+import Harmony.Core
+import Harmony.Core.Context
+import Harmony.Core.EF.Extensions
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import System.ComponentModel.DataAnnotations
+import Harmony.Core.Test.FileIO
+import System.Threading
+import System.Threading.Tasks
+import System.Diagnostics
+
+namespace HarmonyCore.Test.EF
+	
+    {TestClass}
+    {DoNotParallelize()}
+    public class MultXfConn
+        public static scsport, a254
+        public static rsyndport, int, 6020
+        public static setupFilePath, @string
+
+		{ClassInitialize()}
+		public static method ClassInit, void
+			Context, @TestContext
+		proc
+			data soldir = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(Context.TestDir))
+			setupFilePath = soldir + "\HarmonyCore.Test\tools\MultXfConTestSetup.bat"
+			data xfservervar = "TESTING"
+			data sampledatapath, a254
+			data sampledatalenpath, int
+			xcall getlog("DAT", sampledatapath, sampledatalenpath)
+			data setupArg = "setup " + %string(rsyndport) + " " + sampledatapath + " " + xfservervar
+			data setupInfo, @Process
+			setupInfo = new Process()
+			setupInfo.StartInfo.FileName = setupFilePath
+			setupInfo.StartInfo.Arguments = setupArg
+			setupInfo.Start()
+			setupInfo.WaitForExit()
+			data xfvarssts, int
+			xcall setlog("TESTING1", xfservervar + ":@localhost", xfvarssts)
+			data scsportlen, int
+			xcall getlog("SCSPORT", scsport, scsportlen)
+			data scsportsts, int
+            xcall setlog("SCSPORT", %string(rsyndport), scsportsts)
+		endmethod
+
+		{ClassCleanup}
+		public static method ClassCleanup, void
+		proc
+			data cleanupInfo = new Process()
+			cleanupInfo.StartInfo.FileName = setupFilePath
+			cleanupInfo.StartInfo.Arguments = "cleanup " + %string(rsyndport)
+			cleanupInfo.Start()
+			cleanupInfo.WaitForExit()
+			data scsportsts, int
+			xcall setlog("SCSPORT", %atrimtostring(scsport), scsportsts)
+		endmethod
+
+        {TestMethod}
+        public method LoadInfoTest, void
+        proc
+            data xfconnloadsts, int
+            xcall setlog("HC_XFCONNECTIONLOAD", 2, xfconnloadsts)
+            disposable data channelManager = new FileChannelManager()
+
+            lambda openFiles()
+            begin
+                data f1, int
+                data f2, int
+                data f3, int
+                data f4, int
+                f1 = %OpenFileHelper(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
+                f2 = %OpenFileHelper(channelManager, "DAT:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
+                f3 = %OpenFileHelper(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed, "Orders")
+                f4 = %OpenFileHelper(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed, "Customer")
+                Assert.AreEqual(f1, f2)
+                Assert.AreEqual(f3, f4)
+            end
+			
+            data tasklist, @List<Task>, new List<Task>()
+            data i, int
+            for i from 0 thru 1000
+                tasklist.Add(Task.Run(openFiles))
+            Task.WaitAll(tasklist.ToArray())
+            channelManager.Dispose()
+        endmethod
+
+        function OpenFileHelper, int
+            channelManager, @FileChannelManager
+            filename, string
+            openmode, FileOpenMode
+            model, string
+        proc
+            if (model .eq. "Orders") then
+            begin
+                disposable data file = new IsamDataObjectIO<Orders>(channelManager, filename, openmode)
+            end
+            else if (model .eq. "Customer") then 
+            begin
+                disposable data file = new IsamDataObjectIO<Customer>(channelManager, filename, openmode)
+            end
+            else
+                freturn -1
+            freturn channelManager.LoadInfo.CurrentLoadId
+        endfunction
+		
+        public method MakeDBContext, @MyDBContext
+        proc
+            lambda AddDataObjectMappings(serviceProvider)
+            begin
+                data objectProvider = new DataObjectProvider(serviceProvider.GetService<IFileChannelManager>())
+                objectProvider.AddDataObjectMapping<Orders>("TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                mreturn objectProvider
+            end
+            data serviceBuilder = new ServiceCollection()
+            serviceBuilder.AddSingleton<IFileChannelManager, FileChannelManager>()
+            serviceBuilder.AddSingleton<IDataObjectProvider>(AddDataObjectMappings)
+            serviceBuilder.AddDbContext<MyDBContext>()
+            data sp = serviceBuilder.BuildServiceProvider()
+            data dboBuilder = new DbContextOptionsBuilder<MyDBContext>()
+            dboBuilder.UseApplicationServiceProvider(sp)
+            dboBuilder.UseHarmonyDatabase(sp.GetService<IDataObjectProvider>())
+            data contextOptions, @DbContextOptions<MyDBContext>, dboBuilder.Options
+            mreturn new MyDBContext(contextOptions, sp)
+        endmethod
+
+        {TestMethod}
+        public method AbandonConnectionChannels, void
+        proc
+			disposable data context = MakeDBContext()
+			try
+			begin
+				data order, @Orders
+				foreach order in context.Orders
+				begin
+						data stopServ = new Process()
+						stopServ.StartInfo.FileName = setupFilePath
+						stopServ.StartInfo.Arguments = "stop " + %string(rsyndport)
+						stopServ.Start()
+						stopServ.WaitForExit()
+				end
+			end
+			catch (ex, @Exception)
+			begin
+				Assert.AreEqual("Network problem reaching server {0}", ex.InnerException.Message)
+			end
+			endtry
+
+			; restart the server
+			data startServ = new Process()
+			startServ.StartInfo.FileName = setupFilePath
+			startServ.StartInfo.Arguments = "run " + %string(rsyndport)
+			startServ.Start()
+			startServ.WaitForExit()
+        endmethod
+.ifdef DEBUG
+        public method ConnectionLoadTestHelper, void
+            conncount, @string
+        proc
+            lambda test()
+            begin
+                try
+                begin
+                    data sts, int
+                    xcall setlog("HC_XFCONNECTIONLOAD", conncount, sts)
+                    FileChannelManager.ResetConnectionLoadCount()    
+                    Assert.AreEqual(Int32.Parse(conncount), FileChannelManager.GetConnectionLoadCount())
+                end    
+                catch (e, @Exception)
+                    Assert.AreEqual("FileChannelManager: invalid value for HC_XFCONNECTIONLOAD, must be an integer between 1 and 128", e.Message)    
+                endtry
+            end
+            data t = Task.Run(test)
+            t.Wait()
+        endmethod
+
+        {TestMethod}
+        public method ConnectionLoadTest, void
+        proc
+            ConnectionLoadTestHelper("hello")
+            ConnectionLoadTestHelper("0")
+            ConnectionLoadTestHelper("129")
+            ConnectionLoadTestHelper("128")
+            ConnectionLoadTestHelper("1")
+        endmethod
+.endc
+    endclass
+
+endnamespace
