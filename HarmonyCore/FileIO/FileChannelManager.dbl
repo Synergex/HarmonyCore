@@ -158,7 +158,13 @@ namespace Harmony.Core.FileIO
                     AsyncLocalLoad.Value = lid
                 end
             endmethod
-	
+	        
+            public static method SetLoadId, void
+                lid, int
+            proc
+                AsyncLocalLoad.Value = lid
+            endmethod
+
             public static property CurrentLoadId, int
                 method get
                 proc
@@ -170,14 +176,14 @@ namespace Harmony.Core.FileIO
         private class LoadStats
             private lid, int
             private totalConnections, int
-            private totalFiles, int
-			
+            private openConStartTime, @Dictionary<int, DateTime>, new Dictionary<int, DateTime>()
+            private openChStartTime, @Dictionary<int, DateTime>, new Dictionary<int, DateTime>()
+
             public method LoadStats
                 lid, int
             proc
                 this.lid = lid
                 this.totalConnections = 0
-                this.totalFiles = 0
             endmethod
 
             public method AddConnection, void
@@ -185,21 +191,71 @@ namespace Harmony.Core.FileIO
                 this.totalConnections += 1
             endmethod
 
-            public method AddFile, void
-            proc
-                this.totalFiles += 1
-            endmethod
-
             public method GetTotalConnections, int
             proc
                 mreturn this.totalConnections
             endmethod
 
-            public method GetTotalFiles, int
+            public method RecordConTime, void
+                hand, int
             proc
-                mreturn this.totalFiles
+                data startTime = new DateTime()
+                startTime = DateTime.Now
+                openConStartTime.Add(hand, startTime)
             endmethod
+
+            public method GetConnectionTime, @TimeSpan
+            proc
+                data currentTime = new DateTime()
+                currentTime = DateTime.Now
+                data activeConnectionsTime, @TimeSpan, new TimeSpan()
+                data interval, @TimeSpan, new TimeSpan()
+                data kvp, KeyValuePair<int, DateTime>
+                foreach kvp in openConStartTime
+                begin
+                    interval = currentTime - kvp.Value
+                    activeConnectionsTime = activeConnectionsTime.Add(interval)
+                end
+
+                mreturn activeConnectionsTime
+            endmethod
+
+            public method RecordChTime, void
+                ch, int
+            proc
+                data startTime = new DateTime()
+                startTime = DateTime.Now
+                openChStartTime.Add(ch, startTime)
+            endmethod
+
+            public method GetChannelTime, @TimeSpan
+            proc
+                data currentTime = new DateTime()
+                currentTime = DateTime.Now
+                data activeChannelsTime, @TimeSpan, new TimeSpan()
+                data interval, @TimeSpan, new TimeSpan()
+                data kvp, KeyValuePair<int, DateTime>
+                foreach kvp in openChStartTime
+                begin
+                    interval = currentTime - kvp.Value
+                    activeChannelsTime = activeChannelsTime.Add(interval)
+                end
+
+                mreturn activeChannelsTime
+            endmethod
+
         endclass
+
+        public method GetConTime, @TimeSpan
+        proc
+            data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+            if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
+            begin
+                data loadstatsobj = (LoadStats) lidTuple.Item1 
+                mreturn loadstatsobj.GetConnectionTime()
+            end
+            mreturn TimeSpan.Zero
+        endmethod
 
         private method RemoteFile, boolean
             fileName, @string
@@ -304,7 +360,51 @@ namespace Harmony.Core.FileIO
             openMode, FileOpenMode
         proc
             if (connectionLoadCount > 1 && RemoteFile(fileName))
-                LoadInfo.GetLoadId()
+            begin
+                ; determine balancing method
+                data HC_envvar, @string
+                data HC_envvarVal, a3
+                data HC_envvarLen, d3
+                HC_envvar = "HC_XFCONNECTIONBALANCING"
+                xcall getlog(HC_envvar, HC_envvarVal, HC_envvarLen)
+                if (HC_envvarLen) then
+                begin
+                    ; when all of the loads are utilized, use the one with the least load
+                    data currLoadCount, int
+                    currLoadCount = mAllOpenConnections.Count
+                    if (connectionLoadCount == currLoadCount) then
+                    begin
+                        data lowestLoad, int
+                        data lowestChannelsTime, @TimeSpan
+                        data lidItem, KeyValuePair<int, Tuple<Object, ConcurrentDictionary<string, int>>>
+                        foreach lidItem in mAllOpenConnections
+                        begin
+                            data loadStatsObj = (LoadStats) lidItem.Value.Item1
+                            if (!lowestLoad) then
+                            begin
+                                lowestLoad = lidItem.Key
+                                lowestChannelsTime = loadStatsObj.GetChannelTime()
+                            end
+                            else
+                            begin
+                                data currLoad = lidItem.Key
+                                data currChannelsTime = loadStatsObj.GetChannelTime()
+                                if (TimeSpan.Compare(lowestChannelsTime, currChannelsTime) == 1)
+                                begin
+                                    lowestLoad = currLoad
+                                    lowestChannelsTime = currChannelsTime
+                                end
+                            end
+                        end
+                        LoadInfo.SetLoadId(lowestLoad)
+                    end
+                    else
+                        LoadInfo.GetLoadId()
+                end
+                else
+                    LoadInfo.GetLoadId()
+            end
+
 
             (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
             data loadIdLookup = mChannelLookup.GetOrAdd(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, lambda(keyValue) {  new ConcurrentDictionary<string, ConcurrentDictionary<FileOpenMode, ConcurrentBag<int>>>() })
@@ -345,7 +445,12 @@ namespace Harmony.Core.FileIO
                         begin
                             Monitor.Enter(mAllOpenConnections)
                             data lid = mAllOpenConnections.GetOrAdd(LoadInfo.CurrentLoadId, lambda(keyValue) { new Tuple<Object, ConcurrentDictionary<string, int>>(new LoadStats(LoadInfo.CurrentLoadId), new ConcurrentDictionary<string, int>() ) })
-                            handle = lid.Item2.GetOrAdd(server, lambda(keyValue) { %create_server_connection(server, Int32.Parse(port)) })
+                            if (!lid.Item2.TryGetValue(server, handle))
+                            begin
+                                handle = lid.Item2.GetOrAdd(server, lambda(keyValue) { %create_server_connection(server, Int32.Parse(port)) })
+                                data loadstatsobj = (LoadStats) lid.Item1
+                                loadstatsobj.RecordConTime(handle)
+                            end
                         end
                     end
                     finally
@@ -415,7 +520,16 @@ namespace Harmony.Core.FileIO
                 mAllOpenChannels[channel] = Tuple.Create(RemoteFile(fileName) ? LoadInfo.CurrentLoadId : 0, Tuple.Create(fileName, openMode))
 
                 if (handle)
+                begin
                     channelsAndHandles[channel] = Tuple.Create(LoadInfo.CurrentLoadId, handle)
+                    ; record time channel was open
+                    data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+                    if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
+                    begin
+                        data loadstatsobj = (LoadStats) lidTuple.Item1 
+                        loadstatsobj.RecordChTime(channel)
+                    end
+                end
 
                 mreturn channel
             end
