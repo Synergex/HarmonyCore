@@ -45,13 +45,19 @@ stages:
       inputs:
         versionSpec: 6.x
         checkLatest: true
-    - task: NuGetCommand@2
-      displayName: 'NuGet restore'
-      inputs:
-        command: 'restore'
-        restoreSolution: '**/*.sln'
-        feedsToUse: 'select'
-        vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+    # - task: NuGetCommand@2
+    #   displayName: 'NuGet restore'
+    #   inputs:
+    #     command: 'restore'
+    #     restoreSolution: '**/*.sln'
+    #     feedsToUse: 'select'
+    #     vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'restore'
+        feedsToUse: 'select'
+        vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+
     - task: MSBuild@1
       displayName: 'Build solution'
       inputs:
