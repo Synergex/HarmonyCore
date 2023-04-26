@@ -228,6 +228,12 @@ namespace Harmony.Core.FileIO
                 openChStartTime.Add(ch, startTime)
             endmethod
 
+            public method RemoveCh, void
+                ch, int
+            proc
+                openChStartTime.Remove(ch)
+            endmethod
+
             public method GetChannelTime, @TimeSpan
             proc
                 data currentTime = new DateTime()
@@ -551,10 +557,16 @@ namespace Harmony.Core.FileIO
             DebugLogSession.Logging.LogInfo("FileChannelManager: Returned channel {0}", channelId)
             xcall free(channelId)
             data loadInfo, @Tuple<int, Tuple<string, FileOpenMode>>
-
             if(!mAllOpenChannels.TryGetValue(channelId, loadInfo)) then
             begin
                 close channelId
+                ; remove channel from LoadStats obj
+                data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+                if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
+                begin
+                    data loadstatsobj = (LoadStats) lidTuple.Item1 
+                    loadstatsobj.RemoveCh(channelId)
+                end
             end
             else
             begin
