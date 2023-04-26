@@ -342,6 +342,52 @@ namespace Harmony.Core.FileIO
             mreturn newFileName
         endmethod
 
+        private method SelectLoadId, void
+        proc
+            ; determine balancing method
+            data HC_envvar, @string
+            data HC_envvarVal, a3
+            data HC_envvarLen, d3
+            HC_envvar = "HC_XFCONNECTIONBALANCING"
+            xcall getlog(HC_envvar, HC_envvarVal, HC_envvarLen)
+            if (HC_envvarLen) then
+            begin
+                ; when all of the loads are utilized, use the one with the least load
+                data currLoadCount, int
+                currLoadCount = mAllOpenConnections.Count
+                if (connectionLoadCount == currLoadCount) then
+                begin
+                    data lowestLoad, int
+                    data lowestChannelsTime, @TimeSpan
+                    data lidItem, KeyValuePair<int, Tuple<Object, ConcurrentDictionary<string, int>>>
+                    foreach lidItem in mAllOpenConnections
+                    begin
+                        data loadStatsObj = (LoadStats) lidItem.Value.Item1
+                        if (!lowestLoad) then
+                        begin
+                            lowestLoad = lidItem.Key
+                            lowestChannelsTime = loadStatsObj.GetChannelTime()
+                        end
+                        else
+                        begin
+                            data currLoad = lidItem.Key
+                            data currChannelsTime = loadStatsObj.GetChannelTime()
+                            if (TimeSpan.Compare(lowestChannelsTime, currChannelsTime) == 1)
+                            begin
+                                lowestLoad = currLoad
+                                lowestChannelsTime = currChannelsTime
+                            end
+                        end
+                    end
+                    LoadInfo.SetLoadId(lowestLoad)
+                end
+                else
+                    LoadInfo.GetLoadId()
+            end
+            else
+                LoadInfo.GetLoadId()
+        endmethod
+
         private method MakeCacheEntry, @FileChannelManager.ChannelCacheEntry
             fileName, @string
         proc
@@ -360,50 +406,7 @@ namespace Harmony.Core.FileIO
             openMode, FileOpenMode
         proc
             if (connectionLoadCount > 1 && RemoteFile(fileName))
-            begin
-                ; determine balancing method
-                data HC_envvar, @string
-                data HC_envvarVal, a3
-                data HC_envvarLen, d3
-                HC_envvar = "HC_XFCONNECTIONBALANCING"
-                xcall getlog(HC_envvar, HC_envvarVal, HC_envvarLen)
-                if (HC_envvarLen) then
-                begin
-                    ; when all of the loads are utilized, use the one with the least load
-                    data currLoadCount, int
-                    currLoadCount = mAllOpenConnections.Count
-                    if (connectionLoadCount == currLoadCount) then
-                    begin
-                        data lowestLoad, int
-                        data lowestChannelsTime, @TimeSpan
-                        data lidItem, KeyValuePair<int, Tuple<Object, ConcurrentDictionary<string, int>>>
-                        foreach lidItem in mAllOpenConnections
-                        begin
-                            data loadStatsObj = (LoadStats) lidItem.Value.Item1
-                            if (!lowestLoad) then
-                            begin
-                                lowestLoad = lidItem.Key
-                                lowestChannelsTime = loadStatsObj.GetChannelTime()
-                            end
-                            else
-                            begin
-                                data currLoad = lidItem.Key
-                                data currChannelsTime = loadStatsObj.GetChannelTime()
-                                if (TimeSpan.Compare(lowestChannelsTime, currChannelsTime) == 1)
-                                begin
-                                    lowestLoad = currLoad
-                                    lowestChannelsTime = currChannelsTime
-                                end
-                            end
-                        end
-                        LoadInfo.SetLoadId(lowestLoad)
-                    end
-                    else
-                        LoadInfo.GetLoadId()
-                end
-                else
-                    LoadInfo.GetLoadId()
-            end
+                SelectLoadId()    
 
 
             (void)mChannelLRU.GetOrAdd(fileName, MakeCacheEntry) ;;signal the cache that this filename was hit
