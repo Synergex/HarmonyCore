@@ -66,8 +66,9 @@ namespace HarmonyCore.Test.EF
         {TestMethod}
         public method LoadInfoTest, void
         proc
-            data xfconnloadsts, int
-            xcall setlog("HC_XFCONNECTIONLOAD", 2, xfconnloadsts)
+            data sts, int
+            xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
+            xcall setlog("HC_XFCONNECTIONBALANCING", "", sts)
             disposable data channelManager = new FileChannelManager()
 
             lambda openFiles()
@@ -160,6 +161,48 @@ namespace HarmonyCore.Test.EF
 			startServ.Start()
 			startServ.WaitForExit()
         endmethod
+
+.ifdef DEBUG
+        {TestMethod}
+        public method BalancingTest, void
+        proc
+            data sts, int
+            xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
+            xcall setlog("HC_XFCONNECTIONBALANCING", 1, sts)
+            disposable data channelManager = new FileChannelManager()
+            FileChannelManager.ResetConnectionLoadCount()
+
+            data lid, int
+            lambda openFiles()
+            begin
+                disposable data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                disposable data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
+                lid = FileChannelManager.LoadInfo.CurrentLoadId
+            end
+
+            data t1 = Task.Run(openFiles)
+            t1.Wait()
+            data t1lid = lid
+
+            data t2 = Task.Run(openFiles)
+            t2.Wait()
+            data t2lid = lid
+            Assert.AreNotEqual(t1lid, t2lid)
+
+            data t3 = Task.Run(openFiles)
+            t3.Wait()
+            data t3lid = lid
+            Assert.AreEqual(t2lid, t3lid)
+            
+            data t4 = Task.Run(openFiles)
+            t4.Wait()
+            data t4lid = lid
+            Assert.AreEqual(t2lid, t4lid)
+            
+            xcall setlog("HC_XFCONNECTIONBALANCING", "", sts)
+            channelManager.Dispose()
+        endmethod
+.endc
 .ifdef DEBUG
         public method ConnectionLoadTestHelper, void
             conncount, @string
