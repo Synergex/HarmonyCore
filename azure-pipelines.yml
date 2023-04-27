@@ -53,7 +53,6 @@ stages:
     #     feedsToUse: 'select'
     #     vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
     - task: DotNetCoreCLI@2
-      displayName: 'DotNet restore'
       inputs:
         command: 'restore'
         feedsToUse: 'select'
@@ -153,19 +152,12 @@ stages:
         packagesToPack: '*.nuspec'
         versioningScheme: 'byBuildNumber'
     
-    # - task: NuGetCommand@2
-    #   inputs:
-    #     command: 'push'
-    #     packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
-    #     nuGetFeedType: 'internal'
-    #     publishVstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
-    - task: DotNetCoreCLI@2
-      displayName: 'DotNet push'
+    - task: NuGetCommand@2
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
         nuGetFeedType: 'internal'
-        vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+        publishVstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
 
 #    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\publish'
 #      displayName: 'Publish Linux Services.Host Artifact'
