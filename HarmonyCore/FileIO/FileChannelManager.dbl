@@ -196,7 +196,7 @@ namespace Harmony.Core.FileIO
                 mreturn this.totalConnections
             endmethod
 
-            public method RecordConTime, void
+            public method RecordConnectionTime, void
                 hand, int
             proc
                 data startTime = new DateTime()
@@ -220,7 +220,7 @@ namespace Harmony.Core.FileIO
                 mreturn activeConnectionsTime
             endmethod
 
-            public method RecordChTime, void
+            public method RecordChannelTime, void
                 ch, int
             proc
                 data startTime = new DateTime()
@@ -228,7 +228,7 @@ namespace Harmony.Core.FileIO
                 openChStartTime.Add(ch, startTime)
             endmethod
 
-            public method RemoveCh, void
+            public method RemoveChannel, void
                 ch, int
             proc
                 openChStartTime.Remove(ch)
@@ -252,7 +252,7 @@ namespace Harmony.Core.FileIO
 
         endclass
 
-        public method GetConTime, @TimeSpan
+        public method GetConnectionTime, @TimeSpan
         proc
             data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
             if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
@@ -458,7 +458,7 @@ namespace Harmony.Core.FileIO
                             begin
                                 handle = lid.Item2.GetOrAdd(server, lambda(keyValue) { %create_server_connection(server, Int32.Parse(port)) })
                                 data loadstatsobj = (LoadStats) lid.Item1
-                                loadstatsobj.RecordConTime(handle)
+                                loadstatsobj.RecordConnectionTime(handle)
                             end
                         end
                     end
@@ -536,7 +536,7 @@ namespace Harmony.Core.FileIO
                     if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
                     begin
                         data loadstatsobj = (LoadStats) lidTuple.Item1 
-                        loadstatsobj.RecordChTime(channel)
+                        loadstatsobj.RecordChannelTime(channel)
                     end
                 end
 
@@ -562,10 +562,10 @@ namespace Harmony.Core.FileIO
                 close channelId
                 ; remove channel from LoadStats obj
                 data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
-                if (mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
+                if (connectionLoadCount > 1 && mAllOpenConnections.TryGetValue(LoadInfo.CurrentLoadId, lidTuple))
                 begin
                     data loadstatsobj = (LoadStats) lidTuple.Item1 
-                    loadstatsobj.RemoveCh(channelId)
+                    loadstatsobj.RemoveChannel(channelId)
                 end
             end
             else
