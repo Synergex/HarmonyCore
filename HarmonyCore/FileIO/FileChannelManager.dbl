@@ -42,6 +42,12 @@ namespace Harmony.Core.FileIO
                 end
             end
 
+            ; clear dictionaries
+            channelsAndHandles.Clear()
+            mAllOpenConnections.Clear()
+            mAllOpenChannels.Clear()
+            mChannelLookup.Clear()
+
             if(disposing)
                 GC.SuppressFinalize(this)
         endmethod
@@ -140,12 +146,7 @@ namespace Harmony.Core.FileIO
         proc
             mreturn connectionLoadCount
         endmethod
-.ifdef DEBUG
-        public static method ResetConnectionLoadCount, void
-        proc
-            connectionLoadCount = SetConnectionLoadCount()
-        endmethod
-.endc     
+    
         public static class LoadInfo
             static AsyncLocalLoad, @AsyncLocal<int>, new AsyncLocal<int>()
             public static method GetLoadId, void
@@ -251,6 +252,18 @@ namespace Harmony.Core.FileIO
             endmethod
 
         endclass
+
+        public method GetLidTotalChannelTime, @TimeSpan
+            lid, int
+        proc
+            data lidTuple, @Tuple<Object, ConcurrentDictionary<string, int>>
+            if (mAllOpenConnections.TryGetValue(lid, lidTuple))
+            begin
+                data loadstatsobj = (LoadStats) lidTuple.Item1 
+                mreturn loadstatsobj.GetChannelTime()
+            end
+            mreturn TimeSpan.Zero
+        endmethod
 
         public method GetConnectionTime, @TimeSpan
         proc
