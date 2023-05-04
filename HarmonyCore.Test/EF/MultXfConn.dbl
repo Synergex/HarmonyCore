@@ -63,23 +63,19 @@ namespace HarmonyCore.Test.EF
 			data scsportsts, int
 			xcall setlog("SCSPORT", %atrimtostring(scsport), scsportsts)
 		endmethod
-                
-        private delegate LoadInfoTestHelperDelegate, @Action
-            channelManager, @FileChannelManager
-        enddelegate
         
         private method LoadInfoTestHelper, @Action
             channelManager, @FileChannelManager
         proc
             lambda openFiles()
             begin
-                data file1 = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
+                disposable data file1 = new IsamDataObjectIO<Orders>(channelManager, "DAT:orders.ism", FileOpenMode.UpdateIndexed)
                 data lid1 = FileChannelManager.LoadInfo.CurrentLoadId
-                data file2 = new IsamDataObjectIO<Customer>(channelManager, "DAT:customers.ism", FileOpenMode.UpdateIndexed)
+                disposable data file2 = new IsamDataObjectIO<Customer>(channelManager, "DAT:customers.ism", FileOpenMode.UpdateIndexed)
                 data lid2 = FileChannelManager.LoadInfo.CurrentLoadId
-                data file3 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                disposable data file3 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
                 data lid3 = FileChannelManager.LoadInfo.CurrentLoadId
-                data file4 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
+                disposable data file4 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
                 data lid4 = FileChannelManager.LoadInfo.CurrentLoadId
                 Assert.AreEqual(lid1, lid2)
                 Assert.AreEqual(lid3, lid4)
@@ -93,23 +89,18 @@ namespace HarmonyCore.Test.EF
             data sts, int
             xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
             xcall setlog("HC_XFCONNECTIONBALANCING", "", sts)
-            data channelManager = new FileChannelManager()
+            disposable data channelManager = new FileChannelManager()
             ; set connectionLoadCount
             data typeFCM = ^typeof(FileChannelManager)
             data connectionLoadCountField = typeFCM.GetField("connectionLoadCount", BindingFlags.Static | BindingFlags.NonPublic)
             data setConnectionLoadCount = typeFCM.GetMethod("SetConnectionLoadCount", BindingFlags.Static | BindingFlags.NonPublic)
             connectionLoadCountField.SetValue(^null, setConnectionLoadCount.Invoke(^null, ^null))
-            
-            data deleg, @LoadInfoTestHelperDelegate
-            deleg = LoadInfoTestHelper
 
             data tasklist, @List<Task>, new List<Task>()
             data i, int
             for i from 0 thru 100
-                tasklist.Add(Task.Run(deleg(channelManager)))
+                tasklist.Add(Task.Run(LoadInfoTestHelper(channelManager)))
             Task.WaitAll(tasklist.ToArray())
-
-            channelManager.Dispose()
         endmethod
 
         public method MakeDBContext, @MyDBContext
@@ -174,7 +165,7 @@ namespace HarmonyCore.Test.EF
             data sts, int
             xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
             xcall setlog("HC_XFCONNECTIONBALANCING", 1, sts)
-            data channelManager = new FileChannelManager()
+            disposable data channelManager = new FileChannelManager()
             ; set connectionLoadCount
             data typeFCM = ^typeof(FileChannelManager)
             data connectionLoadCountField = typeFCM.GetField("connectionLoadCount", BindingFlags.Static | BindingFlags.NonPublic)
@@ -184,8 +175,8 @@ namespace HarmonyCore.Test.EF
             data lid, int
             lambda openFiles()
             begin
-                data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
-                data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
+                disposable data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                disposable data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
                 lid = FileChannelManager.LoadInfo.CurrentLoadId
             end
 
@@ -209,15 +200,7 @@ namespace HarmonyCore.Test.EF
             Assert.AreEqual(t2lid, t4lid)
             
             xcall setlog("HC_XFCONNECTIONBALANCING", "", sts)
-            channelManager.Dispose()
         endmethod
-
-        private delegate BalancingTestHelperDelegate, int
-            waittime, int
-            channelManager, @FileChannelManager
-            lid1, int
-            lid2, int
-        enddelegate
 
         private method BalancingTestHelper, int
             waittime, int
@@ -230,27 +213,32 @@ namespace HarmonyCore.Test.EF
             begin
                 if (waitTime == 0) then
                 begin
-                    data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                    disposable data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
                     data l1 = FileChannelManager.LoadInfo.CurrentLoadId
-                    data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
+                    disposable data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
                     data l2 = FileChannelManager.LoadInfo.CurrentLoadId
                     Assert.AreEqual(l1, l2)
                     lid = FileChannelManager.LoadInfo.CurrentLoadId
                 end
                 else
                 begin
-                    Thread.Sleep(waitTime)
+                    Thread.Sleep(100)
+                    Monitor.Enter(this)
                     data l1alive = channelManager.GetLidTotalChannelTime(lid1)
                     data l2alive = channelManager.GetLidTotalChannelTime(lid2)
-                    data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
+                    disposable data file1 = new IsamDataObjectIO<Orders>(channelManager, "TESTING1:orders.ism", FileOpenMode.UpdateIndexed)
                     data l1 = FileChannelManager.LoadInfo.CurrentLoadId
-                    data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
-                    data l2 = FileChannelManager.LoadInfo.CurrentLoadId
-                    Assert.AreEqual(l1, l2)
                     if (TimeSpan.Compare(l1alive, l2alive) == -1) then
                         Assert.AreEqual(l1, lid1)
                     else
                         Assert.AreEqual(l1, lid2)
+                    
+                    Monitor.Exit(this)
+                    
+                    disposable data file2 = new IsamDataObjectIO<Customer>(channelManager, "TESTING1:customers.ism", FileOpenMode.UpdateIndexed)
+                    data l2 = FileChannelManager.LoadInfo.CurrentLoadId
+                    Assert.AreEqual(l1, l2)
+                    
                 end
             end
             data t = Task.Run(openFiles)
@@ -264,34 +252,26 @@ namespace HarmonyCore.Test.EF
             data sts, int
             xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
             xcall setlog("HC_XFCONNECTIONBALANCING", 1, sts)
-            data channelManager = new FileChannelManager()
+            disposable data channelManager = new FileChannelManager()
             ; set connectionLoadCount
             data typeFCM = ^typeof(FileChannelManager)
             data connectionLoadCountField = typeFCM.GetField("connectionLoadCount", BindingFlags.Static | BindingFlags.NonPublic)
             data setConnectionLoadCount = typeFCM.GetMethod("SetConnectionLoadCount", BindingFlags.Static | BindingFlags.NonPublic)
             connectionLoadCountField.SetValue(^null, setConnectionLoadCount.Invoke(^null, ^null))
-                      
-            data deleg, @BalancingTestHelperDelegate
-            deleg = BalancingTestHelper
-            
-            data lid1 = deleg(0, channelManager, 0, 0)
-            data lid2 = deleg(0, channelManager, 0, 0)
+                    
+            data lid1 = BalancingTestHelper(0, channelManager, 0, 0)
+            data lid2 = BalancingTestHelper(0, channelManager, 0, 0)
             Assert.AreNotEqual(lid1, lid2)
 
             data waittime, int
             for waittime from 1 thru 100
             begin
-                data lid = deleg(waittime, channelManager, lid1, lid2)
+                data lid = BalancingTestHelper(waittime, channelManager, lid1, lid2)
             end
 
             xcall setlog("HC_XFCONNECTIONBALANCING", "", sts)
-            channelManager.Dispose()
         endmethod
         
-        private delegate ConnectionLoadTestHelperDelegate, void
-            conncount, @string
-        enddelegate
-
         private method ConnectionLoadTestHelper, void
             conncount, @string
         proc
@@ -318,14 +298,11 @@ namespace HarmonyCore.Test.EF
         {TestMethod}
         public method ConnectionLoadTest, void
         proc
-            ;data channelManager = new FileChannelManager()
-            data deleg, @ConnectionLoadTestHelperDelegate
-            deleg = ConnectionLoadTestHelper
-            deleg("hello")
-            deleg("0")
-            deleg("129")
-            deleg("128")
-            deleg("1")
+            ConnectionLoadTestHelper("hello")
+            ConnectionLoadTestHelper("0")
+            ConnectionLoadTestHelper("129")
+            ConnectionLoadTestHelper("128")
+            ConnectionLoadTestHelper("1")
         endmethod
     endclass
 
