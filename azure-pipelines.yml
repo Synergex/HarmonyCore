@@ -58,13 +58,22 @@ stages:
         #feedsToUse: 'select'
         #vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
     - task: MSBuild@1
+      displayName: 'restore solution'
+      inputs:
+        solution: '$(HarmonyCoreSln)'
+        msbuildArchitecture: 'x64'
+        platform: $(Platform)
+        configuration: $(Configuration)
+        msbuildArguments: '-t:restore'
+        logFileVerbosity: diagnostic
+        clean: false
+    - task: MSBuild@1
       displayName: 'Build solution'
       inputs:
         solution: '$(HarmonyCoreSln)'
         msbuildArchitecture: 'x64'
         platform: $(Platform)
         configuration: $(Configuration)
-        restoreNugetPackages: true
         logFileVerbosity: diagnostic
         clean: false
 
