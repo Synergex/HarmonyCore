@@ -32,8 +32,37 @@ namespace HarmonyCore.CliTool.TUI.Views
             };
 
             _leftFrame = new FrameView(settings.Name);
-            _currentItemFrame = new FrameView($"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar");
+            if (_settings.CanAddItems)
+            {
+                _currentItemFrame = new FrameView($"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar");
+            }
+            else
+            {
+                _currentItemFrame = new FrameView($"No {_settings.Name.ToLower()} are available.");
+                if (_settings.Name.ToLower() == "interfaces")
+                {
+                    var helpText = "To import xfServerPlus interfaces for traditional Synergy routines, "
+                                 + "the solution must have a TraditionalBridge project, "
+                                 + "xfServerPlus importing must be enabled, and "
+                                 + "a Synergy method catalog (SMC) must be selected. "
+                                 + "See the Features menu for options to set this up.";
+                    var helpTextView = new TextView()
+                    {
+                        Text = helpText,
+                        X = 1,
+                        Y = 1,
+                        Width = Dim.Fill() - 4,
+                        Height = 5,
+                        ReadOnly = true,
+                        WordWrap = true,
+                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.BrightYellow, Color.Black) }
+                    };
+                    _currentItemFrame.Add(helpTextView);
+                    helpTextView.CanFocus = false;
+                    _currentItemFrame.SetFocus();
+                }
 
+            }
             _leftFrame.Add(_structureListView);
             _structureListView.SelectedItemChanged += _structureListView_SelectedItemChanged;
 
@@ -151,7 +180,12 @@ namespace HarmonyCore.CliTool.TUI.Views
         {
             _statusBar = target;
             if (_settings.CanAddItems)
+            {
+                _currentItemFrame?.RemoveAll();
+                _currentItemFrame.Title = $"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar";
                 _statusBar.AddItemAt(0, new StatusItem(Key.CtrlMask | Key.A, "~^A~ Add " + _settings.Name.ToLower(), OnAddThing));
+            }
+
             if (_settings.Items.Count > 0 && _statusBar.Items.Length < 2)
                 _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
         }

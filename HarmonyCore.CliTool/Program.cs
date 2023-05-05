@@ -269,7 +269,7 @@ Known structure properties:
 
             if(!Directory.Exists(solutionDir))
             {
-                logger($"Detected invalid solution dir '{solutionDir}', ignoring and using standard search path");
+                logger($"SolutionDir '{solutionDir}' is not set. Using the current working directory.");
                 solutionDir = string.Empty;
             }
 
@@ -344,6 +344,23 @@ Known structure properties:
             AppFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "Harmony.Core.CLITool");
             // Ensure the directory and all its parents exist.
             Directory.CreateDirectory(AppFolder);
+
+            var currentDir = Environment.CurrentDirectory;
+            var slnIsInCurrDir = Directory.EnumerateFiles(currentDir, "*.sln").Any();
+
+            var solutionDir = Environment.ExpandEnvironmentVariables("%SolutionDir%") ?? "";
+            var slnIsInSolutionDir = Directory.Exists(solutionDir) && Directory.EnumerateFiles(solutionDir, "*.sln").Any();
+
+            if (!slnIsInCurrDir && !slnIsInSolutionDir)
+            {
+                var loadErrorMessage = "Solution Load Error: No solution file (.sln) can be found.\n"
+                                     + "Open the Harmony Core CLI tool in a directory with the .sln\n"
+                                     + "file for the target solution, or set the SolutionDir\n"
+                                     + "environment variable to the directory with the solution\n"
+                                     + "file before opening the CLI tool.";
+                Console.WriteLine(loadErrorMessage);
+                return;
+            }
 
             var configData = Path.Combine(AppFolder, "config.json");
             if (File.Exists(configData))
