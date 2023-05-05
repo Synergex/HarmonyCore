@@ -1554,7 +1554,7 @@ namespace Services.Test.UnitTests
             data resultValue, d28
             data expected, d28, 5555555555
             resultValue = (a)RegexificationFactory.RegexifyMe("(XXX) XXX-XXXX").GetData("(555) 555-5555")
-            Assert.AreEqual(resultValue, expected)
+            Assert.AreEqual<decimal>(resultValue, expected)
         endmethod
 
         {TestMethod}
@@ -1762,7 +1762,7 @@ namespace Services.Test.UnitTests
             await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty, p4 = 5 })
             await optRet.Task
             Assert.AreEqual("World", optRet.Task.Result.p3)
-            Assert.AreEqual(45, optRet.Task.Result.p4)
+            Assert.AreEqual<int>(45, optRet.Task.Result.p4.Value, "Bad Return Value")
             optRet = new TaskCompletionSource<ArbitrarioOptionalReturnType>()
             await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p2 = "World", p3 = String.Empty })
             await optRet.Task
@@ -1775,7 +1775,7 @@ namespace Services.Test.UnitTests
             optRet = new TaskCompletionSource<ArbitrarioOptionalReturnType>()
             await connection.InvokeAsync("Arbitrario_Optional", new ArbitrarioOptionalParameter() { p1 = 9, p4 = 5 })
             await optRet.Task
-            Assert.AreEqual(45, optRet.Task.Result.p4)
+            Assert.AreEqual<int>(45, optRet.Task.Result.p4.Value, "Bad Return Value")
         endmethod
 
         public class ArbitrarioReturnType
