@@ -38,7 +38,18 @@ namespace Harmony.Core.FileIO
 			mOpenMode = openMode
 			mFileName = fileName
 			mChannel = mChannelManager.GetChannel(mFileName, mOpenMode)
-		endmethod
+        endmethod
+
+        public method IsamDataObjectIO
+            req in channel, int
+            req in fileName, @string
+            req in openMode, FileOpenMode
+        proc
+            mChannelManager = ^null
+            mOpenMode = openMode
+            mFileName = fileName
+            mChannel = channel
+        endmethod
 
 		method ~IsamDataObjectIO
 		proc
@@ -50,7 +61,7 @@ namespace Harmony.Core.FileIO
 		proc
 			parent.Dispose(isFinalizer)
 			if(mChannel > 0)
-				mChannelManager.ReturnChannel(mChannel)
+				mChannelManager?.ReturnChannel(mChannel)
 			mChannel = 0
 		endmethod
 
