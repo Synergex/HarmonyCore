@@ -10,6 +10,12 @@ import System.Text.Json
 .define JSON_ELEMENT @JsonValue
 .endc
 
+.ifdef D_VMS
+.define MAX_IO_SIZE 256
+.else
+.define MAX_IO_SIZE 65534
+.endc
+
 .define MaybeLog(priority, msg) if((priority) <= Logger.LogLevel) Logger.Instance.Log(msg)
 ;.define MaybeLog(priority, msg) Logger.Instance.Log(msg)
 namespace Json
@@ -199,8 +205,8 @@ namespace Json
             do 
             begin
                 MaybeLog(6, "Dispatcher: Reading " + %string(remainingRead) + " bytes from input")
-                if(remainingRead > 65535) then
-                    constrainedRemainingRead = 65535
+                if(remainingRead > MAX_IO_SIZE) then
+                    constrainedRemainingRead = MAX_IO_SIZE
                 else
                     constrainedRemainingRead = remainingRead
                 gets(ttChannel, ^m(MemStruct(readerPosition:constrainedRemainingRead), readBuffer), wait:100, MASK:mActivationMask) [$ERR_TIMOUT=again]
@@ -264,12 +270,12 @@ namespace Json
             while(i < dataToAppend.Length)
             begin
                 data length = dataToAppend.Length - i
-                if(length > 65534) then
+                if(length > MAX_IO_SIZE) then
                 begin
-                    length = 65534
+                    length = MAX_IO_SIZE
                     puts(Channel, dataToAppend(i + 1:length))
                 end
-                else if(dataToAppend.Length > 65534) then
+                else if(dataToAppend.Length > MAX_IO_SIZE) then
                     puts(Channel, dataToAppend(i + 1:length))
                 else
                     puts(Channel, dataToAppend)
