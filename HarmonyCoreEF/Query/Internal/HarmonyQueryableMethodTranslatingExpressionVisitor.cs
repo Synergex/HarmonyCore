@@ -1398,8 +1398,10 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return null;
             }
-
-            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
+            // This meant to eliminate an additional order by on a key entity generated in the case when ODATA query contains $top and $orderbys
+            if (false)
+                inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
+    
             return source;
         }
 

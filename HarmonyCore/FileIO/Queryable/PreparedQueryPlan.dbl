@@ -149,17 +149,21 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				data orderByTpl, @Tuple<FieldReference, boolean>
 				foreach orderByTpl in mOrderBy
-				begin
+                begin
 					if(orderByTpl.Item1.QuerySourceKey != 0)
 					begin
 						data typeBuffer = mQueryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
-						data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
-						data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
+                        ;; Verify that the type buffer is a collection
+                        if (typeBuffer.IsCollection)
+                        begin
+                            data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
+						    data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
 
-						data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
-						data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
+						    data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
+						    data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
 
-						typeBuffer.OrderBy = MakeOrderByExpression(item1Parm, item2Parm, item1Target, item2Target, orderByTpl.Item2)
+                            typeBuffer.OrderBy = MakeOrderByExpression(item1Parm, item2Parm, item1Target, item2Target, orderByTpl.Item2)
+                        end
 					end
 				end
 			end
@@ -819,16 +823,16 @@ namespace Harmony.Core.FileIO.Queryable
 				foreach tpl in mOrderBy
 				begin
 					data madeOrderBy, @Synergex.SynergyDE.Select.OrderBy, ^null
-					if(tpl.Item1.QuerySourceKey == 0)
-					begin
-						data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
+					data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
+                    if(tpl.Item1.QuerySourceKey == 0 || !typeBuffer.IsCollection)
+                    begin
 
 						if(!targetBuffers.Contains(typeBuffer))
 							nextloop
 
 						data handle = typeBuffer.MemoryHandle.Value
 						;;TODO: this isnt handling composite keys in a join
-						if(IsJoin) then
+						if(IsJoin && tpl.Item1.QuerySourceKey == 0) then
 						begin
 							data targetKey = typeBuffer.Metadata.GetKeyNumberByFieldNames(new string[#] { tpl.Item1.FieldDef.LanguageName })
 							if(targetKey != ^null)
@@ -838,8 +842,9 @@ namespace Harmony.Core.FileIO.Queryable
 								else
 									orderByResult = Synergex.SynergyDE.Select.OrderBy.DescendingKey(targetKey.Value)
 							end
-						end
-						else
+                        end
+                        ;; check here for srv_compat level
+						else if (tpl.Item1.QuerySourceKey == 0 || true)
 						begin
 							madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
 							if(orderByResult == ^null) then
@@ -954,7 +959,7 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				data memPtr, i4, fromItem.MemoryHandle.Value
 				data channel, i4, fromItem.IOChannel.Value
-				data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_AUTO_LOCK, 1, ^m(memPtr))
+                data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_NO_LOCK, 1, ^m(memPtr))
 				if(currentJoin == ^null) then
 				begin
 					currentJoin = madeJoin
