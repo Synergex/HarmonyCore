@@ -843,8 +843,8 @@ namespace Harmony.Core.FileIO.Queryable
 									orderByResult = Synergex.SynergyDE.Select.OrderBy.DescendingKey(targetKey.Value)
 							end
                         end
-                        ;; check here for srv_compat level
-						else if (tpl.Item1.QuerySourceKey == 0 || true)
+                        ;; verify that we're 12.2 runtime or higher and SRV_COMPAT is unset
+                        else if (tpl.Item1.QuerySourceKey == 0 || VerifyVersionCompatibility(typeBuffer.RemoteIO))
 						begin
 							madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
 							if(orderByResult == ^null) then
@@ -860,6 +860,40 @@ namespace Harmony.Core.FileIO.Queryable
 
 			mreturn orderByResult
 		endmethod
+
+        ;; A helper method that verifies version of runtime and SRV_COMPAT 
+        private method VerifyVersionCompatibility, boolean
+            isRemote, Nullable<Boolean>
+        proc
+            data condition, boolean, false
+            data runtimeVer = SYN_VERSION
+            data splitVer = runtimeVer.Split('.')
+            data versnNum = Int32.Parse(splitVer[1])
+            data majorRevNum = Int32.Parse(splitVer[2])
+            data versionCheck, boolean, false
+            if(versnNum > 12 || (versnNum = 12 && majorRevNum >= 2)) then
+                versionCheck = true
+            else
+                throw new NotImplementedException("Synergy Version 12.2 or higher is expected for OrderBy on Join support.")
+
+            if (isRemote) then
+            begin
+                ;; check whether SRV_COMPAT is set
+                data srv_compat = ""
+                srv_compat = Environment.GetEnvironmentVariable("SRV_COMPAT")
+                if (versionCheck && srv_compat == "") then
+                    condition = true
+                else 
+                    throw new NotImplementedException("The OrderBy in the current query could not be processed due to SRV_COMPAT variable being set or old xfServer version.")
+
+            end
+            else
+            begin
+                if (versionCheck)
+                    condition = true
+            end
+            mreturn condition
+        endmethod
 
 		internal method SelectObject, @Synergex.SynergyDE.Select.Select
 			fromObject, @Synergex.SynergyDE.Select.From
