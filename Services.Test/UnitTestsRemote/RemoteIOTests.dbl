@@ -14,9 +14,10 @@ import System.Reflection
 namespace Services.Test.UnitTestsRemote
 
     {TestClass}
+    {DoNotParallelize()}
     public class RemoteIOTests
-        public static sampledatapath, a254
-        public static scsport, a254
+        public static sampledatapath, @string
+        public static scsport, @string
         public static rsyndport, int, 6020
         public static setupFilePath, @string
 
@@ -25,10 +26,9 @@ namespace Services.Test.UnitTestsRemote
             Context, @TestContext
 
         proc
-            setupFilePath = HarmonyCore.Test.TestEnvironment.findRelativeFolderForAssembly("HarmonyCore.Test") + "\tools\MultXfConTestSetup.bat"
+            setupFilePath = Services.Test.UnitTestEnvironment.FindRelativeFolderForAssembly("HarmonyCore.Test") + "\tools\MultXfConTestSetup.bat"
             data xfservervar = "TESTING"
-            data sampledatalenpath, int
-            xcall getlog("DAT", sampledatapath, sampledatalenpath)
+            sampledatapath = Environment.GetEnvironmentVariable("DAT")
             data setupArg = "setup " + %string(rsyndport) + " " + sampledatapath + " " + xfservervar
             data setupInfo, @Process
             setupInfo = new Process()
@@ -36,12 +36,9 @@ namespace Services.Test.UnitTestsRemote
             setupInfo.StartInfo.Arguments = setupArg
             setupInfo.Start()
             setupInfo.WaitForExit()
-            data xfvarssts, int
-            xcall setlog("DAT", xfservervar + ":@localhost", xfvarssts)
-            data scsportlen, int
-            xcall getlog("SCSPORT", scsport, scsportlen)
-            data scsportsts, int
-            xcall setlog("SCSPORT", %string(rsyndport), scsportsts)
+            Environment.SetEnvironmentVariable("DAT", xfservervar + ":@localhost")
+            scsport = Environment.GetEnvironmentVariable("SCSPORT")
+            Environment.SetEnvironmentVariable("SCSPORT", %string(rsyndport))
         endmethod
 
         {ClassCleanup}
@@ -53,9 +50,8 @@ namespace Services.Test.UnitTestsRemote
             cleanupInfo.Start()
             cleanupInfo.WaitForExit()
             data scsportsts, int
-            xcall setlog("SCSPORT", %atrimtostring(scsport), scsportsts)
-            data xfvarssts, int
-            xcall setlog("DAT", sampledatapath, xfvarssts)
+            Environment.SetEnvironmentVariable("SCSPORT", %atrimtostring(scsport))
+            Environment.SetEnvironmentVariable("DAT", sampledatapath)
         endmethod
 
         {TestMethod}
