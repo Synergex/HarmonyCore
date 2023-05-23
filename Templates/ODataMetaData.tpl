@@ -337,17 +337,9 @@ namespace <NAMESPACE>
                         existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
       </IF>
 ;//
-      <IF ONE_TO_ONE>
-                        existing.<HARMONYCORE_RELATION_NAME> = (@<RelationTostructureNoplural>)joinedObject.Value
-      </IF ONE_TO_ONE>
-;//
       <IF ONE_TO_MANY_TO_ONE OR ONE_TO_MANY>
                         existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
       </IF>
-;//
-      <IF ONE_TO_MANY>
-                        existing.<HARMONYCORE_RELATION_NAME> = (@ICollection<<RelationTostructureNoplural>>)joinedObject.Value
-      </IF ONE_TO_MANY>
 ;//
                     end
                 end
