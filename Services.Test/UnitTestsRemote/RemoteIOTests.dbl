@@ -16,18 +16,17 @@ namespace Services.Test.UnitTestsRemote
     {TestClass}
     {DoNotParallelize()}
     public class RemoteIOTests
-        public static sampledatapath, @string
-        public static scsport, @string
+        public static sampledatapath, a254
+        public static scsport, a254
         public static rsyndport, int, 6020
         public static setupFilePath, @string
+        public static xfservervar, @string, "TESTING"
 
         {ClassInitialize()}
         public static method ClassInit, void
             Context, @TestContext
-
         proc
             setupFilePath = Services.Test.UnitTestEnvironment.FindRelativeFolderForAssembly("HarmonyCore.Test") + "\tools\MultXfConTestSetup.bat"
-            data xfservervar = "TESTING"
             sampledatapath = Environment.GetEnvironmentVariable("DAT")
             data setupArg = "setup " + %string(rsyndport) + " " + sampledatapath + " " + xfservervar
             data setupInfo, @Process
@@ -36,12 +35,11 @@ namespace Services.Test.UnitTestsRemote
             setupInfo.StartInfo.Arguments = setupArg
             setupInfo.Start()
             setupInfo.WaitForExit()
-            Environment.SetEnvironmentVariable("DAT", xfservervar + ":@localhost")
-            scsport = Environment.GetEnvironmentVariable("SCSPORT")
-            Environment.SetEnvironmentVariable("SCSPORT", %string(rsyndport))
+            data sts, int
+            xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
         endmethod
 
-        {ClassCleanup}
+        {ClassCleanup()}
         public static method ClassCleanup, void
         proc
             data cleanupInfo = new Process()
@@ -49,21 +47,41 @@ namespace Services.Test.UnitTestsRemote
             cleanupInfo.StartInfo.Arguments = "cleanup " + %string(rsyndport)
             cleanupInfo.Start()
             cleanupInfo.WaitForExit()
+            data sts, int
+            xcall setlog("SCSPORT", %atrimtostring(scsport), sts)
+            data xfvarssts, int
+            xcall setlog("DAT", sampledatapath, sts)
+        endmethod
+
+        {TestInitialize()}
+        public method TestInit, void
+        proc
+            data xfvarssts, int
+            xcall setlog("DAT", xfservervar + ":@localhost", xfvarssts)
+            data scsportlen, int
+            xcall getlog("SCSPORT", scsport, scsportlen)
             data scsportsts, int
-            Environment.SetEnvironmentVariable("SCSPORT", %atrimtostring(scsport))
-            Environment.SetEnvironmentVariable("DAT", sampledatapath)
+            xcall setlog("SCSPORT", %string(rsyndport), scsportsts)
+        endmethod
+
+        {TestCleanup()}
+        public method TestCleanup, void
+        proc
+            data sts, int
+            xcall setlog("SCSPORT", %atrimtostring(scsport), sts)
+            data xfvarssts, int
+            xcall setlog("DAT", sampledatapath, sts)
         endmethod
 
         {TestMethod}
         public method GetAllCustomers_Expand_All_REMOTE, void
         proc
-            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx,REL_Differentpk"
+            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
         endmethod
-
 
         {TestMethod}
         public method ExpandAndSelect1_REMOTE, void

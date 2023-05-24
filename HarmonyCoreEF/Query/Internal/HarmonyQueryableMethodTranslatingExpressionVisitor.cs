@@ -737,8 +737,7 @@ namespace Harmony.Core.EF.Query.Internal
                         //Collection -> single -> Single will result in REL_Single.REL_Single as the member key
                         //this needs to be assigned to the correct parent expression instead
                         var targetRefTable = tableExpression.RootExpression.RootExpressions.Values.FirstOrDefault(table => table.Name == targetName);
-                        // Verify that a selector isn't SelectAll type before adding a member to ReferencedFields
-                        if (targetRefTable != null && !selector.ReturnType.Name.StartsWith("SelectAll"))
+                        if (targetRefTable != null)
                         {
                             var refName = endOfParentPath > -1 ? memberKvp.Key.Substring(endOfParentPath + 1) : memberKvp.Key;
                             var objectInfo = metadataObject.GetFieldByName(member.Name);
