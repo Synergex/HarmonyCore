@@ -31,12 +31,9 @@ namespace HarmonyCore.Test.EF
 		public static method ClassInit, void
 			Context, @TestContext
 		proc
-			data soldir = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(Context.TestDir))
-			setupFilePath = soldir + "\HarmonyCore.Test\tools\MultXfConTestSetup.bat"
+			setupFilePath = HarmonyCore.Test.TestEnvironment.findRelativeFolderForAssembly("HarmonyCore.Test") + "\tools\MultXfConTestSetup.bat"
 			data xfservervar = "TESTING"
-			data sampledatapath, a254
-			data sampledatalenpath, int
-			xcall getlog("DAT", sampledatapath, sampledatalenpath)
+            data sampledatapath = Environment.GetEnvironmentVariable("DAT")
 			data setupArg = "setup " + %string(rsyndport) + " " + sampledatapath + " " + xfservervar
 			data setupInfo, @Process
 			setupInfo = new Process()
@@ -44,12 +41,11 @@ namespace HarmonyCore.Test.EF
 			setupInfo.StartInfo.Arguments = setupArg
 			setupInfo.Start()
 			setupInfo.WaitForExit()
-			data xfvarssts, int
-			xcall setlog("TESTING1", xfservervar + ":@localhost", xfvarssts)
+			data sts, int
+			xcall setlog("TESTING1", xfservervar + ":@localhost", sts)
 			data scsportlen, int
 			xcall getlog("SCSPORT", scsport, scsportlen)
-			data scsportsts, int
-            xcall setlog("SCSPORT", %string(rsyndport), scsportsts)
+            xcall setlog("SCSPORT", %string(rsyndport), sts)
 		endmethod
 
 		{ClassCleanup}
@@ -60,8 +56,8 @@ namespace HarmonyCore.Test.EF
 			cleanupInfo.StartInfo.Arguments = "cleanup " + %string(rsyndport)
 			cleanupInfo.Start()
 			cleanupInfo.WaitForExit()
-			data scsportsts, int
-			xcall setlog("SCSPORT", %atrimtostring(scsport), scsportsts)
+			data sts, int
+			xcall setlog("SCSPORT", %atrimtostring(scsport), sts)
 		endmethod
         
         private method LoadInfoTestHelper, @Action
