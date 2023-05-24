@@ -7,76 +7,17 @@ import System.Net.Http
 import Services
 import Services.Test.Models
 import System.Linq
-import System.Diagnostics
-import System.Reflection
 
-
-namespace Services.Test.UnitTestsRemote
+namespace Services.Test.UnitTests
 
     {TestClass}
-    {DoNotParallelize()}
-    public class RemoteIOTests
-        public static sampledatapath, a254
-        public static scsport, a254
-        public static rsyndport, int, 6020
-        public static setupFilePath, @string
-        public static xfservervar, @string, "TESTING"
-
-        {ClassInitialize()}
-        public static method ClassInit, void
-            Context, @TestContext
-        proc
-            setupFilePath = Services.Test.UnitTestEnvironment.FindRelativeFolderForAssembly("HarmonyCore.Test") + "\tools\MultXfConTestSetup.bat"
-            sampledatapath = Environment.GetEnvironmentVariable("DAT")
-            data setupArg = "setup " + %string(rsyndport) + " " + sampledatapath + " " + xfservervar
-            data setupInfo, @Process
-            setupInfo = new Process()
-            setupInfo.StartInfo.FileName = setupFilePath
-            setupInfo.StartInfo.Arguments = setupArg
-            setupInfo.Start()
-            setupInfo.WaitForExit()
-            data sts, int
-            xcall setlog("HC_XFCONNECTIONLOAD", 2, sts)
-        endmethod
-
-        {ClassCleanup()}
-        public static method ClassCleanup, void
-        proc
-            data cleanupInfo = new Process()
-            cleanupInfo.StartInfo.FileName = setupFilePath
-            cleanupInfo.StartInfo.Arguments = "cleanup " + %string(rsyndport)
-            cleanupInfo.Start()
-            cleanupInfo.WaitForExit()
-            data sts, int
-            xcall setlog("SCSPORT", %atrimtostring(scsport), sts)
-            data xfvarssts, int
-            xcall setlog("DAT", sampledatapath, sts)
-        endmethod
-
-        {TestInitialize()}
-        public method TestInit, void
-        proc
-            data xfvarssts, int
-            xcall setlog("DAT", xfservervar + ":@localhost", xfvarssts)
-            data scsportlen, int
-            xcall getlog("SCSPORT", scsport, scsportlen)
-            data scsportsts, int
-            xcall setlog("SCSPORT", %string(rsyndport), scsportsts)
-        endmethod
-
-        {TestCleanup()}
-        public method TestCleanup, void
-        proc
-            data sts, int
-            xcall setlog("SCSPORT", %atrimtostring(scsport), sts)
-            data xfvarssts, int
-            xcall setlog("DAT", sampledatapath, sts)
-        endmethod
-
+    public class SelectSparceTests
+	
         {TestMethod}
-        public method GetAllCustomers_Expand_All_REMOTE, void
+        public method GetAllCustomers_Expand_All, void
         proc
-            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes"
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx,REL_Differentpk"
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync(uri).Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -84,8 +25,9 @@ namespace Services.Test.UnitTestsRemote
         endmethod
 
         {TestMethod}
-        public method ExpandAndSelect1_REMOTE, void
+        public method ExpandAndSelect1, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -94,8 +36,9 @@ namespace Services.Test.UnitTestsRemote
         endmethod
 
         {TestMethod}
-        public method ExpandAndSelect2_REMOTE, void
+        public method ExpandAndSelect2, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -105,8 +48,9 @@ namespace Services.Test.UnitTestsRemote
 
         ;3 levels of expansion with select at each level.
         {TestMethod}
-        public method ExpandAndSelect3_REMOTE, void
+        public method ExpandAndSelect3, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -116,8 +60,9 @@ namespace Services.Test.UnitTestsRemote
 
         ;;;4 levels of expansion
         {TestMethod}
-        public method ExpandAndSelect4_REMOTE, void
+        public method ExpandAndSelect4, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor($select=Name))))").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -142,8 +87,9 @@ namespace Services.Test.UnitTestsRemote
 
         ;3 levels of expansion with select at each level, with a filter at the top level
         {TestMethod}
-        public method ExpandAndSelect5_REMOTE, void
+        public method ExpandAndSelect5, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -153,8 +99,9 @@ namespace Services.Test.UnitTestsRemote
 
         ;3 levels of expansion with select at each level, with a filter at the top level
         {TestMethod}
-        public method ExpandAndSelect7_REMOTE, void
+        public method ExpandAndSelect7, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -182,8 +129,9 @@ namespace Services.Test.UnitTestsRemote
 
         ;3 levels of expansion with select at each level, with a filter at the top level
         {TestMethod}
-        public method ExpandAndSelect6_REMOTE, void
+        public method ExpandAndSelect6, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -211,8 +159,9 @@ namespace Services.Test.UnitTestsRemote
         endmethod
 
         {TestMethod}
-        public method ExpandAndSelect8_REMOTE, void
+        public method ExpandAndSelect8, void
         proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
             disposable data client = UnitTestEnvironment.Server.CreateClient()
             disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
             data result = response.Content.ReadAsStringAsync().Result
@@ -221,6 +170,6 @@ namespace Services.Test.UnitTestsRemote
             Assert.IsTrue(customers.Value.Count > 1)
         endmethod
 
-    endclass
+	endclass
 
 endnamespace
