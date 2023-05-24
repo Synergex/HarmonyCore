@@ -1,0 +1,175 @@
+import Microsoft.AspNetCore.JsonPatch
+import Microsoft.VisualStudio.TestTools.UnitTesting
+import Newtonsoft.Json
+import System.Collections.Generic
+import System.Net
+import System.Net.Http
+import Services
+import Services.Test.Models
+import System.Linq
+
+namespace Services.Test.UnitTests
+
+    {TestClass}
+    public class SelectSparceTests
+	
+        {TestMethod}
+        public method GetAllCustomers_Expand_All, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            data uri = "/odata/v1/Customers?$expand=REL_CustomerOrders,REL_CustomerFavoriteItem,REL_CustomerNotes,REL_CustomerEx,REL_Differentpk"
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync(uri).Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+        endmethod
+
+        {TestMethod}
+        public method ExpandAndSelect1, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        {TestMethod}
+        public method ExpandAndSelect2, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        ;3 levels of expansion with select at each level.
+        {TestMethod}
+        public method ExpandAndSelect3, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        ;;;4 levels of expansion
+        {TestMethod}
+        public method ExpandAndSelect4, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers(CustomerNumber=8)?$expand=REL_CustomerOrders($expand=REL_OrderItems($expand=REL_Item($expand=REL_Vendor($select=Name))))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+            Assert.AreNotEqual(customers.REL_CustomerOrders.Count, 0)
+            data custOrd, @Order
+            foreach custOrd in customers.REL_CustomerOrders
+            begin
+                data ordItm, @OrderItem
+
+                Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+                foreach ordItm in custOrd.REL_OrderItems
+                begin
+                    Assert.IsNotNull(ordItm.REL_Item)
+                    Assert.IsNotNull(ordItm.REL_Item.REL_Vendor)
+                end
+
+            end
+        endmethod
+
+        ;3 levels of expansion with select at each level, with a filter at the top level
+        {TestMethod}
+        public method ExpandAndSelect5, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @Customer, JsonConvert.DeserializeObject<Customer>(result)
+        endmethod
+
+        ;3 levels of expansion with select at each level, with a filter at the top level
+        {TestMethod}
+        public method ExpandAndSelect7, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State eq 'CA'&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item($select=CommonName)))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
+            data cust, @Customer
+            foreach cust in customers.Value
+            begin
+                data custOrd, @Order
+                Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+                foreach custOrd in cust.REL_CustomerOrders
+                begin
+                    data ordItm, @OrderItem
+
+                    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+                    foreach ordItm in custOrd.REL_OrderItems
+                    begin
+                        Assert.IsNotNull(ordItm.REL_Item)
+                    end
+
+                end
+            end
+        endmethod
+
+        ;3 levels of expansion with select at each level, with a filter at the top level
+        {TestMethod}
+        public method ExpandAndSelect6, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$filter=State in ('CA','WA')&$expand=REL_CustomerOrders($select=OrderNumber,DateOrdered;$expand=REL_OrderItems($select=ItemNumber,QuantityOrdered;$expand=REL_Item))&$select=CustomerNumber,Name").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
+            data cust, @Services.Test.Models.Customer
+
+            foreach cust in customers.Value
+            begin
+                Assert.AreNotEqual(cust.REL_CustomerOrders.Count, 0)
+                data custOrd, @Order
+                foreach custOrd in cust.REL_CustomerOrders
+                begin
+                    data ordItm, @OrderItem
+
+                    Assert.AreNotEqual(custOrd.REL_OrderItems.Count, 0)
+
+                    foreach ordItm in custOrd.REL_OrderItems
+                    begin
+                        Assert.IsNotNull(ordItm.REL_Item)
+                    end
+
+                end
+            end
+        endmethod
+
+        {TestMethod}
+        public method ExpandAndSelect8, void
+        proc
+            Harmony.Core.FileIO.Queryable.PreparedQueryPlan.LocalSparse = true
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$expand=REL_CustomerOrders($select=PlacedBy;$expand=REL_OrderItems($expand=REL_Item))").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @ODataCustomersMultiple, JsonConvert.DeserializeObject<ODataCustomersMultiple>(result)
+            Assert.IsTrue(customers.Value.Count > 1)
+        endmethod
+
+	endclass
+
+endnamespace

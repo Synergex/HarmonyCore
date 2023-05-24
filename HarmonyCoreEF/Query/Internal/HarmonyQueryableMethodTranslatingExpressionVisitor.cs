@@ -740,7 +740,12 @@ namespace Harmony.Core.EF.Query.Internal
                         if (targetRefTable != null)
                         {
                             var refName = endOfParentPath > -1 ? memberKvp.Key.Substring(endOfParentPath + 1) : memberKvp.Key;
-                            targetRefTable.ReferencedFields.Add(Tuple.Create(refName, metadataObject.GetFieldByName(member.Name)));
+                            var objectInfo = metadataObject.GetFieldByName(member.Name);
+                            // Prevent adding a memeber to ReferencedFields if ElementSize is 0
+                            if (objectInfo != null && objectInfo.ElementSize != 0)
+                            {
+                                targetRefTable.ReferencedFields.Add(Tuple.Create(refName, objectInfo));
+                            }
                         }
                     }
                 }
