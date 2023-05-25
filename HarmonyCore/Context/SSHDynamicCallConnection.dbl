@@ -208,7 +208,9 @@ namespace Harmony.Core.Context
                 mLastSeenBytes = new ConcurrentQueue<String>()
             end
 
-			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, 1024 * 64)
+            data sshBufferSize = mTargetOS == RemoteTargetOS.VMS ? 4096 : 1024 * 64
+
+			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, sshBufferSize)
 			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection, lambda() { IsHealthy = false }, StreamReadMonitorEvent)
 			disposable data reader = new StreamReader(streamWrapper, Encoding.ASCII, false, 4096, true) 
 			disposable data writer = new StreamWriter(streamWrapper, Encoding.ASCII, 4096, true) 
