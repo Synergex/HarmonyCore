@@ -273,9 +273,15 @@ namespace HarmonyCore.CliTool.TUI.Models
     //that field must match an smc interface
     public class InterfaceNameOptionsAttribute : ValueOptionsExtractorBaseAttribute
     {
-        public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context)
+        public override List<object> BindValue(PropertyInfo property, object source, ISingleItemSettings parent, SolutionInfo context) 
         {
-            return context.CodeGenSolution.TraditionalBridge.Smc.Interfaces.Select(str => (object)str.Name).ToList();
+            var unfiltered = context.CodeGenSolution.TraditionalBridge.Smc.Interfaces.Select(str => (object)str.Name);
+            if (parent is IContextWithFilter contextWithFilter)
+            {
+                return unfiltered.Where(itm => contextWithFilter.AllowItem(itm as string)).ToList();
+            }
+            else
+                return unfiltered.ToList();
         }
     }
 

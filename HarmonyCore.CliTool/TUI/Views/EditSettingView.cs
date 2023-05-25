@@ -117,6 +117,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                         Height = 3,
                         ReadOnly = true,
                         WordWrap = true,
+                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) }
                     };
                     Add(lbl, rg, helpTextView);
                     ok.Enabled = false;

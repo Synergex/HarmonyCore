@@ -18,6 +18,9 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 {
     internal class MainViewModel
     {
+
+        private TraditionalBridgeSettings _traditionalBridgeSettings;
+
         private readonly Lazy<Task<SolutionInfo>> _loader;
         SolutionInfo _context => _loader.Value.Result;
 
@@ -136,7 +139,8 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                 case "interfaces":
                     return new InterfaceSettings(_context);
                 case "traditionalbridge":
-                    return new TraditionalBridgeSettings(_context);
+                    _traditionalBridgeSettings = new TraditionalBridgeSettings(_context);
+                    return _traditionalBridgeSettings;
                 case "settings":
                     return new SolutionSettings(_context);
                 default:
@@ -217,16 +221,80 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
             {
                 await DotnetTool.AddTemplateToSolution("harmonycore-tb",
                 Path.Combine(_context.SolutionDir, "TraditionalBridge"), _context.SolutionPath, events.Message);
-                events.Message("Instantiated and added traditional bridge project to solution");
+                events.Message("Instantiated and added Traditional Bridge project to solution");
                 _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
                 Save();
-                events.Message("Saved initial feature settings to harmony core config file");
+                events.Message("Saved initial feature settings to Harmony Core configuration file");
                 events.Message("Completed");
+                _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
+                OnSmcAdded();
             }
             finally
             {
                 events.OnLoaded();
             }
+        }
+
+        public event EventHandler SmcAdded;
+
+        async Task AddTraditionalBridgeAndSmc(GenerationEvents events)
+        {
+            await AddTraditionalBridge(events);
+            await AddSmc(events);
+        }
+
+        private string GetSmcPath(GenerationEvents events)
+        {
+            var openFileDialog = new OpenDialog("Load SMC", "Select an SMC file to import interfaces from.",
+                    new List<string> { ".xml", ".*" }, OpenDialog.OpenMode.File);
+            Application.Run(openFileDialog);
+
+            if (string.IsNullOrEmpty(openFileDialog.FilePath.ToString()) || !openFileDialog.FilePath.Contains(".xml")) 
+            {
+                events.Message("\nSMC selection canceled.");
+                return null;
+            }
+            try
+            {
+                return Path.GetRelativePath(_context.SolutionDir + "\\", openFileDialog.FilePath.ToString());
+            }
+            catch (FileNotFoundException ex) 
+            {
+                throw new FileNotFoundException("The selected SMC file was not found.", ex);
+            }
+        }
+
+        async Task AddSmc(GenerationEvents events)
+        {
+            try
+            {
+                var smcPath = GetSmcPath(events);
+
+                if (_context.CodeGenSolution.TraditionalBridge == null)
+                    _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge();
+
+                _context.CodeGenSolution.TraditionalBridge.EnableXFServerPlusMigration = true;
+                _context.CodeGenSolution.TraditionalBridge.XFServerSMCPath = smcPath;
+                if (Directory.Exists(Path.Combine(_context.SolutionDir, "TraditionalBridge", "Source")))
+                    _context.CodeGenSolution.TraditionalBridge.GenerateIntoSourceFolder = true;
+
+                events.Message("\nSetting up SMC import (enabling import and saving SMC path)...");
+                _context.SaveSolution();
+                events.Message("SMC setup completed.\n\nSCM path (relative to SolutionDir):");
+                events.Message(smcPath);
+
+                _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
+                OnSmcAdded();
+            }
+            finally
+            {
+                events.OnLoaded();
+            }
+        }
+
+        protected virtual void OnSmcAdded()
+        {
+            SmcAdded?.Invoke(this, EventArgs.Empty);
         }
 
         async Task CollectTestData(GenerationEvents events)
@@ -322,12 +390,18 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
         {
             var result = new List<ValueTuple<string, string, Func<GenerationEvents, Task>>>();
 
-            var hasTraditionalBridge = _context.Projects.Any(proj => proj.FileName.EndsWith("TraditionalBridge.synproj", StringComparison.CurrentCultureIgnoreCase));
+            var hasTraditionalBridge = _context.CodeGenSolution.TraditionalBridge != null; 
             var hasUnitTests = _context.Projects.Any(proj => proj.FileName.EndsWith("Services.Test.synproj", StringComparison.CurrentCultureIgnoreCase));
 
             if (!hasTraditionalBridge)
             {
-                result.Add(("Add Traditional Bridge", "Add support for running traditional synergy code", AddTraditionalBridge));
+                result.Add(("Add Traditional Bridge", "Add support for running traditional Synergy code", AddTraditionalBridge));
+                result.Add(("Add Traditional Bridge and SMC", "Add support for traditional Synergy code and SMC import", AddTraditionalBridgeAndSmc));
+            }
+
+            if (hasTraditionalBridge && _context.CodeGenSolution.TraditionalBridge?.EnableXFServerPlusMigration != true) 
+            {
+                result.Add(("Enable SMC Import", "Enable xfServerPlus import and select SMC", AddSmc));
             }
 
             if (!hasUnitTests)
@@ -339,7 +413,6 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                 result.Add(("Collect Test Data", "Collect test data for your Unit Tests", CollectTestData));
             }
             
-
             return result;
         }
     }

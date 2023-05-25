@@ -11,16 +11,13 @@ namespace HarmonyCore.CliTool.TUI.Models
     {
         public TraditionalBridgeSettings(SolutionInfo context) : base(context) 
         {
+            LoadTraditionalBridgeSettings(context);
+        }
+
+        public void LoadTraditionalBridgeSettings(SolutionInfo context)
+        {
             var solution = context.CodeGenSolution;
             BaseInterface.LoadSameProperties(context.CodeGenSolution);
-
-            //ControllersProject = solution.ControllersProject;
-            //IsolatedProject = solution.IsolatedProject;
-            //ModelsProject = solution.ModelsProject;
-            //SelfHostProject = solution.SelfHostProject;
-            //ServicesProject = solution.ServicesProject;
-            //TraditionalBridgeProject = solution.TraditionalBridgeProject;
-            //UnitTestProject = solution.UnitTestProject;
 
             EnableOptionalParameters = solution.TraditionalBridge?.EnableOptionalParameters;
             EnableSampleDispatchers = solution.TraditionalBridge?.EnableSampleDispatchers;
