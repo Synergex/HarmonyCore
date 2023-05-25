@@ -50,9 +50,10 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             if (features.Count > 0)
             {
-                var featuresMenu = new MenuBarItem("Features", features.ToArray());
+                var featuresMenu = new MenuBarItem("F_eatures", features.ToArray());
                 var menuBarItems = MenuBar.Menus;
-                Array.Resize(ref menuBarItems, menuBarItems.Length + 1);
+                if (MenuBar.Menus[^1].Title != "F_eatures")
+                    Array.Resize(ref menuBarItems, menuBarItems.Length + 1);
                 menuBarItems[^1] = featuresMenu;
                 Remove(MenuBar);
                 MenuBar = new MenuBar(menuBarItems);
@@ -60,7 +61,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             }
         }
 
-        private async void FinishInit(Func<Action<string>, Task<SolutionInfo>> context)
+            private async void FinishInit(Func<Action<string>, Task<SolutionInfo>> context)
         {
             await Task.Yield();
             var cts = new CancellationTokenSource();
@@ -75,6 +76,8 @@ namespace HarmonyCore.CliTool.TUI.Views
                     }));
             });
             _mainViewModel = new MainViewModel(() => context(GetInvoker<string>(dialog.ShowMessage)));
+
+            _mainViewModel.SmcAdded += SmcAddedEventHandler;
 
             MenuBar = new MenuBar(new MenuBarItem[]
             {
@@ -240,10 +243,15 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             _tabView.SelectedTabChanged += tabView_SelectedTabChanged;
             Add(_tabView);
-
-            
             AddFeatures();
         }
+
+        private void SmcAddedEventHandler(object sender, EventArgs e)
+        {
+            Remove(_tabView);
+            FinishedLoad();
+        }
+
 
         private void tabView_SelectedTabChanged(object sender, TabView.TabChangedEventArgs e)
         {

@@ -365,5 +365,79 @@ namespace Services.Test.CS
                 }
             }
         }
+
+        [TestMethod]
+        public void OrderBy()
+        {
+            using (var sp = BaseServiceProvider.Services)
+            {
+                using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                {
+                    var customers = context.Customers;
+                    var orders = context.Orders;
+
+                    // join customers and orders and do an orderby on orders collection
+                    var customerOrdersJoin = customers
+                            .Include(
+                                customer => customer.REL_CustomerOrders
+                                .OrderByDescending(ordrs => ordrs.OrderNumber)
+                                )
+                            .ToList();
+
+                    foreach (var customer in customerOrdersJoin)
+                    {
+                        var ordernum = -1;
+                        foreach (var order in customer.REL_CustomerOrders)
+                        {
+                            if (ordernum != -1)
+                                Assert.IsTrue(ordernum > order.OrderNumber);
+                            ordernum = order.OrderNumber;
+                        }
+                    }
+
+                    // join customers and items and order the result set on a joined field
+                    var customerItemsJoin = customers
+                         .Include(
+                             customer => customer.REL_CustomerFavoriteItem
+                             )
+                         .OrderByDescending(customer => customer.REL_CustomerFavoriteItem.ItemNumber)
+                         .ToList();
+
+                    var itemNum = -1;
+                    foreach (var customer in customerItemsJoin)
+                    {
+                        if (itemNum != -1)
+                            Assert.IsTrue(itemNum >= customer.REL_CustomerFavoriteItem.ItemNumber);
+                        itemNum = customer.REL_CustomerFavoriteItem.ItemNumber;
+                    }
+
+                    // join customers, orders, and items and order an orders collection and result set on ItemNumber
+                    var customerOrdersItemsJoin = customers
+                            .Include(
+                                customer => customer.REL_CustomerOrders
+                                .OrderByDescending(ordrs => ordrs.OrderNumber)
+                                )
+                            .Include(customer => customer.REL_CustomerFavoriteItem)
+                            .OrderByDescending(customer => customer.REL_CustomerFavoriteItem.ItemNumber)
+                            .ToList();
+
+                    itemNum = -1;
+                    foreach (var customer in customerOrdersItemsJoin)
+                    {
+                        if (itemNum != -1)
+                            Assert.IsTrue(itemNum >= customer.REL_CustomerFavoriteItem.ItemNumber);
+                        itemNum = customer.REL_CustomerFavoriteItem.ItemNumber;
+
+                        var ordernum = -1;
+                        foreach (var order in customer.REL_CustomerOrders)
+                        {
+                            if (ordernum != -1)
+                                Assert.IsTrue(ordernum > order.OrderNumber);
+                            ordernum = order.OrderNumber;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

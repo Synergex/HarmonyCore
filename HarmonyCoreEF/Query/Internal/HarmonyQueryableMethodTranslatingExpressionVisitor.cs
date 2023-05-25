@@ -740,7 +740,12 @@ namespace Harmony.Core.EF.Query.Internal
                         if (targetRefTable != null)
                         {
                             var refName = endOfParentPath > -1 ? memberKvp.Key.Substring(endOfParentPath + 1) : memberKvp.Key;
-                            targetRefTable.ReferencedFields.Add(Tuple.Create(refName, metadataObject.GetFieldByName(member.Name)));
+                            var objectInfo = metadataObject.GetFieldByName(member.Name);
+                            // Prevent adding a memeber to ReferencedFields if ElementSize is 0
+                            if (objectInfo != null && objectInfo.ElementSize != 0)
+                            {
+                                targetRefTable.ReferencedFields.Add(Tuple.Create(refName, objectInfo));
+                            }
                         }
                     }
                 }
@@ -1399,7 +1404,10 @@ namespace Harmony.Core.EF.Query.Internal
                 return null;
             }
 
-            inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
+            // TODO: The code below adds the orderby to the OrderByExpressions list.
+            //       Prior to adding it to the list, we need to verify that this orderby doesn't come from the $top ODATA query option.
+            //       inMemoryQueryExpression.FindServerExpression().OrderByExpressions.Add(Tuple.Create<Expression, bool>(keySelector.Body, ascending));
+
             return source;
         }
 

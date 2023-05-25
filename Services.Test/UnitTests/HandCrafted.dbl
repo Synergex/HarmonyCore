@@ -1723,6 +1723,35 @@ namespace Services.Test.UnitTests
         endmethod
 
         {TestMethod}
+        public method OrderByOnExpandedField, void
+        proc
+            disposable data client = UnitTestEnvironment.Server.CreateClient()
+            disposable data response = client.GetAsync("/odata/v1/Customers?$orderby=REL_CustomerFavoriteItem/ItemNumber&$top=10&$expand=REL_CustomerFavoriteItem&$expand=REL_CustomerOrders($orderby=OrderNumber desc)&$count=true").Result
+            data result = response.Content.ReadAsStringAsync().Result
+            response.EnsureSuccessStatusCode()
+            data customers, @CustomerWithCount, JsonConvert.DeserializeObject<CustomerWithCount>(result)
+            Assert.AreEqual(customers.Value.Length, 10)
+
+            data customer, @Services.Models.Customer
+            data order, @Services.Models.Order
+            data itemNum = -1
+            foreach customer in customers.Value
+            begin
+                if (itemNum != -1)
+                   Assert.IsTrue(itemNum <= customer.REL_CustomerFavoriteItem.ItemNumber)
+                itemNum = customer.REL_CustomerFavoriteItem.ItemNumber
+
+                data ordNum = -1
+                foreach order in customer.REL_CustomerOrders
+                begin
+                    if(ordNum != -1)
+                        Assert.IsTrue(ordNum > order.OrderNumber)
+                    ordNum = order.OrderNumber
+                end
+            end
+        endmethod
+
+        {TestMethod}
         public async method SignalRTest, @Task
         proc
             data connection = new HubConnectionBuilder()
