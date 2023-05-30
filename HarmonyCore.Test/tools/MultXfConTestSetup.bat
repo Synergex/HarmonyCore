@@ -7,6 +7,7 @@ rem %4 is xfserver env var
 
 rem run dblvars
 call "%SYNERGYDE64%dbl\dblvars64.bat"
+where rsynd
 if "X%1" == "Xsetup" goto setup
 if "X%1" == "Xrun" goto run
 if "X%1" == "Xstop" goto stop
@@ -33,5 +34,6 @@ start /min /wait rsynd -q -c TestSrv -p %2
 goto done
 
 :done
+synxfpng -p 6020 localhost
 
 endlocal
