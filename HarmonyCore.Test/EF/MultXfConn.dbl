@@ -79,6 +79,16 @@ namespace HarmonyCore.Test.EF
             mreturn openFiles
         endmethod
 
+        {TestInitialize}
+        public method TestInit, void
+        proc
+            data startServ = new Process()
+            startServ.StartInfo.FileName = setupFilePath
+            startServ.StartInfo.Arguments = "run " + %string(rsyndport)
+            startServ.Start()
+            startServ.WaitForExit()
+        endmethod
+
         {TestMethod}
         public method LoadInfoTest, void
         proc
