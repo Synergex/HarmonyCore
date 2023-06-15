@@ -108,6 +108,15 @@ stages:
       env: 
         TestDirX86: '\x86\'
 
+    # for windows only copy TraditionalBridge.UnitTest/TBTest
+    - task: CopyFiles@2
+      condition: ne(variables['Platform'], 'linux64')
+      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+      inputs:
+        SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
+
     - task: CopyFiles@2
       displayName: "Copy TestDir"
       inputs:
@@ -239,3 +248,19 @@ stages:
         inputs:
           command: 'test'
           arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+
+      # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
+      - task: CopyFiles@2
+        condition: ne(variables['Platform'], 'linux64')
+        displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+        inputs:
+          SourceFolder: 'TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
+          Contents: '**'
+          TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
+
+      - task: DotNetCoreCLI@2
+        condition: ne(variables['Platform'], 'linux64')
+        displayName: 'Run TraditionalBridge.UnitTest'
+        inputs:
+          command: 'test'
+          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
