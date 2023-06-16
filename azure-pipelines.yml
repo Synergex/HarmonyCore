@@ -182,11 +182,11 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-          AgentPool: Synergy-10-3-3Build
-          AgentName: HARMONYDEVMAIN-
+        # Release_x64:
+        #   Configuration: Release
+        #   Platform: x64
+        #   AgentPool: Synergy-10-3-3Build
+        #   AgentName: HARMONYDEVMAIN-
         Release_linux:
          Configuration: Release
          Platform: linux64
@@ -194,6 +194,12 @@ stages:
          AgentName: moe64
     steps:
       - checkout: none
+
+      - task: UseDotNet@2
+        displayName: 'Get .NET SDK 7.0.x'
+        inputs:
+          packageType: 'sdk'
+          version: '7.0.x'
 
       # - download: current
       #   displayName: "Download Artifacts"
