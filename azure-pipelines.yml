@@ -136,14 +136,13 @@ stages:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)' 
         artifactName: 'TestArtifacts$(Configuration)$(Platform)'
-          
-    - task: VSTest@2
-      enabled: false
-      displayName: 'Run TraditionalBridge.UnitTest'
-      inputs:
-        testAssemblyVer2:
-          $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
 
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
+          
     - task: DotNetCoreCLI@2
       displayName: 'Pack CLI Tool'
       inputs:
@@ -161,6 +160,7 @@ stages:
         versioningScheme: 'byBuildNumber'
     
     - task: NuGetCommand@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
@@ -169,7 +169,7 @@ stages:
 
     - publish: '$(Build.ArtifactStagingDirectory)/'
       displayName: 'Publish nuget packages'
-      artifact: NugetPackages
+      artifact: 'NugetPackages$(Configuration)$(Platform)'
 
   - job: TestJob
     dependsOn: BuildJob
