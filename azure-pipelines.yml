@@ -18,161 +18,161 @@ stages:
 
   displayName: 'Main Build'
   jobs: 
-#   - job: BuildJob
-#     workspace:
-#       clean: all
-#     pool:
-#       name: Synergy-10-3-3Build
-#     strategy:
-#       maxParallel: 4
-#       matrix:
-# #        Debug_x64:
-# #          Configuration: Debug
-# #          Platform: x64
-#         Release_x64:
-#           Configuration: Release
-#           Platform: x64
-#           RID: win-x64
-# #        Debug_x86:
-# #          Configuration: Debug
-# #          Platform: x86
-# #        Release_x86:
-# #          Configuration: Release
-# #          Platform: x86
-#         Release_linux:
-#           Configuration: Release
-#           Platform: linux64
-#           RID: linux-x64
-#     steps:
-#     - checkout: self
-#       submodules: true
-#     - task: UseDotNet@2
-#       displayName: 'Get .NET SDK 7.0.x'
-#       inputs:
-#         packageType: 'sdk'
-#         version: '7.0.x'
-#     - task: NuGetToolInstaller@1
-#       displayName: 'Get NuGet 6.x'
-#       inputs:
-#         versionSpec: 5.x
-#         checkLatest: true
-#     #- task: NuGetCommand@2
-#     #  displayName: 'NuGet restore'
-#     #  inputs:
-#     #    command: 'restore'
-#     #    restoreSolution: '**/*.sln'
-#         #feedsToUse: 'select'
-#         #vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
-#     - task: MSBuild@1
-#       displayName: 'restore solution'
-#       inputs:
-#         solution: '$(HarmonyCoreSln)'
-#         msbuildArchitecture: 'x64'
-#         platform: $(Platform)
-#         configuration: $(Configuration)
-#         msbuildArguments: '-t:restore'
-#         logFileVerbosity: diagnostic
-#         clean: false
-#     - task: MSBuild@1
-#       displayName: 'Build solution'
-#       inputs:
-#         solution: '$(HarmonyCoreSln)'
-#         msbuildArchitecture: 'x64'
-#         platform: $(Platform)
-#         configuration: $(Configuration)
-#         logFileVerbosity: diagnostic
-#         clean: false
+  - job: BuildJob
+    workspace:
+      clean: all
+    pool:
+      name: Synergy-10-3-3Build
+    strategy:
+      maxParallel: 4
+      matrix:
+#        Debug_x64:
+#          Configuration: Debug
+#          Platform: x64
+        Release_x64:
+          Configuration: Release
+          Platform: x64
+          RID: win-x64
+#        Debug_x86:
+#          Configuration: Debug
+#          Platform: x86
+#        Release_x86:
+#          Configuration: Release
+#          Platform: x86
+        Release_linux:
+          Configuration: Release
+          Platform: linux64
+          RID: linux-x64
+    steps:
+    - checkout: self
+      submodules: true
+    - task: UseDotNet@2
+      displayName: 'Get .NET SDK 7.0.x'
+      inputs:
+        packageType: 'sdk'
+        version: '7.0.x'
+    - task: NuGetToolInstaller@1
+      displayName: 'Get NuGet 6.x'
+      inputs:
+        versionSpec: 5.x
+        checkLatest: true
+    #- task: NuGetCommand@2
+    #  displayName: 'NuGet restore'
+    #  inputs:
+    #    command: 'restore'
+    #    restoreSolution: '**/*.sln'
+        #feedsToUse: 'select'
+        #vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+    - task: MSBuild@1
+      displayName: 'restore solution'
+      inputs:
+        solution: '$(HarmonyCoreSln)'
+        msbuildArchitecture: 'x64'
+        platform: $(Platform)
+        configuration: $(Configuration)
+        msbuildArguments: '-t:restore'
+        logFileVerbosity: diagnostic
+        clean: false
+    - task: MSBuild@1
+      displayName: 'Build solution'
+      inputs:
+        solution: '$(HarmonyCoreSln)'
+        msbuildArchitecture: 'x64'
+        platform: $(Platform)
+        configuration: $(Configuration)
+        logFileVerbosity: diagnostic
+        clean: false
 
-#     # publish test binaries
-#     - ${{ each project in parameters.PublishProjects }}:
-#       - task: DotNetCoreCLI@2
-#         displayName: 'Publish ${{ project }} Binaries'
-#         inputs:
-#           command: publish
-#           publishWebProjects: false
-#           arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
-#           verbosityPack: Diagnostic
-#           zipAfterPublish: True
-#           projects: |
-#             ${{ project }}
+    # publish test binaries
+    - ${{ each project in parameters.PublishProjects }}:
+      - task: DotNetCoreCLI@2
+        displayName: 'Publish ${{ project }} Binaries'
+        inputs:
+          command: publish
+          publishWebProjects: false
+          arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
+          verbosityPack: Diagnostic
+          zipAfterPublish: True
+          projects: |
+            ${{ project }}
 
-#     # for linux only build TraditionalBridge.Test in x86 
-#     - task: MSBuild@1
-#       displayName: "Build 32 bit TraditionalBridge.Test.dbr"
-#       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#       inputs:
-#         solution: 'TraditionalBridge.Test'
-#         msbuildArchitecture: 'x64'
-#         platform: 'x86'
-#         configuration: 'Release'
-#       env: 
-#         TestDirX86: '\x86\'
+    # for linux only build TraditionalBridge.Test in x86 
+    - task: MSBuild@1
+      displayName: "Build 32 bit TraditionalBridge.Test.dbr"
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+      inputs:
+        solution: 'TraditionalBridge.Test'
+        msbuildArchitecture: 'x64'
+        platform: 'x86'
+        configuration: 'Release'
+      env: 
+        TestDirX86: '\x86\'
 
-#     # for windows only copy TraditionalBridge.UnitTest/TBTest
-#     - task: CopyFiles@2
-#       condition: ne(variables['Platform'], 'linux64')
-#       displayName: "Copy TraditionalBridge.UnitTest/TBTest"
-#       inputs:
-#         SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
-#         Contents: '**'
-#         TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
+    # for windows only copy TraditionalBridge.UnitTest/TBTest
+    - task: CopyFiles@2
+      condition: ne(variables['Platform'], 'linux64')
+      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+      inputs:
+        SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
 
-#     - task: CopyFiles@2
-#       displayName: "Copy TestDir"
-#       inputs:
-#         SourceFolder: '$(SolutionDir)TestDir'
-#         Contents: '**'
-#         TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
+    - task: CopyFiles@2
+      displayName: "Copy TestDir"
+      inputs:
+        SourceFolder: '$(SolutionDir)TestDir'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
 
-#     - task: CopyFiles@2
-#       displayName: "Copy SampleData"
-#       inputs:
-#         SourceFolder: '$(SolutionDir)SampleData'
-#         Contents: '**'
-#         TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
+    - task: CopyFiles@2
+      displayName: "Copy SampleData"
+      inputs:
+        SourceFolder: '$(SolutionDir)SampleData'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
 
-#     - task: PublishPipelineArtifact@1
-#       displayName: 'Publish Test Binaries as Artifact'
-#       inputs:
-#         targetPath: '$(Build.ArtifactStagingDirectory)' 
-#         artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Test Binaries as Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'TestArtifacts$(Configuration)$(Platform)'
 
-#     - task: DeleteFiles@1
-#       displayName: 'Clean ArtifactStagingDirectory'
-#       inputs:
-#         SourceFolder: '$(Build.ArtifactStagingDirectory)'
-#         Contents: '**/*'
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
           
-#     - task: DotNetCoreCLI@2
-#       displayName: 'Pack CLI Tool'
-#       inputs:
-#         command: 'pack'
-#         arguments: '-c $(Configuration)'
-#         projects: |
-#             **/HarmonyCore.CLITool.csproj
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack CLI Tool'
+      inputs:
+        command: 'pack'
+        arguments: '-c $(Configuration)'
+        projects: |
+            **/HarmonyCore.CLITool.csproj
 
-#     - task: NuGetCommand@2
-#       name: 'HarmonyCoreNuget'
-#       displayName: 'Pack HarmonyCore'
-#       inputs:
-#         command: 'pack'
-#         packagesToPack: '*.nuspec'
-#         versioningScheme: 'byBuildNumber'
+    - task: NuGetCommand@2
+      name: 'HarmonyCoreNuget'
+      displayName: 'Pack HarmonyCore'
+      inputs:
+        command: 'pack'
+        packagesToPack: '*.nuspec'
+        versioningScheme: 'byBuildNumber'
     
-#     - task: NuGetCommand@2
-#       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-#       inputs:
-#         command: 'push'
-#         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
-#         nuGetFeedType: 'internal'
-#         publishVstsFeed: 'HarmonyCore'
+    - task: NuGetCommand@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      inputs:
+        command: 'push'
+        packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
+        nuGetFeedType: 'internal'
+        publishVstsFeed: 'HarmonyCore'
 
-#     - publish: '$(Build.ArtifactStagingDirectory)/'
-#       displayName: 'Publish nuget packages'
-#       artifact: 'NugetPackages$(Configuration)$(Platform)'
+    - publish: '$(Build.ArtifactStagingDirectory)/'
+      displayName: 'Publish nuget packages'
+      artifact: 'NugetPackages$(Configuration)$(Platform)'
 
   - job: TestJob
-    #dependsOn: BuildJob
+    dependsOn: BuildJob
     workspace:
       clean: all
     pool:
@@ -182,11 +182,11 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
-        # Release_x64:
-        #   Configuration: Release
-        #   Platform: x64
-        #   AgentPool: Synergy-10-3-3Build
-        #   AgentName: HARMONYDEVMAIN-
+        Release_x64:
+          Configuration: Release
+          Platform: x64
+          AgentPool: Synergy-10-3-3Build
+          AgentName: HARMONYDEVMAIN-
         Release_linux:
          Configuration: Release
          Platform: linux64
@@ -201,21 +201,21 @@ stages:
           packageType: 'sdk'
           version: '6.0.x'
 
-      # - download: current
-      #   displayName: "Download Artifacts"
-      #   artifact: 'TestArtifacts$(Configuration)$(Platform)'
+      - download: current
+        displayName: "Download Artifacts"
+        artifact: 'TestArtifacts$(Configuration)$(Platform)'
 
-      # for testing purposes reuse already published sde artifacts
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: specific
-          project: PipelinesTesting
-          definition: 31
-          pipelineId: 15541
-          runVersion: specific
-          allowPartiallySucceededBuilds: true
-          artifactName: 'TestArtifacts$(Configuration)$(Platform)'
-          targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
+      # # for testing purposes reuse already published sde artifacts
+      # - task: DownloadPipelineArtifact@2
+      #   inputs:
+      #     buildType: specific
+      #     project: HarmonyWebServices
+      #     definition: 31
+      #     pipelineId: 15541
+      #     runVersion: specific
+      #     allowPartiallySucceededBuilds: true
+      #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+      #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
 
       - task: Bash@3
         condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
