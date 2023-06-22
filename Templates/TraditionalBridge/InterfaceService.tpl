@@ -1,5 +1,5 @@
 <CODEGEN_FILENAME><INTERFACE_NAME>Service.dbl</CODEGEN_FILENAME>
-<REQUIRES_CODEGEN_VERSION>5.8.5</REQUIRES_CODEGEN_VERSION>
+<REQUIRES_CODEGEN_VERSION>5.9.7</REQUIRES_CODEGEN_VERSION>
 <REQUIRES_USERTOKEN>MODELS_NAMESPACE</REQUIRES_USERTOKEN>
 <REQUIRES_USERTOKEN>DTOS_NAMESPACE</REQUIRES_USERTOKEN>
 ;//****************************************************************************
@@ -91,7 +91,7 @@ namespace <NAMESPACE>
         endmethod
 
         ;;; <summary>
-        ;;; Partial method to allow custom constructor code.
+        ;;; Partial method to allow custom constrctor code.
         ;;; </summary>
         ;;; <param name="services"></param>
         partial static method <INTERFACE_NAME>ServiceCustom, void
@@ -125,61 +125,79 @@ namespace <NAMESPACE>
 
   </IF RETURNS_DATA>
 ;//
-;// --------------------------------------------------------------------------------------------------------------------------------
-;// Define temp fields for date parameters
 ;//
-<COUNTER_1_RESET><PARAMETER_LOOP><IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE><COUNTER_1_INCREMENT></IF></PARAMETER_LOOP><IF COUNTER_1>
-            ;;Temp fields for date parameters
-  <COUNTER_1_RESET>
-  <PARAMETER_LOOP><COUNTER_1_INCREMENT>
-    <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
-            data dateParam<COUNTER_1_VALUE>, d8
-      <IF IN OR INOUT>
-            SynergyConverter.ConvertBack(args.<PARAMETER_NAME>, dateParam<COUNTER_1_VALUE>, "<PARAMETER_DATE_FORMAT>", ^null)
-      </IF>
-
-    </IF>
-  </PARAMETER_LOOP>
-</IF>
-;// --------------------------------------------------------------------------------------------------------------------------------
-            ;;Make the JSON-RPC call the traditional Synergy routine
-            data resultTuple = await CallMethod("<METHOD_NAME>"
-    <COUNTER_1_RESET>
-    <PARAMETER_LOOP><COUNTER_1_INCREMENT>
-      <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
-            &   ,dateParam<COUNTER_1_VALUE>
-      <ELSE>
-            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE (STRUCTURE OR COLLECTION OR ALPHA OR STRING) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME>)<ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
+;//
+  <IF DATE_PARAMETERS>
+            ;;Define temporary variables to handle date parameters
+    <PARAMETER_LOOP>
+      <IF DATE>
+            data tmp<PARAMETER_NAME>, d8, 0
       </IF>
     </PARAMETER_LOOP>
+
+  </IF>
+;//
+;//
+;//
+  <IF DATE_PARAMETERS_IN>
+            ;;Convert inbound DateTime values to YYYYMMDD
+    <PARAMETER_LOOP>
+      <IF DATE AND IN_OR_INOUT>
+            SynergyConverter.ConvertBack(args.<PARAMETER_NAME>,tmp<PARAMETER_NAME>,"<PARAMETER_DATE_FORMAT>",^null)
+      </IF>
+    </PARAMETER_LOOP>
+
+  </IF DATE_PARAMETERS_IN>
+;//
+;//
+;//
+            ;;Make the JSON-RPC call the traditional Synergy routine
+            data resultTuple = await CallMethod("<METHOD_NAME>"
+  <PARAMETER_LOOP>
+    <IF DATE>
+            &   ,tmp<PARAMETER_NAME>
+    <ELSE>
+            &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE (STRUCTURE OR COLLECTION OR ALPHA OR STRING) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME>)<ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
+    </IF>
+  </PARAMETER_LOOP>
             &   )
+
+  <IF DATE_PARAMETERS_OUT>
+            ;;Convert outbound YYYYMMDD values to DateTime
+    <PARAMETER_LOOP>
+      <IF DATE AND OUT_OR_INOUT>
+            SynergyConverter.Convert(tmp<PARAMETER_NAME>,response.<PARAMETER_NAME>,"<PARAMETER_DATE_FORMAT>",^null)
+      </IF>
+    </PARAMETER_LOOP>
+
+  </IF DATE_PARAMETERS_OUT>
+;//
+;//
+;//
   <IF RETURNS_DATA>
     <IF FUNCTION>
-
              ;;Set the return value in the return data
             ArgumentHelper.Argument(0, resultTuple, response.<IF TWEAK_SMC_CAMEL_CASE>returnValue<ELSE>ReturnValue</IF>)
+
     </IF FUNCTION>
+;//
+;//
 ;//
     <COUNTER_1_RESET>
     <PARAMETER_LOOP>
         <IF COUNTER_1_EQ_0 AND OPTIONAL>
             <COUNTER_1_INCREMENT>
-
             data resultList, @List<Object>, resultTuple.Item2.ToList()
         </IF>
     </PARAMETER_LOOP>
-
     <PARAMETER_LOOP>
-      <IF OUT OR INOUT>
-        <IF COERCE_DATETIME OR COERCE_DATETIME_NULLABLE>
-            SynergyConverter.Convert(dateParam<COUNTER_1_VALUE>, args.<PARAMETER_NAME>, "<PARAMETER_DATE_FORMAT>", ^null)
-        </IF>
-        <IF OPTIONAL>
+      <IF OUT_OR_INOUT>
+      <IF OPTIONAL>
             response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
-        <ELSE>
+      <ELSE>
             ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
-        </IF>
       </IF>
+      </IF OUT_OR_INOUT>
     </PARAMETER_LOOP>
 
             ;;Return the response
