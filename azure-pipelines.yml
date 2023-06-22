@@ -4,6 +4,15 @@
 # https://aka.ms/yaml
 name: 6.0.$(Rev:r)
 
+parameters:
+  - name: PublishProjects
+    type: object
+    default:
+      - HarmonyCore.Test
+      - Services.Test.CS
+      - Services.Test
+      - Services.Host
+
 stages:
 - stage: build
 
@@ -23,18 +32,22 @@ stages:
         Release_x64:
           Configuration: Release
           Platform: x64
+          RID: win-x64
 #        Debug_x86:
 #          Configuration: Debug
 #          Platform: x86
 #        Release_x86:
 #          Configuration: Release
 #          Platform: x86
-#        Release_linux:
-#          Configuration: Release
-#          Platform: linux64
+        Release_linux:
+          Configuration: Release
+          Platform: linux64
+          RID: linux-x64
     steps:
     - checkout: self
       submodules: true
+      fetchDepth: 1
+      fetchTags: false
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 7.0.x'
       inputs:
@@ -72,38 +85,66 @@ stages:
         logFileVerbosity: diagnostic
         clean: false
 
-#    - publish: '$(Pipeline.Workspace)\\s\\TestDir'
-#      displayName: 'Publish Linux TB DBR'
-#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#      artifact: TraditionalBridgeDBR
+    # publish test binaries
+    - ${{ each project in parameters.PublishProjects }}:
+      - task: DotNetCoreCLI@2
+        displayName: 'Publish ${{ project }} Binaries'
+        inputs:
+          command: publish
+          publishWebProjects: false
+          arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
+          verbosityPack: Diagnostic
+          zipAfterPublish: True
+          projects: |
+            ${{ project }}
 
-    - task: BatchScript@1
-      displayName: 'Configure SDE environment'
+    # for linux only build TraditionalBridge.Test in x86 
+    - task: MSBuild@1
+      displayName: "Build 32 bit TraditionalBridge.Test.dbr"
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
       inputs:
-        filename: '$(SYNERGYDE32)\dbl\dblvars32.bat'
-        modifyEnvironment: true
-    - task: DotNetCoreCLI@2
-      displayName: 'Run HarmonyCore.Test'
+        solution: 'TraditionalBridge.Test'
+        msbuildArchitecture: 'x64'
+        platform: 'x86'
+        configuration: 'Release'
+      env: 
+        TestDirX86: '\x86\'
+
+    # for windows only copy TraditionalBridge.UnitTest/TBTest
+    - task: CopyFiles@2
+      condition: ne(variables['Platform'], 'linux64')
+      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
       inputs:
-        command: 'test'
-        arguments: 'HarmonyCore.Test\bin\Release\net6.0\HarmonyCore.Test.dll'
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test'
+        SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
+
+    - task: CopyFiles@2
+      displayName: "Copy TestDir"
       inputs:
-        command: 'test'
-        arguments: 'Services.Test\bin\Release\net6.0\Services.Test.dll'
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test.CS'
+        SourceFolder: '$(SolutionDir)TestDir'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
+
+    - task: CopyFiles@2
+      displayName: "Copy SampleData"
       inputs:
-        command: 'test'
-        arguments: 'Services.Test.CS\bin\Release\net6.0\Services.Test.CS.dll'
+        SourceFolder: '$(SolutionDir)SampleData'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Test Binaries as Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
           
-    - task: VSTest@2
-      enabled: false
-      displayName: 'Run TraditionalBridge.UnitTest'
-      inputs:
-        testAssemblyVer2:
-          $(SolutionDir)TestDir\TraditionalBridge.UnitTest.elb
     - task: DotNetCoreCLI@2
       displayName: 'Pack CLI Tool'
       inputs:
@@ -111,42 +152,6 @@ stages:
         arguments: '-c $(Configuration)'
         projects: |
             **/HarmonyCore.CLITool.csproj
-
-#   - task: DotNetCoreCLI@2
-#     displayName: 'Publish Linux Test Binaries'
-#     condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#     inputs:
-#       command: 'custom'
-#       custom: 'publish'
-#       publishWebProjects: false
-#       arguments: '-r=linux-x64 -c Release'
-#       projects: |
-#         Services.Host
-#         Services.Test
-#         HarmonyCore.Test
-#       verbosityPack: Diagnostic
-#   - task: DotNetCoreCLI@2
-#     enabled: true
-#     displayName: 'dotnet bug workaround'
-#     condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-#     inputs:
-#       command: 'custom'
-#       custom: 'clean'
-#       arguments: '-c Release'
-#       publishWebProjects: false
-#       projects: Services.Host
-#       verbosityPack: Diagnostic
-#   - task: DotNetCoreCLI@2
-#     enabled: true
-#     displayName: 'Publish Windows Test Binaries'
-#     condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-#     inputs:
-#       command: 'custom'
-#       custom: 'publish'
-#       arguments: '-v detailed -r=win7-x64 -c Release'
-#       publishWebProjects: false
-#       projects: Services.Host
-#       verbosityPack: Diagnostic
 
     - task: NuGetCommand@2
       name: 'HarmonyCoreNuget'
@@ -157,60 +162,113 @@ stages:
         versioningScheme: 'byBuildNumber'
     
     - task: NuGetCommand@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'HarmonyCore'
 
-#    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\Release\\netcoreapp3.1\\publish'
-#      displayName: 'Publish Linux Services.Host Artifact'
-#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#      artifact: LinuxWebApp
-#    - publish: '$(Pipeline.Workspace)\\s\\Services.Host\\bin\\x64\\Release\\netcoreapp3.1\\win7-x64\\'
-#      displayName: 'Publish Windows Services.Host Artifact'
-#      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
-#      artifact: WindowsWebApp
-#    - publish: '$(Pipeline.Workspace)\\s\\Services.Test\\bin\\Release\\netcoreapp3.1\\publish'
-#      displayName: 'Publish Linux Services.Test Artifact'
-#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#      artifact: LinuxServicesTest
-#    - publish: '$(Pipeline.Workspace)\\s\\HarmonyCore.Test\\bin\\Release\\netcoreapp3.1\\publish'
-#      displayName: 'Publish Linux HarmonyCore.Test Artifact'
-#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-#      artifact: LinuxHarmonyCoreTest
     - publish: '$(Build.ArtifactStagingDirectory)/'
       displayName: 'Publish nuget packages'
-      artifact: NugetPackages
-#  - job: LinuxTest
-#    dependsOn: BuildJob
-#    pool:
-#      name: Linux-test
-#    steps:
-#      - task: DownloadPipelineArtifact@2
-#        inputs:
-#          buildType: 'current'
-#          artifactName: LinuxServicesTest
-#          targetPath: '$(Pipeline.Workspace)/LinuxServicesTest'
-#      - task: DownloadPipelineArtifact@2
-#        inputs:
-#          buildType: 'current'
-#          artifactName: LinuxHarmonyCoreTest
-#          targetPath: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
-#      - task: DownloadPipelineArtifact@2
-#        inputs:
-#          buildType: 'current'
-#          artifactName: LinuxWebApp
-#          targetPath: '$(Pipeline.Workspace)/LinuxWebApp'
-#      - task: DotNetCoreCLI@2
-#        inputs:
-#          command: 'custom'
-#          custom: 'vstest'
-#          arguments: 'HarmonyCore.Test.dll'
-#          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
-#      - task: DotNetCoreCLI@2
-#        inputs:
-#          command: 'custom'
-#          custom: 'vstest'
-#          arguments: 'Services.Test.dll'
-#          workingDirectory: '$(Pipeline.Workspace)/LinuxHarmonyCoreTest'
+      artifact: 'NugetPackages$(Configuration)$(Platform)'
+
+  - job: TestJob
+    dependsOn: BuildJob
+    workspace:
+      clean: all
+    pool:
+      name: $(AgentPool)
+      demands: 
+        - agent.name -equals $(AgentName)
+    strategy:
+      maxParallel: 4
+      matrix:
+        Release_x64:
+          Configuration: Release
+          Platform: x64
+          AgentPool: Synergy-10-3-3Build
+          AgentName: HARMONYDEVMAIN-
+        Release_linux:
+         Configuration: Release
+         Platform: linux64
+         AgentPool: Default
+         AgentName: moe64
+    steps:
+      - checkout: none
+
+      - task: UseDotNet@2
+        displayName: 'Get .NET SDK 6.0.x'
+        inputs:
+          packageType: 'sdk'
+          version: '6.0.x'
+
+      - download: current
+        displayName: "Download Artifacts"
+        artifact: 'TestArtifacts$(Configuration)$(Platform)'
+
+      # # for testing purposes reuse already published sde artifacts
+      # - task: DownloadPipelineArtifact@2
+      #   inputs:
+      #     buildType: specific
+      #     project: HarmonyWebServices
+      #     definition: 31
+      #     pipelineId: 15541
+      #     runVersion: specific
+      #     allowPartiallySucceededBuilds: true
+      #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+      #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
+
+      - task: Bash@3
+        condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+        displayName: "Run setsde"
+        inputs:
+          targetType: 'inline'
+          script: |
+            . setsde
+            echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
+          workingDirectory: $(Agent.HomeDirectory)
+
+      # unzip each project and run test
+      - ${{ each project in parameters.PublishProjects }}:
+        - task: ExtractFiles@1
+          displayName: "Extract ${{ project }}"
+          inputs:
+            archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
+            destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
+            cleanDestinationFolder: false
+            overwriteExistingFiles: false
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Run HarmonyCore.Test'
+        inputs:
+          command: 'test'
+          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Run Services.Test.CS'
+        inputs:
+          command: 'test'
+          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Run Services.Test'
+        inputs:
+          command: 'test'
+          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+
+      # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
+      - task: CopyFiles@2
+        condition: ne(variables['Platform'], 'linux64')
+        displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+        inputs:
+          SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
+          Contents: '**'
+          TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
+
+      - task: DotNetCoreCLI@2
+        condition: ne(variables['Platform'], 'linux64')
+        displayName: 'Run TraditionalBridge.UnitTest'
+        inputs:
+          command: 'test'
+          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
