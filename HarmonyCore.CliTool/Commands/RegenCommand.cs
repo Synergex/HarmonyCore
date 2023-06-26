@@ -42,7 +42,16 @@ namespace HarmonyCore.CliTool.Commands
         {
             Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
             Dictionary<string, HashSet<string>> syncRemovedFiles = new Dictionary<string, HashSet<string>>();
-            return Run(opts, syncAddedFiles, syncRemovedFiles);
+            var result = Run(opts, syncAddedFiles, syncRemovedFiles);
+            if(result == 0 && opts.Sync)
+            {
+                foreach (var syncTpl in syncAddedFiles)
+                    _solutionInfo.Projects.First(projInfo => string.Compare(projInfo.FileName, syncTpl.Key) == 0).AddRemoveFiles(syncTpl.Value, Enumerable.Empty<string>());
+
+                foreach (var syncTpl in syncRemovedFiles)
+                    _solutionInfo.Projects.First(projInfo => string.Compare(projInfo.FileName, syncTpl.Key) == 0).AddRemoveFiles(Enumerable.Empty<string>(), syncTpl.Value);
+            }
+            return result;
         }
 
         public int Run(RegenOptions opts, Dictionary<string, HashSet<string>> syncAddedFiles, Dictionary<string, HashSet<string>> syncRemovedFiles)
@@ -73,7 +82,7 @@ namespace HarmonyCore.CliTool.Commands
                     sourceFileLookup.Add(project.FileName, new HashSet<string>(project.SourceFiles, StringComparer.OrdinalIgnoreCase));
                 }
 
-                var modifiedButNotAdded = new Dictionary<string, HashSet<string>>();
+                //var modifiedButNotAdded = new Dictionary<string, HashSet<string>>();
                 var modifiedOrAdded = new HashSet<string>(UpdatedFiles.Concat(AddedFiles));
 
                 foreach(var updatedFile in UpdatedFiles)
@@ -81,7 +90,7 @@ namespace HarmonyCore.CliTool.Commands
                     var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
 
                     if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
-                        AddOrInsert(modifiedButNotAdded, closestProject, updatedFile);
+                        AddOrInsert(syncAddedFiles, closestProject, updatedFile);
                 }
                 //Traditional bridge is configured to output in 'source' folder, bad bat read
                 //test gen not enabled, looks like its missing from regen.bat

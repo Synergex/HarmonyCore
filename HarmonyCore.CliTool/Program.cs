@@ -111,6 +111,8 @@ Known structure properties:
         public IEnumerable<string> Interfaces { get; set; }
         [Option('g', Default = null, Required = false, Separator = ',', HelpText = "Specify the list of generators, separated by a comma")]
         public IEnumerable<string> Generators { get; set; }
+        [Option('p', Required = false, HelpText = "Sync project files after regen")]
+        public bool Sync { get; set; } = false;
     }
 
     [Verb("xmlgen")]
