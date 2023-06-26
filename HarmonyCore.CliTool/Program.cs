@@ -170,6 +170,22 @@ Known structure properties:
         public IEnumerable<string> Items { get; set; }
     }
 
+    [Verb("features")]
+    class FeaturesOptions
+    {
+        [Option("add-traditional-bridge")]
+        public bool TraditionalBridgeFeature { get; set; }
+
+        [Option("add-traditional-bridge-and-smc")]
+        public bool TraditionalBridgeSMCFeature { get; set; }
+
+        [Option("add-unit-tests")]
+        public bool AddUnitTests { get; set; }
+
+        [Option("collect-test-data")]
+        public bool CollectTestData { get; set; }
+    }
+
     public class VersionTargetingInfo
     {
         public class Root
@@ -381,7 +397,7 @@ Known structure properties:
         private static int ProcessCommandArgs(string[] args)
         {
             var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
-            return Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
+            return Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, FeaturesOptions>(args)
                         .MapResult(
 
                           (UpgradeLatestOptions opts) =>
@@ -411,6 +427,7 @@ Known structure properties:
                           (Func<RegenOptions, int>)new RegenCommand(defaultLoader).Run,
                           (Func<XMLGenOptions, int>)new XMLGenCommand().Run,
                           (Func<GUIOptions, int>)new GUICommand(LoadSolutionInfo).Run,
+                          (Func<FeaturesOptions, int>)new FeaturesCommand(defaultLoader).Run,
                           (ReloadBatOptions opts) =>
                           {
                               ReloadBatFile(defaultLoader);
