@@ -165,7 +165,10 @@ namespace HarmonyCore.CliTool.Commands
         private void Logger(CodeGenTask tsk, string message)
         {
             if(!string.IsNullOrWhiteSpace(message))
-                CallerLogger(string.Format("{0} : {1}", string.Join(',', tsk.Templates), message));
+                if(CallerLogger != null)
+                {
+                    CallerLogger(string.Format("{0} : {1}", string.Join(',', tsk.Templates), message));
+                }
         }
     }
 }

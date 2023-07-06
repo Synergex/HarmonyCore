@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using HarmonyCore.CliTool.TUI.Helpers;
 
 namespace HarmonyCore.CliTool
 {
@@ -280,7 +281,7 @@ Known structure properties:
         public static string AppFolder;
         public static Dictionary<string, string> AppSettings = new Dictionary<string, string>();
 
-        static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
+        public static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
         {
             var rawSolDir = Environment.GetEnvironmentVariable("SolutionDir");
             var solutionDir = string.IsNullOrEmpty(rawSolDir) ? string.Empty : Environment.ExpandEnvironmentVariables(rawSolDir);
@@ -419,7 +420,7 @@ Known structure properties:
                               if (opts.ProjectOnly)
                                   UpgradeProjects(defaultLoader().Result, versionInfo);
                               else
-                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl, null).Wait();
                               return 0;
                           },
                           (Func<CodegenListOptions, int>)new CodegenCommand(defaultLoader).List,
@@ -466,7 +467,7 @@ Known structure properties:
             }).Result;
         }
 
-        static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
+        public static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
         {
             foreach (var project in solution.Projects)
             {
@@ -476,7 +477,7 @@ Known structure properties:
             }
         }
 
-        static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion)
+        public static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion, GenerationEvents? events)
         {
             //download templates and traditional bridge source
             //replace templates and traditional bridge source
@@ -496,16 +497,32 @@ Known structure properties:
             var distinctTemplateFolders = templateFiles.Select(fileName => Path.GetDirectoryName(fileName)).Distinct().OrderBy(folder => folder.Length).ToList();
             if (distinctTemplateFolders.Count > 0)
             {
-                Console.WriteLine("Updating template files in {0}", distinctTemplateFolders.First());
+
+                string msg = string.Format("Updating template files in {0}", distinctTemplateFolders.First());
+                events?.StatusUpdate?.Invoke(msg);
+                if (events?.StatusUpdate == null)
+                {
+                    Console.WriteLine(msg);
+                }
                 foreach (var distinctFolder in distinctTemplateFolders.Skip(1))
                 {
-                    Console.WriteLine("Found template files in {0}", distinctFolder);
+                    msg = string.Format("Found template files in {0}", distinctFolder);
+                    events?.Message(msg);
+                    if (events?.Message == null)
+                    {
+                        Console.WriteLine(msg);
+                    }
                 }
             }
 
             if (hasTraditionalBridge)
             {
-                Console.WriteLine("Updating traditional bridge files in {0}", traditionalBridgeFolder);
+                string msg = string.Format("Updating traditional bridge files in {0}", traditionalBridgeFolder);
+                events?.Message(msg);
+                if (events?.Message == null)
+                {
+                    Console.WriteLine(msg);
+                }
             }
 
             await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl);

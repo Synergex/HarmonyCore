@@ -14,136 +14,54 @@ using HarmonyCore.CliTool.TUI.Helpers;
 using HarmonyCore.CliTool.TUI.Models;
 using HarmonyCore.CliTool.TUI.ViewModels;
 using HarmonyCoreGenerator.Model;
+using HarmonyCore.CliTool.TUI.Views;
+using Microsoft.Build.Evaluation;
+using HarmonyCore.CliTool;
 
 namespace HarmonyCore.CliTool.Commands
 {
     internal class FeaturesCommand
     {
-        /*private readonly Lazy<Task<SolutionInfo>> _loader;
-        SolutionInfo _solutionInfo => _loader.Value.Result;
-        public FeaturesCommand(Func<Task<SolutionInfo>> solutionInfo)
-        {
-            _loader = new Lazy<Task<SolutionInfo>>(solutionInfo);
-        }
-
-        public async Task<int> RunAsync(FeaturesOptions opts)
-        {
-            if (opts.TraditionalBridgeFeature)
-            {
-
-            }
-            else if (opts.TraditionalBridgeSMCFeature)
-            {
-
-            }
-            else if (opts.AddUnitTests)
-            {
-                 await HarmonyCore.CliTool.TUI.ViewModels.MainViewModel.AddUnitTests();
-            }
-            else if (opts.CollectTestData)
-            {
-
-            }
-            else
-            {
-                Console.WriteLine("invalid arguments");
-                return -1;
-            }
-            _solutionInfo.SaveSolution();
-            return 0;
-
-        */
-
-
         private readonly Lazy<Task<SolutionInfo>> _loader;
         SolutionInfo _solutionInfo => _loader.Value.Result;
+
         public FeaturesCommand(Func<Task<SolutionInfo>> solutionInfo)
         {
             _loader = new Lazy<Task<SolutionInfo>>(solutionInfo);
-            GenerationEvents = new Solution.SolutionGenerationEvents() { Message = Logger, Error = Logger };
         }
-
-        public Solution.SolutionGenerationEvents GenerationEvents { get; set; }
-
-        public Action<string> CallerLogger { get; set; } = (str) => Console.WriteLine(str);
-        private List<string> AddedFiles { get; } = new List<string>();
-        private List<string> UpdatedFiles { get; } = new List<string>();
-        public CancellationToken CancelToken { get; set; }
-
 
         public int Run(FeaturesOptions options)
         {
-            GenerationEvents events = new GenerationEvents();
-            
-            var t = AddUnitTestsAsync(events);
-
-            t.Wait();
-
+            var addUnitTests = AddUnitTests();
+            addUnitTests.Wait();
             return 0;
         }
 
-        public async Task<int> AddUnitTestsAsync(GenerationEvents events)
+        public async Task AddUnitTests()
         {
-            try
+            Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
+            Console.WriteLine("Type YES to proceed: ");
+            if (string.Compare(Console.ReadLine(), "YES", true) != 0)
             {
-
-                Console.WriteLine("Adding unit test project template");
-                if (!await DotnetTool.AddTemplateToSolution("harmonycore-ut",
-                        Path.Combine(_solutionInfo.SolutionDir, "Services.Test"), _solutionInfo.SolutionPath, events.Message))
-                {
-                    Console.WriteLine("Template creation failed for Services.Test");
-                    return 1;
-                }
-
-                Console.WriteLine("Adding unit test value generator template");
-                if (!await DotnetTool.AddTemplateToSolution("harmonycore-utg",
-                        Path.Combine(_solutionInfo.SolutionDir, "Services.Test.GenerateValues"), _solutionInfo.SolutionPath, events.Message))
-                {
-                    Console.WriteLine("Template creation failed for Services.Test.GenerateValues");
-                    return 1;
-                }
-
-                Console.WriteLine("Loading new projects");
-                var utProj = _solutionInfo.LoadProject(Path.Combine(_solutionInfo.SolutionDir, "Services.Test",
-                    "Services.Test.synproj"));
-                var gvProj = _solutionInfo.LoadProject(Path.Combine(_solutionInfo.SolutionDir, "Services.Test.GenerateValues",
-                    "Services.Test.GenerateValues.synproj"));
-                _solutionInfo.Projects.Add(utProj);
-                _solutionInfo.Projects.Add(gvProj);
-
-                _solutionInfo.CodeGenSolution.GenerateUnitTests = true;
-                _solutionInfo.CodeGenSolution.UnitTestProject = "Services.Test";
-                _solutionInfo.CodeGenSolution.UnitTestFolder = "Services.Test";
-                _solutionInfo.CodeGenSolution.UnitTestsBaseNamespace = "Services.Test";
-                _solutionInfo.CodeGenSolution.UnitTestsNamespace = "Services.Test.UnitTests";
-
-                //Save();
-                _solutionInfo.SaveSolution();
-
-                // call regen
-
-
-                //await CollectTestData(events);
+                Console.WriteLine("exiting without changes");
             }
-            catch
+            else
             {
-                Console.WriteLine("Operation failed!");
-                return 1;
+                var commonCommands = new CommonCommands(null);
+                try
+                {
+                    await commonCommands.LoadTestProjects(_solutionInfo);
+                    _solutionInfo.SaveSolution();
+                    await commonCommands.RunRegen(_solutionInfo);
+                    await commonCommands.RunUpgradeLatest();
+                    await commonCommands.CollectCollectTestData(_solutionInfo);
+                    Console.WriteLine("Finished");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
             }
-            finally
-            {
-                Console.WriteLine("All done!");
-            }   
-
-            //RunRegen
-            //CollectTestData
-            return 0;
-        }
-
-        private void Logger(CodeGenTask tsk, string message)
-        {
-            if (!string.IsNullOrWhiteSpace(message))
-                CallerLogger(string.Format("{0} : {1}", string.Join(',', tsk.Templates), message));
         }
     }
 }
