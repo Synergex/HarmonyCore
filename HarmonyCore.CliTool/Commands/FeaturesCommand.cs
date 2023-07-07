@@ -32,8 +32,70 @@ namespace HarmonyCore.CliTool.Commands
 
         public int Run(FeaturesOptions options)
         {
-            var addUnitTests = AddUnitTests();
-            addUnitTests.Wait();
+            var hasTraditionalBridge = _solutionInfo.CodeGenSolution.TraditionalBridge != null;
+            var hasUnitTests = _solutionInfo.Projects.Any(proj => proj.FileName.EndsWith("Services.Test.synproj", StringComparison.CurrentCultureIgnoreCase));
+            if (options.AddUnitTests)
+            {
+                if (!hasUnitTests)
+                {
+                    var addUnitTests = AddUnitTests();
+                    addUnitTests.Wait();
+                }
+                else
+                {
+                    Console.WriteLine("Services.Test already exists. Run --collect-test-data to collect data for Unit Tests.");
+                }
+            }
+            else if (options.CollectTestData)
+            {
+                if (hasUnitTests) 
+                {
+                    Console.WriteLine("Collect Test Data");
+                    var commonCommands = new CommonCommands(null);
+                    try
+                    {
+                        Task collectTestData = commonCommands.CollectCollectTestData(_solutionInfo);
+                        collectTestData.Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                    Console.WriteLine("Finished");
+                }
+                else
+                {
+                    Console.WriteLine("Run --add-unit-tests to add support for running unit tests.");
+                }
+            }
+            else if (options.TraditionalBridgeFeature)
+            {
+                if (!hasTraditionalBridge)
+                {
+                    Console.WriteLine("tb");
+                }
+                else
+                {
+                    Console.WriteLine("Traditional Bridge was already added.");
+                }
+            }
+            else if (options.TraditionalBridgeSMCFeature)
+            {
+                if (!hasTraditionalBridge)
+                {
+                    Console.WriteLine("smc");
+                }
+                else
+                {
+                    Console.WriteLine("Traditional Bridge was already added.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("invalid arguments");
+                return -1;
+            }
+            _solutionInfo.SaveSolution();
             return 0;
         }
 

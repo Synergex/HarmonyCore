@@ -176,16 +176,16 @@ Known structure properties:
     [Verb("features")]
     class FeaturesOptions
     {
-        [Option("add-traditional-bridge")]
+        [Option("add-tb", HelpText = "Add support for running traditional Synergy code")]
         public bool TraditionalBridgeFeature { get; set; }
 
-        [Option("add-traditional-bridge-and-smc")]
+        [Option("add-tb-and-smc", HelpText = "Add support for traditional Synergy and SMC import")]
         public bool TraditionalBridgeSMCFeature { get; set; }
 
-        [Option("add-unit-tests")]
+        [Option("add-unit-tests", HelpText = "Add support for running unit tests")]
         public bool AddUnitTests { get; set; }
 
-        [Option("collect-test-data")]
+        [Option("collect-test-data", HelpText = "Collect test data for your Unit Tests")]
         public bool CollectTestData { get; set; }
     }
 
