@@ -62,14 +62,32 @@ namespace HarmonyCore.CliTool
             }
         }
 
+        static string GetRelativePath(string basePath, string filePath)
+        {
+            Uri baseUri = new Uri(basePath);
+            Uri fileUri = new Uri(filePath);
+
+            Uri relativeUri = baseUri.MakeRelativeUri(fileUri);
+            string relativePath = Uri.UnescapeDataString(relativeUri.ToString());
+
+            return relativePath;
+        }
+
         public void AddRemoveFiles(IEnumerable<string> toAdd, IEnumerable<string> toRemove)
         {
+            
             foreach (var item in toAdd)
-                MSBuildProject.AddItem("Compile", item);
+                MSBuildProject.AddItem("Compile", GetRelativePath(MSBuildProject.FullPath, item));
+
+            MSBuildProject.ReevaluateIfNecessary();
 
             foreach (var item in toRemove)
-                foreach(var msbuildItem in MSBuildProject.GetItemsByEvaluatedInclude(item).ToList())
+                foreach(var msbuildItem in MSBuildProject.GetItemsByEvaluatedInclude(GetRelativePath(MSBuildProject.FullPath, item)).ToList())
                     MSBuildProject.RemoveItem(msbuildItem);
+
+            MSBuildProject.ReevaluateIfNecessary();
+
+            MSBuildProject.Xml.Save();
         }
 
         public void PatchKnownIssues(VersionTargetingInfo versionInfo)

@@ -18,7 +18,7 @@ namespace HarmonyCore.Test
         public static method Configure, void
             context, @TestContext
 		proc
-			data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
+            data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data sts, int
 			xcall setlog("DAT",sampleDataFolder,sts)
 
@@ -45,7 +45,8 @@ namespace HarmonyCore.Test
 		proc
 			data dataFile = "DAT:orders.ism"
 			data textFile = dataFile.ToLower().Replace(".ism",".txt")
-			data orderCh, int, 0
+            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")))
+            data orderCh, int, 0
 			data orderRec, strOrders
             data ordersLst = new List<Orders>()
 			open(orderCh,i:s,textFile)
@@ -63,6 +64,7 @@ namespace HarmonyCore.Test
         proc
             data dataFile = "DAT:customers.ism"
             data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")))
             data orderCh, int, 0
             data orderRec, strCustomer
             data ordersLst = new List<Customer>()
@@ -88,9 +90,19 @@ namespace HarmonyCore.Test
 				if(Directory.Exists(Path.Combine(currentFolder, folderName))) then
 					mreturn Path.Combine(currentFolder, folderName)
 				else
-					currentFolder = Path.GetFullPath(currentFolder + "..\")
+					currentFolder = Path.GetFullPath(currentFolder + ".." + Path.DirectorySeparatorChar)
 			end
 			mreturn ^null
-		endmethod
+        endmethod
+
+        public static method EnsurePlatformSpecificLineEndings, void
+            filePath, string
+        proc
+            data content, @string
+            content = File.ReadAllText(filePath)
+            content = content.ReplaceLineEndings()
+            File.WriteAllText(filePath, content)
+        endmethod
+
     endclass
 endnamespace

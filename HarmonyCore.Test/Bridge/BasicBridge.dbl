@@ -33,7 +33,7 @@ namespace HarmonyCore.Test.Bridge
             
             if(Environment.OSVersion.Platform == PlatformID.Unix) then
             begin
-                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4) 
+                data contextPool = new ExternalContextPool<T>(Path.Combine(actualDblDir, "bin/dbs"), actualDBRPath, testDirFolder, ^null, 4)
                 mreturn contextPool
             end
             else
@@ -92,20 +92,35 @@ namespace HarmonyCore.Test.Bridge
             end
             endtry
 
-
-            disposable data contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>(^null, Environment.GetEnvironmentVariable("SYNERGYDE32")) 
-
-            try
+            disposable data contextPool2, @Context.ExternalContextPool<HarmonyCore.Test.Bridge.BasicBridge.ExternalCallContext> 
+            data skipTest = false
+            if(Environment.OSVersion.Platform == PlatformID.Unix) then
             begin
-                data context = contextPool2.MakeContext(sp)
-                await context.GetAllCustomers()
-                Assert.Fail()
+                data fileName = TestEnvironment.findRelativeFolderForAssembly("TestDir") + "/x86/TraditionalBridge.Test.dbr"
+                if (File.Exists(fileName)) then
+                    contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>("x86/TraditionalBridge.Test.dbr", Environment.GetEnvironmentVariable("SYNERGYDE64")) 
+                else
+                    skipTest = true
             end
-            catch(ex, @BridgeConnectionException)
+            else
+                contextPool2 = GetContextPool<BasicBridge.ExternalCallContext>(^null, Environment.GetEnvironmentVariable("SYNERGYDE32")) 
+            
+            if (skipTest) then
+                Assert.Fail("TestDir/x86/TraditionalBridge.Test.dbr couldn't be found.")
+            else
             begin
-                Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+                try
+                begin
+                    data context = contextPool2.MakeContext(sp)
+                    await context.GetAllCustomers()
+                    Assert.Fail()
+                end
+                catch(ex, @BridgeConnectionException)
+                begin
+                    Assert.AreEqual(ex.InnerMessage, "TraditionalBridge failed to initialize most likely due to x86/x64 mismatch.")
+                end
+                endtry
             end
-            endtry
         endmethod
 
 
