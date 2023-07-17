@@ -177,10 +177,10 @@ Known structure properties:
     class FeaturesOptions
     {
         [Option("add-tb", HelpText = "Add support for running traditional Synergy code")]
-        public bool TraditionalBridgeFeature { get; set; }
+        public bool TraditionalBridge { get; set; }
 
-        [Option("add-tb-and-smc", HelpText = "Add support for traditional Synergy and SMC import")]
-        public bool TraditionalBridgeSMCFeature { get; set; }
+        [Option("enable-smc", HelpText = "Enable xfServerPlus import and select SMC")]
+        public bool EnableSMCImport { get; set; }
 
         [Option("add-unit-tests", HelpText = "Add support for running unit tests")]
         public bool AddUnitTests { get; set; }

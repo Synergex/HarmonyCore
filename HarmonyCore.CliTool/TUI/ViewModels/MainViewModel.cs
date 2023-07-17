@@ -226,15 +226,11 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddTraditionalBridge(GenerationEvents events)
         {
+            var commonCommands = new CommonCommands(events);
             try
             {
-                await DotnetTool.AddTemplateToSolution("harmonycore-tb",
-                Path.Combine(_context.SolutionDir, "TraditionalBridge"), _context.SolutionPath, events.Message);
-                events.Message("Instantiated and added Traditional Bridge project to solution");
-                _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
+                await commonCommands.AddTraditionalBridge(_context);    
                 Save();
-                events.Message("Saved initial feature settings to Harmony Core configuration file");
-                events.Message("Completed");
                 _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
                 OnSmcAdded();
             }
@@ -275,23 +271,12 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddSmc(GenerationEvents events)
         {
+            var commonCommands = new CommonCommands(events);
             try
             {
                 var smcPath = GetSmcPath(events);
-
-                if (_context.CodeGenSolution.TraditionalBridge == null)
-                    _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge();
-
-                _context.CodeGenSolution.TraditionalBridge.EnableXFServerPlusMigration = true;
-                _context.CodeGenSolution.TraditionalBridge.XFServerSMCPath = smcPath;
-                if (Directory.Exists(Path.Combine(_context.SolutionDir, "TraditionalBridge", "Source")))
-                    _context.CodeGenSolution.TraditionalBridge.GenerateIntoSourceFolder = true;
-
-                events.Message("\nSetting up SMC import (enabling import and saving SMC path)...");
+                await commonCommands.AddSmc(_context, smcPath);
                 _context.SaveSolution();
-                events.Message("SMC setup completed.\n\nSCM path (relative to SolutionDir):");
-                events.Message(smcPath);
-
                 _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
                 OnSmcAdded();
             }
@@ -342,7 +327,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                     Save();
                     await commonCommands.RunRegen(_context);
                     await commonCommands.RunUpgradeLatest();
-                    await commonCommands.CollectCollectTestData(_context);
+                    await commonCommands.CollectTestData(_context);
                 }
                 finally
                 {

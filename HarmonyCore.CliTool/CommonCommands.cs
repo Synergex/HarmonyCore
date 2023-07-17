@@ -1,6 +1,7 @@
 ﻿using CodeGen.Engine;
 using HarmonyCore.CliTool.Commands;
 using HarmonyCore.CliTool.TUI.Helpers;
+using HarmonyCore.CliTool.TUI.Models;
 using HarmonyCore.CliTool.TUI.ViewModels;
 using HarmonyCoreGenerator.Model;
 using Microsoft.Build.Tasks;
@@ -155,7 +156,6 @@ namespace HarmonyCore.CliTool
             //TODO show messages interactively
         }
 
-
         public async Task RunUpgradeLatest()
         {
             var defaultLoader = () => Program.LoadSolutionInfo((str) =>
@@ -178,7 +178,7 @@ namespace HarmonyCore.CliTool
             await Program.UpgradeLatest(solutionInfo, versionInfo, upgradeLatestOptions.OverrideTemplateVersion, upgradeLatestOptions.OverrideTemplateUrl, events);
         }
 
-        public async Task CollectCollectTestData(SolutionInfo _solutionInfo)
+        public async Task CollectTestData(SolutionInfo _solutionInfo)
         {
             var generateValuesProjectName = _solutionInfo.CodeGenSolution.UnitTestProject + ".GenerateValues";
             events?.StatusUpdate.Invoke("Generating Test Values");
@@ -202,6 +202,43 @@ namespace HarmonyCore.CliTool
                     CallerLogger("Failed to run GenerateValues");
                 }
                 throw new InvalidOperationException("Failed to run GenerateValues");
+            }
+        }
+
+        public async Task AddTraditionalBridge(SolutionInfo _solutionInfo)
+        {
+            await DotnetTool.AddTemplateToSolution("harmonycore-tb",
+                Path.Combine(_solutionInfo.SolutionDir, "TraditionalBridge"), _solutionInfo.SolutionPath, events?.Message ?? CallerLogger);
+            events?.Message("Instantiated and added Traditional Bridge project to solution");
+            _solutionInfo.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
+            events?.Message("Saved initial feature settings to Harmony Core configuration file");
+            events?.Message("Completed");
+            if (events?.Message == null)
+            {
+                CallerLogger("Instantiated and added Traditional Bridge project to solution");
+                CallerLogger("Saved initial feature settings to Harmony Core configuration file");
+                CallerLogger("Completed");
+            }
+        }
+
+        public async Task AddSmc(SolutionInfo _solutionInfo, string smcPath)
+        {
+            if (_solutionInfo.CodeGenSolution.TraditionalBridge == null)
+                _solutionInfo.CodeGenSolution.TraditionalBridge = new TraditionalBridge();
+
+            _solutionInfo.CodeGenSolution.TraditionalBridge.EnableXFServerPlusMigration = true;
+            _solutionInfo.CodeGenSolution.TraditionalBridge.XFServerSMCPath = smcPath;
+            if (Directory.Exists(Path.Combine(_solutionInfo.SolutionDir, "TraditionalBridge", "Source")))
+                _solutionInfo.CodeGenSolution.TraditionalBridge.GenerateIntoSourceFolder = true;
+
+            events?.Message("\nSetting up SMC import (enabling import and saving SMC path)...");
+            events?.Message("SMC setup completed.\n\nSCM path (relative to SolutionDir):");
+            events?.Message(smcPath);
+            if (events?.Message == null)
+            {
+                CallerLogger("\nSetting up SMC import (enabling import and saving SMC path)...");
+                CallerLogger("SMC setup completed.\n\nSCM path (relative to SolutionDir):");
+                CallerLogger(smcPath);
             }
         }
     }

@@ -17,6 +17,7 @@ using HarmonyCoreGenerator.Model;
 using HarmonyCore.CliTool.TUI.Views;
 using Microsoft.Build.Evaluation;
 using HarmonyCore.CliTool;
+using System.Drawing.Printing;
 
 namespace HarmonyCore.CliTool.Commands
 {
@@ -54,7 +55,7 @@ namespace HarmonyCore.CliTool.Commands
                     var commonCommands = new CommonCommands(null);
                     try
                     {
-                        Task collectTestData = commonCommands.CollectCollectTestData(_solutionInfo);
+                        Task collectTestData = commonCommands.CollectTestData(_solutionInfo);
                         collectTestData.Wait();
                     }
                     catch (Exception ex)
@@ -68,26 +69,68 @@ namespace HarmonyCore.CliTool.Commands
                     Console.WriteLine("Run --add-unit-tests to add support for running unit tests.");
                 }
             }
-            else if (options.TraditionalBridgeFeature)
+            else if (options.TraditionalBridge)
             {
                 if (!hasTraditionalBridge)
                 {
-                    Console.WriteLine("tb");
+                    Console.WriteLine("Add Traditional Bridge");
+                    var commonCommands = new CommonCommands(null);
+                    try
+                    {
+                        Task addtb = commonCommands.AddTraditionalBridge(_solutionInfo);
+                        addtb.Wait();
+                        _solutionInfo.SaveSolution();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                 }
                 else
                 {
                     Console.WriteLine("Traditional Bridge was already added.");
                 }
             }
-            else if (options.TraditionalBridgeSMCFeature)
+            else if (options.EnableSMCImport)
             {
                 if (!hasTraditionalBridge)
                 {
-                    Console.WriteLine("smc");
+                    Console.WriteLine("You must run --add-tb prior to enabling SMC import.");
+                }
+                else if (_solutionInfo.CodeGenSolution.TraditionalBridge?.EnableXFServerPlusMigration == true)
+                {
+                    Console.WriteLine("The option is not available.");
                 }
                 else
                 {
-                    Console.WriteLine("Traditional Bridge was already added.");
+                    Console.WriteLine("Enable xfServerPlus import and select SMC");
+                    var commonCommands = new CommonCommands(null);
+                    try
+                    {
+                        // get smc path
+                        Console.WriteLine("Enter a path to an SMC file to import interfaces from: ");
+                        string smcPath = Console.ReadLine();
+                        if (string.IsNullOrEmpty(smcPath) || !smcPath.Contains(".xml"))
+                        {
+                            Console.WriteLine("\nSMC selection canceled.");
+                            return 1;
+                        }
+                        smcPath = Path.GetRelativePath(_solutionInfo.SolutionDir + "\\", smcPath);
+                        if(File.Exists(smcPath))
+                        {
+                            Task enableSMC = commonCommands.AddSmc(_solutionInfo, smcPath);
+                            enableSMC.Wait();
+                            _solutionInfo.SaveSolution();
+                        }
+                        else
+                        {
+                            throw new FileNotFoundException("The SMC file was not found.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                 }
             }
             else
@@ -116,7 +159,7 @@ namespace HarmonyCore.CliTool.Commands
                     _solutionInfo.SaveSolution();
                     await commonCommands.RunRegen(_solutionInfo);
                     await commonCommands.RunUpgradeLatest();
-                    await commonCommands.CollectCollectTestData(_solutionInfo);
+                    await commonCommands.CollectTestData(_solutionInfo);
                     Console.WriteLine("Finished");
                 }
                 catch (Exception ex)
