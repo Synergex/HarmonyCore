@@ -18,7 +18,8 @@ import System.Collections.Concurrent
 namespace Harmony.Core.Context
 
 	public class SSHDynamicCallConnection implements IDynamicCallConnection
-        private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
+        public static RateLimiter, int?, ^null
+		private static NewLineBytes, [#]Byte, new byte[#] { 10, 13 }
 		private static EscapeSequenceRegex, @Regex
 		private mTargetConnection, @SshClient
 		private mTargetShell, @ShellStream
@@ -33,6 +34,15 @@ namespace Harmony.Core.Context
 
         static method SSHDynamicCallConnection
         proc
+            data rateLimitEnv = Environment.GetEnvironmentVariable("HARMONYCORE_SSH_RATE_LIMIT")
+            if(!String.IsNullOrWhiteSpace(rateLimitEnv))
+            begin
+				data tmp = 0
+                if(int.TryParse(rateLimitEnv, tmp))
+					RateLimiter = tmp
+
+			end
+
 			EscapeSequenceRegex = new Regex("(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]", RegexOptions.Compiled)
 		endmethod
 
@@ -210,8 +220,15 @@ namespace Harmony.Core.Context
 
             data sshBufferSize = mTargetOS == RemoteTargetOS.VMS ? 4096 : 1024 * 64
 
-			mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, sshBufferSize)
-			data streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection, lambda() { IsHealthy = false }, StreamReadMonitorEvent)
+            mTargetShell = mTargetConnection.CreateShellStream("vt220", 0, 0,0,0, sshBufferSize)
+
+            data streamWrapper, @Stream 
+            
+            if(RateLimiter != ^null) then
+                streamWrapper = new RateLimitedShellStreamWrapper(mTargetShell, mTargetConnection, lambda() { IsHealthy = false }, StreamReadMonitorEvent, RateLimiter.Value)
+			else
+                streamWrapper = new ShellStreamWrapper(mTargetShell, mTargetConnection, lambda() { IsHealthy = false }, StreamReadMonitorEvent)
+
 			disposable data reader = new StreamReader(streamWrapper, Encoding.ASCII, false, 4096, true) 
 			disposable data writer = new StreamWriter(streamWrapper, Encoding.ASCII, 4096, true) 
 			data guidString, @string, Guid.NewGuid().ToString()
@@ -362,13 +379,13 @@ namespace Harmony.Core.Context
                 mreturn mSimplex.Read(buffer, offset, count)
 			endmethod
 
-			private static mConnectionId, int, 0
-            private mStream, @ShellStream
-			private mSimplex, @SimplexStream
-            private mConnection, @SshClient
-            private mConnectionException, @Exception
-            private mCallOnClose, @Action
-			private mCallOnRead, @Action<string>
+			internal static mConnectionId, int, 0
+            internal mStream, @ShellStream
+			internal mSimplex, @SimplexStream
+            internal mConnection, @SshClient
+            internal mConnectionException, @Exception
+            internal mCallOnClose, @Action
+			internal mCallOnRead, @Action<string>
 			;private mEvent, @AutoResetEvent
 			public method ShellStreamWrapper
 				stream, @ShellStream
@@ -378,7 +395,7 @@ namespace Harmony.Core.Context
             proc
                 mCallOnRead = callOnRead
                 mCallOnClose = callOnClose
-				mStream = stream
+                mStream = stream
 				mConnection = connection
 				Interlocked.Increment(mConnectionId)
                 DebugLogSession.Logging.LogDebug("Created SSHDynamicCallConnection id:{0} : {1}", mConnectionId, new SSHConnectionDebugLogHelper(mConnection.ConnectionInfo))
@@ -545,7 +562,99 @@ namespace Harmony.Core.Context
 			endmethod
 
 
-		endclass
+        endclass
+
+        private class RateLimitedShellStreamWrapper extends ShellStreamWrapper
+
+            private _byteLimitPerInterval, int
+            private _byteCount, int
+            private _intervalStart, DateTime
+            private _interval, TimeSpan
+
+            public method RateLimitedShellStreamWrapper
+                stream, @ShellStream
+                connection, @SshClient
+                callOnClose, @Action
+                callOnRead, @Action<string>
+
+                byteLimitPerInterval, int 
+                endparams
+				parent(stream, connection, callOnClose, callOnRead)
+            proc
+                _interval = TimeSpan.FromMilliseconds(10)
+                _byteLimitPerInterval = byteLimitPerInterval
+                _byteCount = 0
+                _intervalStart = DateTime.UtcNow
+            endmethod
+
+
+            public override method Write, void
+                buffer, [#]byte 
+                offset, int 
+                count, int 
+                endparams
+            proc
+                data bytesRemaining = count
+				data localOffset = offset
+                while (bytesRemaining > 0)
+                begin
+                    data bytesToWrite = Math.Min(bytesRemaining, _byteLimitPerInterval - _byteCount)
+
+                    if (DateTime.UtcNow - _intervalStart > _interval)
+                    begin
+						_byteCount = 0
+						_intervalStart = DateTime.UtcNow
+                    end
+
+                    if (bytesToWrite > 0) then
+                    begin
+						parent.Write(buffer, localOffset, bytesToWrite)
+						_byteCount += bytesToWrite
+						localOffset += bytesToWrite
+						bytesRemaining -= bytesToWrite
+                    end
+                    else
+                    begin
+						Thread.Sleep(_interval)
+                    end
+                end
+            endmethod
+
+            public override async method WriteAsync, @Task
+                buffer, [#]byte
+                offset, int
+                count, int
+                cancellationToken, CancellationToken
+            proc
+                data bytesRemaining = count
+                data localOffset = offset
+
+                while (bytesRemaining > 0)
+                begin
+                    data bytesToWrite = Math.Min(bytesRemaining, _byteLimitPerInterval - _byteCount)
+
+                    if (DateTime.UtcNow - _intervalStart > _interval)
+                    begin
+						_byteCount = 0
+						_intervalStart = DateTime.UtcNow
+                    end
+
+                    if (bytesToWrite > 0) then
+                    begin
+						await parent.WriteAsync(buffer, localOffset, bytesToWrite, cancellationToken)
+						_byteCount += bytesToWrite
+						localOffset += bytesToWrite
+						bytesRemaining -= bytesToWrite
+                    end
+                    else
+                    begin
+						await Task.Delay(_interval, cancellationToken)
+                    end
+                end
+            endmethod
+
+        endclass
+
 
 	endclass
 
