@@ -93,11 +93,7 @@ namespace HarmonyCore.CliTool.Commands
                         _extendedStructureLookup.Add(name, structEx);
                         _solutionInfo.CodeGenSolution.ExtendedStructures.Add(structEx);
                     }
-                    else
-                    {
-                        structEx.Aliases.Add(alias);
-                    }
-
+                
                     if (structEx.EnabledGenerators == null)
                         structEx.EnabledGenerators = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -123,6 +119,12 @@ namespace HarmonyCore.CliTool.Commands
                             structEx.EnabledGenerators.Add(nameof(ModelGenerator));
                         if (!structEx.EnabledGenerators.Contains(nameof(EFCoreGenerator)))
                             structEx.EnabledGenerators.Add(nameof(EFCoreGenerator));
+                    }
+                    
+                    if (opts.Tb)
+                    {
+                        if (!structEx.EnabledGenerators.Contains(nameof(TraditionalBridgeGenerator)))
+                            structEx.EnabledGenerators.Add(nameof(TraditionalBridgeGenerator));
                     }
                 }
             }

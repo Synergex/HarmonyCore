@@ -154,6 +154,8 @@ Known structure properties:
         public bool OData { get; set; }
         [Option("ef", SetName = "rps")]
         public bool Ef { get; set; }
+        [Option("tb", SetName = "rps")]
+        public bool Tb { get; set; }
         [Option("custom", SetName = "rps")]
         public bool Custom { get; set; }
         [Option('i', Required = true, Separator = ' ')]
