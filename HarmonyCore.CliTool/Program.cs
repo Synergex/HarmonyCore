@@ -181,8 +181,8 @@ Known structure properties:
         [Option("add-tb", HelpText = "Add support for running traditional Synergy code")]
         public bool TraditionalBridge { get; set; }
 
-        [Option("enable-smc", HelpText = "Enable xfServerPlus import and select SMC")]
-        public bool EnableSMCImport { get; set; }
+        [Option("smc", HelpText = "Provide path to SMC file to enable xfServerPlus")]
+        public string EnableSMCImport { get; set; }
 
         [Option("add-unit-tests", HelpText = "Add support for running unit tests")]
         public bool AddUnitTests { get; set; }

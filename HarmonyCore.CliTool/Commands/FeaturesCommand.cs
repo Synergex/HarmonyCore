@@ -18,6 +18,8 @@ using HarmonyCore.CliTool.TUI.Views;
 using Microsoft.Build.Evaluation;
 using HarmonyCore.CliTool;
 using System.Drawing.Printing;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using HarmonyCoreExtensions;
 
 namespace HarmonyCore.CliTool.Commands
 {
@@ -91,7 +93,7 @@ namespace HarmonyCore.CliTool.Commands
                     Console.WriteLine("Traditional Bridge was already added.");
                 }
             }
-            else if (options.EnableSMCImport)
+            else if (options.EnableSMCImport != null)
             {
                 if (!hasTraditionalBridge)
                 {
@@ -107,9 +109,7 @@ namespace HarmonyCore.CliTool.Commands
                     var commonCommands = new CommonCommands(null);
                     try
                     {
-                        // get smc path
-                        Console.WriteLine("Enter a path to an SMC file to import interfaces from: ");
-                        string smcPath = Console.ReadLine();
+                        string smcPath = options.EnableSMCImport;
                         if (string.IsNullOrEmpty(smcPath) || !smcPath.Contains(".xml"))
                         {
                             Console.WriteLine("\nSMC selection canceled.");
