@@ -93,7 +93,14 @@ namespace HarmonyCore.CliTool.Commands
                         _extendedStructureLookup.Add(name, structEx);
                         _solutionInfo.CodeGenSolution.ExtendedStructures.Add(structEx);
                     }
-                
+                    else
+                    {
+                        if (alias != null)
+                        {
+                            structEx.Aliases.Add(alias);
+                        }
+                    }   
+                    
                     if (structEx.EnabledGenerators == null)
                         structEx.EnabledGenerators = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
