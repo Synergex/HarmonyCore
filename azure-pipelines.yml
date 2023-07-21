@@ -314,16 +314,24 @@ stages:
       matrix:
         Basic: 
           project: basic
-        # Tb:
-        #   project: tb
-        # TbStruct:
-        #   project: tbstruct
+        Tb:
+          project: tb
+        TbStruct:
+          project: tbstruct
     variables:
     - name: clitool
       value: $(Pipeline.Workspace)\HarmonyCore.CliTool\Harmony.Core.CliTool.exe
     steps:
-    - checkout: none
-      
+    - checkout: https://github.com/Synergex/HarmonyCoreSamples.git
+      clean: true
+
+    - task: CopyFiles@2
+      condition: ne(variables.project, 'basic')
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\$(project)'
+        Contents: '**'
+        TargetFolder: '$(Pipeline.Workspace)\$(project)'
+
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 7.0.x'
       inputs:
@@ -342,7 +350,6 @@ stages:
         script: |
           dotnet new harmonycore -o $(project)
         workingDirectory: '$(Pipeline.Workspace)'
-
 
     # download clitools
     - download: current
@@ -383,6 +390,164 @@ stages:
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add PK generator and StartupCustom to Services.synproj" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\Services.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*<Compile Include="Startup.dbl" />*')
+            {
+              $updatedContent += '<Compile Include="PrimaryKeyGenerator.dbl" />'
+              $updatedContent += '<Compile Include="StartupCustom.dbl" />'
+            }
+            $updatedContent += $_
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add Traditional Bridge"
+      inputs:
+        script: |
+          set solutiondir=$(Pipeline.Workspace)\$(project)
+          ${{ variables.clitool }} features --add-tb
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update host.dbl" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\host.dbl"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*dispatcher = new SuperRoutineDispatcher(MethodDispatcher.GetDispatchers())*')
+            {
+              $updatedContent += 'dispatcher = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new BridgeMethodsDispatcher() })'
+            }
+            else
+            {
+              $updatedContent += $_
+            }
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update platform for TB" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $guid = 'empty'
+          $filename = ".\$(project).sln"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*TraditionalBridge\TraditionalBridge.synproj*') {	
+              $guid = $_ -split ',' | Select-String -Pattern '\{.*\}' -AllMatches | % { $_.Matches } | % { $_.Value } | Select-Object -Last 1
+            }
+            if ($_ -like "*$guid*" -and ($_ -like "*Any CPU.ActiveCfg*" -or $_ -like "*Any CPU.Build.0*")) {
+              $lastIndex = $_.LastIndexOf("Any CPU")
+              $replacedplatform = $_.Substring(0, $lastIndex) + "x64" + $_.Substring($lastIndex + "Any CPU".Length)
+              $_ = $replacedplatform 
+            }
+            $updatedContent += $_
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update output path for TB" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename = ".\TraditionalBridge.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*<OutputPath>*') {
+                $_ = '<OutputPath>$(SolutionDir)TBEXE\$(Configuration)</OutputPath>'
+            }
+            if ($_ -like '*<UnevaluatedOutputPath>*') {
+                $_ = '<UnevaluatedOutputPath>$(SolutionDir)TBEXE\$(Configuration)</UnevaluatedOutputPath>'
+            }
+            $updatedContent += $_
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Enable SMC import and run upgrade-latest"
+      inputs:
+        script: |
+          set solutiondir=$(Build.SourcesDirectory)
+          %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
+          echo run upgrade-latest
+          echo YES| %clitool% upgrade-latest
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tb')
+      displayName: "Add methods to TraditionalBridge.synproj Tb" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\TraditionalBridge.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*<Compile Include="Source\host.dbl" />*')
+            {
+              $updatedContent += '<Compile Include="Source\Methods\AddTwoNumbers.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\GetEnvironment.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\GetLogicalName.dbl" />'
+            }
+            $updatedContent += $_
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Add methods to TraditionalBridge.synproj TbStruct" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\TraditionalBridge.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if ($_ -like '*<Compile Include="Source\host.dbl" />*')
+            {
+              $updatedContent += '<Compile Include="Source\Methods\GetAllCustomers.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\GetCustomer.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\ManyCustomers.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\OneCustomer.dbl" />'
+              $updatedContent += '<Compile Include="Source\Methods\ReturnCustomer.dbl" />'
+            }
+            $updatedContent += $_
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add BridgeMethods interface"
+      inputs:
+        script: |
+          set solutiondir=$(Build.SourcesDirectory)
+          %clitool% codegen-add --interface --webapi -i BridgeMethods
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+
+
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'basic')
       displayName: "Set ODATA Options"
       inputs:
         targetType: 'inline'
@@ -421,16 +586,42 @@ stages:
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: CmdLine@2
+      condition: eq(variables.project, 'basic')
       displayName: "Add unit tests"
       inputs:
         script: |
           set solutiondir=$(Pipeline.Workspace)\$(project)
-          %clitool% features
-          echo YES| %clitool% upgrade-latest
-          %clitool% regen -p 
+          %clitool% features --add-unit-tests
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
+    - task: CmdLine@2
+      displayName: "Run regen -p and upgrade-latest"
+      inputs:
+        script: |
+          set solutiondir=$(Pipeline.Workspace)\$(project)
+          %clitool% regen -p
+          echo YES| %clitool% upgrade-latest
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Remove BridgeMethodsTestResponses.dbl from TraditionalBridge.synproj" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\TraditionalBridge.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if (-not ($_ -like '*<Compile Include="Source/Methods/BridgeMethodsTestResponses.dbl" />*'))
+            {
+              $updatedContent += $_
+            }
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
     - task: DotNetCoreCLI@2
+      condition: eq(variables.project, 'basic')
       displayName: "Build the project"
       inputs:
         command: 'build'
@@ -438,6 +629,7 @@ stages:
         arguments: '--configuration Release'
 
     - task: DotNetCoreCLI@2
+      condition: eq(variables.project, 'basic')
       displayName: "Run Services.Test"
       inputs:
         command: 'test'
@@ -445,3 +637,120 @@ stages:
         testRunTitle: "Services.Test Basic Solution"
       env:
         SolutionDir: '$(Pipeline.Workspace)\$(project)'
+
+    - task: VSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Build the project"
+      inputs:
+        solution: '$(project).sln'
+        configuration: 'Release'
+        restoreNugetPackages: true
+
+  - task: PowerShell@2
+    condition: ne(variables.project, 'basic')
+    displayName: "Run the host and test the endpoint" 
+    inputs:
+      targetType: 'inline'
+      script: |
+        $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
+        $env:exedir="$env:solutiondir\tbexe\release"
+        $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
+        sleep 40
+        $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
+        taskkill /pid $process.id
+        $res
+        if ($res -ne '{"result":3.0000000000}') {
+          echo Error occured during POST request
+          exit -1 
+        }
+      workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update JSON to enable Authentication" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $options=@'
+          ,
+          "Authentication": true,
+          "CustomAuthentication": true
+          }
+          '@
+          $filename = 'Harmony.Core.CodeGen.json'
+          $file = Get-Content $filename
+          if ($file[$file.length - 1] -eq '}') 
+          {
+            $file[$file.length - 1] = $options
+            $file | Set-Content $filename	
+          }
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Run regen -p"
+      inputs:
+        script: |
+          set solutiondir=$(Pipeline.Workspace)\$(project)
+          %clitool% regen -p
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Remove BridgeMethodsTestResponses.dbl from TraditionalBridge.synproj" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $filename =  ".\TraditionalBridge.synproj"
+          $updatedContent = @()
+          Get-Content -Path $filename | ForEach-Object {
+            if (-not ($_ -like '*<Compile Include="Source/Methods/BridgeMethodsTestResponses.dbl" />*'))
+            {
+              $updatedContent += $_
+            }
+          }
+          $updatedContent | Set-Content $filename
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: VSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Build the project"
+      inputs:
+        solution: '$(project).sln'
+        configuration: 'Release'
+        restoreNugetPackages: true
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Run the host and test the endpoint AUTH" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
+          $env:exedir="$env:solutiondir\tbexe\release"
+          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
+          sleep 40
+          $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
+          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "number1": 1, "number2":2 }'
+          $res
+          if ($res -ne '{"result":3.0000000000}') {
+            echo Error occured during POST request
+            taskkill /pid $process.id
+            exit -1 
+          }
+          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
+          $res
+          if ($res -ne $null) {
+            echo Error response should be null
+            taskkill /pid $process.id
+            exit -1 
+          }
+          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer hello" -d '{ "number1": 1, "number2":2 }'
+          $res
+          if ($res -ne $null) {
+            echo Error response should be null
+            taskkill /pid $process.id
+            exit -1 
+          }
+          taskkill /pid $process.id
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
