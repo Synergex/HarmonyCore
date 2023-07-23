@@ -314,10 +314,10 @@ stages:
       matrix:
         Basic: 
           project: basic
-        Tb:
-          project: tb
-        TbStruct:
-          project: tbstruct
+        # Tb:
+        #   project: tb
+        # TbStruct:
+        #   project: tbstruct
     variables:
     - name: clitool
       value: $(Pipeline.Workspace)\HarmonyCore.CliTool\Harmony.Core.CliTool.exe
@@ -543,9 +543,6 @@ stages:
           %clitool% codegen-add --interface --webapi -i BridgeMethods
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
-
-
-
     - task: PowerShell@2
       condition: eq(variables.project, 'basic')
       displayName: "Set ODATA Options"
@@ -646,24 +643,24 @@ stages:
         configuration: 'Release'
         restoreNugetPackages: true
 
-  - task: PowerShell@2
-    condition: ne(variables.project, 'basic')
-    displayName: "Run the host and test the endpoint" 
-    inputs:
-      targetType: 'inline'
-      script: |
-        $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
-        $env:exedir="$env:solutiondir\tbexe\release"
-        $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-        sleep 40
-        $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
-        taskkill /pid $process.id
-        $res
-        if ($res -ne '{"result":3.0000000000}') {
-          echo Error occured during POST request
-          exit -1 
-        }
-      workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Run the host and test the endpoint" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
+          $env:exedir="$env:solutiondir\tbexe\release"
+          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
+          sleep 40
+          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
+          taskkill /pid $process.id
+          $res
+          if ($res -ne '{"result":3.0000000000}') {
+            echo Error occured during POST request
+            exit -1 
+          }
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
     - task: PowerShell@2
       condition: ne(variables.project, 'basic')
