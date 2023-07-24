@@ -632,7 +632,7 @@ stages:
 
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
-      displayName: "Build the project"
+      displayName: "Build the project Basic"
       inputs:
         command: 'build'
         projects: '$(Pipeline.Workspace)\$(project)'
@@ -649,9 +649,9 @@ stages:
 
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
-      displayName: "Build the project"
+      displayName: "Build the project Tb"
       inputs:
-        solution: '$(project).sln'
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
         restoreNugetPackages: true
 
@@ -724,7 +724,7 @@ stages:
       condition: ne(variables.project, 'basic')
       displayName: "Build the project"
       inputs:
-        solution: '$(project).sln'
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
         restoreNugetPackages: true
 
