@@ -329,6 +329,9 @@ stages:
     - name: clitool
       value: $(Pipeline.Workspace)\HarmonyCore.CliTool\Harmony.Core.CliTool.exe
     steps:
+    - bash: |
+      echo "##vso[task.setvariable variable=SolutionDir]$(Pipeline.Workspace)\$(project)\" # remember to use double quotes
+
     - checkout: HarmonyCoreSamples
       clean: true
 
@@ -652,8 +655,6 @@ stages:
         projects: '$(Pipeline.Workspace)\$(project)\Services.Test'
         testRunTitle: "Services.Test Basic Solution"
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-      env:
-        solutiondir: $(Pipeline.Workspace)\$(project)\
 
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
