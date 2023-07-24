@@ -342,7 +342,7 @@ namespace <NAMESPACE>
         </IF>
       </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP><IF NOT NOSEG_TAG_EQUAL>"<FieldSqlName>",a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>"<FieldSqlName>",a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
 
