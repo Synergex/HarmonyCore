@@ -389,7 +389,6 @@ stages:
       displayName: "Run harmonycore upgrade-latest"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           echo YES| ${{ variables.clitool }} upgrade-latest
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
@@ -397,7 +396,6 @@ stages:
       displayName: "Run harmonycore regen"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           ${{ variables.clitool }} regen
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
@@ -405,7 +403,6 @@ stages:
       displayName: "Add Structures"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           ${{ variables.clitool }} codegen-add --structure --odata --ef -i CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
           ${{ variables.clitool }} regen -p
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
@@ -434,7 +431,6 @@ stages:
       displayName: "Add Traditional Bridge"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           ${{ variables.clitool }} features --add-tb
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
@@ -507,7 +503,6 @@ stages:
       displayName: "Enable SMC import and run upgrade-latest"
       inputs:
         script: |
-          set solutiondir=$(Build.SourcesDirectory)
           %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
           echo run upgrade-latest
           echo YES| %clitool% upgrade-latest
@@ -560,7 +555,6 @@ stages:
       displayName: "Add BridgeMethods interface"
       inputs:
         script: |
-          set solutiondir=$(Build.SourcesDirectory)
           %clitool% codegen-add --interface --webapi -i BridgeMethods
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
@@ -608,7 +602,6 @@ stages:
       displayName: "Add unit tests"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           echo YES| %clitool% features --add-unit-tests
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
@@ -616,7 +609,6 @@ stages:
       displayName: "Run regen -p and upgrade-latest"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           %clitool% regen -p
           echo YES| %clitool% upgrade-latest
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
@@ -708,7 +700,6 @@ stages:
       displayName: "Run regen -p"
       inputs:
         script: |
-          set solutiondir=$(Pipeline.Workspace)\$(project)
           %clitool% regen -p
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
