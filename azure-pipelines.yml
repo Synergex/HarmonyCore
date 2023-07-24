@@ -664,9 +664,9 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 40
+          sleep 60
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
-          taskkill /pid $process.id
+          taskkill /f /pid $process.id
           $res
           if ($res -ne '{"result":3.0000000000}') {
             echo Error occured during POST request
@@ -737,28 +737,28 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 40
+          sleep 60
           $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne '{"result":3.0000000000}') {
             echo Error occured during POST request
-            taskkill /pid $process.id
+            taskkill /f /pid $process.id
             exit -1 
           }
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne $null) {
             echo Error response should be null
-            taskkill /pid $process.id
+            taskkill /f /pid $process.id
             exit -1 
           }
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer hello" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne $null) {
             echo Error response should be null
-            taskkill /pid $process.id
+            taskkill /f /pid $process.id
             exit -1 
           }
-          taskkill /pid $process.id
+          taskkill /f /pid $process.id
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
