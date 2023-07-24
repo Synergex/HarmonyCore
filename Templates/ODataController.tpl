@@ -192,7 +192,7 @@ namespace <NAMESPACE>
   </PRIMARY_KEY>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP></PRIMARY_KEY>))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext,<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
 </IF STRUCTURE_ISAM>
@@ -244,7 +244,7 @@ namespace <NAMESPACE>
   </PRIMARY_KEY>
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, <PRIMARY_KEY><SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP></PRIMARY_KEY>))
+            mreturn Ok(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext,<PRIMARY_KEY><SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP></PRIMARY_KEY>))
         endmethod
 
 </IF STRUCTURE_ISAM>
@@ -285,7 +285,7 @@ namespace <NAMESPACE>
             required in aRecordNumber, int
         proc
 ;//Shouldn't really need the generic type arg on FindQuery. Compiler issue?
-            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext, aRecordNumber))
+            mreturn new SingleResult<<StructureNoplural>>(_DbContext.<StructurePlural>.AsNoTracking().FindQuery<<StructureNoplural>>(_DbContext,aRecordNumber))
         endmethod
 
 </IF STRUCTURE_RELATIVE>
@@ -342,7 +342,7 @@ namespace <NAMESPACE>
         </IF>
       </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP><IF NOT NOSEG_TAG_EQUAL>"<FieldSqlName>",a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
 
@@ -397,7 +397,7 @@ namespace <NAMESPACE>
         </IF>
       </SEGMENT_LOOP>
         proc
-            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP>"<FieldSqlName>",<IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+            data result = _DbContext.<StructurePlural>.AsNoTracking().FindAlternate(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>"<FieldSqlName>",a<FieldSqlName></IF><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
             if (result == ^null)
                 mreturn NotFound()
             mreturn Ok(result)
@@ -543,7 +543,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Add and commit
-                data existing = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+                data existing = _DbContext.<StructurePlural>.Find(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
                 if(existing == ^null) then
                 begin
                     _DbContext.<StructurePlural>.Add(a<StructureNoplural>)
@@ -632,7 +632,7 @@ namespace <NAMESPACE>
             try
             begin
                 ;;Get the <structureNoplural> to be updated
-                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+                data <structureNoplural>ToUpdate = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
                 data patchError, @JsonPatchError, ^null
                 ;;Did we find it?
                 if(<structureNoplural>ToUpdate == ^null)
@@ -718,7 +718,7 @@ namespace <NAMESPACE>
         </SEGMENT_LOOP>
         proc
             ;;Get the <structureNoplural> to be deleted
-            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF SEG_TAG_EQUAL><SEGMENT_TAG_VALUE><ELSE>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
+            data <structureNoplural>ToRemove = _DbContext.<StructurePlural>.Find<IF NOT STRUCTURE_HAS_UNIQUE_KEY>Query<<StructureNoplural>></IF>(<SEGMENT_LOOP><IF NOT SEG_TAG_EQUAL>a<FieldSqlName><IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE><ELSE><IF ALPHA>.PadRight(<FIELD_SIZE>)</IF ALPHA></IF HARMONYCORE_CUSTOM_SEGMENT_DATATYPE></IF SEG_TAG_EQUAL><SEGMENT_COMMA_NOT_LAST_NORMAL_FIELD></SEGMENT_LOOP>)
 
             ;;Did we find it?
             if (<structureNoplural>ToRemove == ^null)
