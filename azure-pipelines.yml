@@ -551,11 +551,39 @@ stages:
         workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
 
     - task: CmdLine@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Add TraditionalBridgeGenerator to CUSTOMERS structure"
+      inputs:
+        script: |
+          %clitool% codegen-add --structure --tb -i CUSTOMERS
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
       condition: ne(variables.project, 'basic')
       displayName: "Add BridgeMethods interface"
       inputs:
         script: |
           %clitool% codegen-add --interface --webapi -i BridgeMethods
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Set ODATA CreateTestFiles option"
+      inputs:
+        targetType: 'inline'
+        script: |
+          $options=@'
+          ,
+          "CreateTestFiles": true
+          }
+          '@
+          $filename = 'Harmony.Core.CodeGen.json'
+          $file = Get-Content $filename
+          if ($file[$file.length - 1] -eq '}') 
+          {
+            $file[$file.length - 1] = $options
+            $file | Set-Content $filename	
+          }
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
@@ -656,8 +684,8 @@ stages:
         restoreNugetPackages: true
 
     - task: PowerShell@2
-      condition: ne(variables.project, 'basic')
-      displayName: "Run the host and test the endpoint" 
+      condition: eq(variables.project, 'tb')
+      displayName: "Run the host and test the endpoint Tb" 
       inputs:
         targetType: 'inline'
         script: |
@@ -671,6 +699,111 @@ stages:
           if ($res -ne '{"result":3.0000000000}') {
             echo Error occured during POST request
             exit -1 
+          }
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Run the host and test endpoints TbStruct" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
+          $env:exedir="$env:solutiondir\tbexe\release"
+          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
+          sleep 60
+          echo "Test GetAllCustomers endpoint"
+          $res1 = curl.exe https://localhost:8086/BridgeMethods/GetAllCustomers -k -X GET -H "Content-Type: application/json"
+          $res1
+
+          echo "Test GetCustomer endpoint"
+          $res2 = curl.exe https://localhost:8086/BridgeMethods/GetCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }'
+          $res2
+
+          echo "Test ReturnCustomer endpoint"
+          $res3 = curl.exe https://localhost:8086/BridgeMethods/ReturnCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }'
+          $res3
+
+          echo "Test OneCustomer endpoint"
+          $res4DataReq = $res2 | convertfrom-json
+          $res4DataReq = $res4DataReq.cust
+          $res4DataReq = $res4DataReq | convertto-json
+          $res4DataReq = $res4DataReq -replace "\r\n", ""
+          $res4DataReq = $res4DataReq -replace "`"", "\`""
+          $res4 = curl.exe https://localhost:8086/BridgeMethods/OneCustomer -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res4DataReq}"
+          $res4
+
+          echo "Test ManyCustomers endpoint"
+          $res5DataReq = $res1 | convertfrom-json
+          $res5DataReq = $res5DataReq.cust
+          $res5DataReq = $res5DataReq | convertto-json
+          $res5DataReq = $res5DataReq -replace "\r\n", ""
+          $res5DataReq = $res5DataReq -replace "`"", "\`""
+          $res5 = curl.exe https://localhost:8086/BridgeMethods/ManyCustomers -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res5DataReq}"
+          $res5
+
+          taskkill /f /pid $process.id
+
+          echo "Verify requests"
+          
+          echo "GetAllCustomers Test"
+          $res1 = $res1 | convertfrom-json
+          if ($res1.ReturnValue -ne 0 -or $res1.errorMessage -ne "")
+          {
+            echo "Error occured with GetAllCustomers endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "GetCustomer Test"
+          $res2 = $res2 | convertfrom-json
+          if ($res2.ReturnValue -ne 0 -or $res2.errorMessage -ne "")
+          {
+            echo "Error occured with GetCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "ReturnCustomer Test"
+          $res3 = $res3 | convertfrom-json
+          if ($res3.ReturnValue -eq "" -or $res3.errorMessage -ne "")
+          {
+            echo "Error occured with ReturnCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "OneCustomer Test"
+          $res4 = $res4 | convertfrom-json
+          if ($res4.ReturnValue -ne "found" -or $res4.errorMessage -ne "")
+          {
+            echo "Error occured with OneCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "ManyCustomers Test"
+          $res5 = $res5 | convertfrom-json
+          if ($res5.ReturnValue -ne "equal" -or $res5.errorMessage -ne "")
+          {
+            echo "Error occured with ManyCustomers endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
           }
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
@@ -729,8 +862,8 @@ stages:
         restoreNugetPackages: true
 
     - task: PowerShell@2
-      condition: ne(variables.project, 'basic')
-      displayName: "Run the host and test the endpoint AUTH" 
+      condition: eq(variables.project, 'tb')
+      displayName: "Run the host and test the endpoint AUTH Tb" 
       inputs:
         targetType: 'inline'
         script: |
@@ -761,4 +894,111 @@ stages:
             exit -1 
           }
           taskkill /f /pid $process.id
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Run the host and test endpoints with AUTH TbStruct" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
+          $env:exedir="$env:solutiondir\tbexe\release"
+          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
+          sleep 60
+          echo "Get Auth Token"
+          $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
+          echo "Test GetAllCustomers endpoint"
+          $res1 = curl.exe https://localhost:8086/BridgeMethods/GetAllCustomers -k -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $token"
+          $res1
+
+          echo "Test GetCustomer endpoint"
+          $res2 = curl.exe https://localhost:8086/BridgeMethods/GetCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }' -H "Authorization: Bearer $token"
+          $res2
+
+          echo "Test ReturnCustomer endpoint"
+          $res3 = curl.exe https://localhost:8086/BridgeMethods/ReturnCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }' -H "Authorization: Bearer $token"
+          $res3
+
+          echo "Test OneCustomer endpoint"
+          $res4DataReq = $res2 | convertfrom-json
+          $res4DataReq = $res4DataReq.cust
+          $res4DataReq = $res4DataReq | convertto-json
+          $res4DataReq = $res4DataReq -replace "\r\n", ""
+          $res4DataReq = $res4DataReq -replace "`"", "\`""
+          $res4 = curl.exe https://localhost:8086/BridgeMethods/OneCustomer -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res4DataReq}" -H "Authorization: Bearer $token"
+          $res4
+
+          echo "Test ManyCustomers endpoint"
+          $res5DataReq = $res1 | convertfrom-json
+          $res5DataReq = $res5DataReq.cust
+          $res5DataReq = $res5DataReq | convertto-json
+          $res5DataReq = $res5DataReq -replace "\r\n", ""
+          $res5DataReq = $res5DataReq -replace "`"", "\`""
+          $res5 = curl.exe https://localhost:8086/BridgeMethods/ManyCustomers -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res5DataReq}" -H "Authorization: Bearer $token"
+          $res5
+
+          taskkill /f /pid $process.id
+
+          echo "Verify requests"
+          
+          echo "GetAllCustomers Test"
+          $res1 = $res1 | convertfrom-json
+          if ($res1.ReturnValue -ne 0 -or $res1.errorMessage -ne "")
+          {
+            echo "Error occured with GetAllCustomers endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "GetCustomer Test"
+          $res2 = $res2 | convertfrom-json
+          if ($res2.ReturnValue -ne 0 -or $res2.errorMessage -ne "")
+          {
+            echo "Error occured with GetCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "ReturnCustomer Test"
+          $res3 = $res3 | convertfrom-json
+          if ($res3.ReturnValue -eq "" -or $res3.errorMessage -ne "")
+          {
+            echo "Error occured with ReturnCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "OneCustomer Test"
+          $res4 = $res4 | convertfrom-json
+          if ($res4.ReturnValue -ne "found" -or $res4.errorMessage -ne "")
+          {
+            echo "Error occured with OneCustomer endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
+
+          echo "ManyCustomers Test"
+          $res5 = $res5 | convertfrom-json
+          if ($res5.ReturnValue -ne "equal" -or $res5.errorMessage -ne "")
+          {
+            echo "Error occured with ManyCustomers endpoint"
+            exit -1
+          }
+          else
+          {
+            echo "Passed"
+          }
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
