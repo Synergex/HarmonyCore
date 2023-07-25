@@ -340,7 +340,7 @@ stages:
         SourceFolder: '$(Build.SourcesDirectory)\$(project)'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\$(project)'
-
+f
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 7.0.x'
       inputs:
@@ -711,7 +711,7 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 60
+          sleep 120
           echo "Test GetAllCustomers endpoint"
           $res1 = curl.exe https://localhost:8086/BridgeMethods/GetAllCustomers -k -X GET -H "Content-Type: application/json"
           $res1
@@ -905,7 +905,7 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 60
+          sleep 120
           echo "Get Auth Token"
           $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
           echo "Test GetAllCustomers endpoint"
