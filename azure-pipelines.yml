@@ -694,10 +694,10 @@ stages:
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
           sleep 120
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
-          taskkill /f /pid $process.id
+          taskkill /f /pid $process.id /t
           $res
           if ($res -ne '{"result":3.0000000000}') {
-            echo Error occured during POST request
+            echo "Error occured during POST request"
             exit -1 
           }
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
@@ -875,25 +875,25 @@ stages:
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne '{"result":3.0000000000}') {
-            echo Error occured during POST request
-            taskkill /f /pid $process.id
+            echo "Error occured during POST request"
+            taskkill /f /pid $process.id /t
             exit -1 
           }
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne $null) {
-            echo Error response should be null
-            taskkill /f /pid $process.id
+            echo "Error response should be null"
+            taskkill /f /pid $process.id /t
             exit -1 
           }
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer hello" -d '{ "number1": 1, "number2":2 }'
           $res
           if ($res -ne $null) {
-            echo Error response should be null
-            taskkill /f /pid $process.id
+            echo "Error response should be null"
+            taskkill /f /pid $process.id /t
             exit -1 
           }
-          taskkill /f /pid $process.id
+          taskkill /f /pid $process.id /t
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
     - task: PowerShell@2
