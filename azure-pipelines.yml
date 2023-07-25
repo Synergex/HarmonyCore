@@ -488,10 +488,10 @@ stages:
           $updatedContent = @()
           Get-Content -Path $filename | ForEach-Object {
             if ($_ -like '*<OutputPath>*') {
-                $_ = '<OutputPath>$(SolutionDir)TBEXE\Release</OutputPath>'
+                $_ = '<OutputPath>$(SolutionDir)TBEXE\$(Configuration)</OutputPath>'
             }
             if ($_ -like '*<UnevaluatedOutputPath>*') {
-                $_ = '<UnevaluatedOutputPath>$(SolutionDir)TBEXE\Release</UnevaluatedOutputPath>'
+                $_ = '<UnevaluatedOutputPath>$(SolutionDir)TBEXE\$(Configuration)</UnevaluatedOutputPath>'
             }
             $updatedContent += $_
           }
@@ -692,7 +692,7 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 60
+          sleep 120
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
           taskkill /f /pid $process.id
           $res
@@ -870,7 +870,7 @@ stages:
           $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
           $env:exedir="$env:solutiondir\tbexe\release"
           $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 60
+          sleep 120
           $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
           $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "number1": 1, "number2":2 }'
           $res
