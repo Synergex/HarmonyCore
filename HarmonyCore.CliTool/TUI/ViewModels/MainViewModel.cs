@@ -245,7 +245,7 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         private string GetSmcPath(GenerationEvents events)
         {
-            var openFileDialog = new OpenDialog("Load SMC", "Select an SMC file to import interfaces from.",
+            var openFileDialog = new OpenDialog("Load SMC", "Select a Synergy method catalog (SMC) with interfaces for the traditional Synergy routines you want Harmony Core to access.",
                     new List<string> { ".xml", ".*" }, OpenDialog.OpenMode.File);
             Application.Run(openFileDialog);
 
@@ -395,13 +395,13 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
             if (!hasTraditionalBridge)
             {
-                result.Add(("Add Traditional Bridge", "Add support for running traditional Synergy code", AddTraditionalBridge));
-                result.Add(("Add Traditional Bridge and SMC", "Add support for traditional Synergy code and SMC import", AddTraditionalBridgeAndSmc));
+                result.Add(("Add Traditional Bridge", "Add support for running traditional Synergy routines", AddTraditionalBridge));
+                result.Add(("Add Traditional Bridge and SMC", "Add components for Traditional Bridge and xfServerPlus migration", AddTraditionalBridgeAndSmc));
             }
 
             if (hasTraditionalBridge && _context.CodeGenSolution.TraditionalBridge?.EnableXFServerPlusMigration != true) 
             {
-                result.Add(("Enable SMC Import", "Enable xfServerPlus import and select SMC", AddSmc));
+                result.Add(("Add xfServerPlus Migration", "Add components for xfServerPlus migration", AddSmc));
             }
 
             if (!hasUnitTests)
