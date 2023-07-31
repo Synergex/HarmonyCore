@@ -55,6 +55,26 @@ stages:
       submodules: true
       fetchDepth: 1
       fetchTags: false
+    - task: ArchiveFiles@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: "Archive sources"
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/net6-release.zip'
+        replaceExistingArchive: true
+    - task: PublishPipelineArtifact@1
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: "Publish HCarchive"
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'HCarchive'
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 7.0.x'
       inputs:
@@ -385,13 +405,19 @@ stages:
         cleanDestinationFolder: false
         overwriteExistingFiles: false
 
+    - download: current
+      displayName: "Download HCarchive"
+      artifact: 'HCarchive'
+
     - task: CmdLine@2
       displayName: "Run harmonycore upgrade-latest"
       inputs:
         script: |
-          echo YES| ${{ variables.clitool }} upgrade-latest
+          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
+      env: 
+        pipeline: 'YES'
+      
     - task: CmdLine@2
       displayName: "Run harmonycore regen"
       inputs:
@@ -505,8 +531,10 @@ stages:
         script: |
           %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
           echo run upgrade-latest
-          echo YES| %clitool% upgrade-latest
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
+      env:
+        pipeline: 'YES'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
@@ -638,8 +666,10 @@ stages:
       inputs:
         script: |
           %clitool% regen -p
-          echo YES| %clitool% upgrade-latest
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
+      env:
+        pipeline: 'YES'
 
     - task: PowerShell@2
       condition: ne(variables.project, 'basic')
