@@ -175,7 +175,7 @@ namespace HarmonyCore.CliTool
             }
             var versionInfo = Program.LoadVersionInfoSync(true);
             var upgradeLatestOptions = new UpgradeLatestOptions();
-            await Program.UpgradeLatest(solutionInfo, versionInfo, upgradeLatestOptions.OverrideTemplateVersion, upgradeLatestOptions.OverrideTemplateUrl, events);
+            await Program.UpgradeLatest(solutionInfo, versionInfo, upgradeLatestOptions.OverrideTemplateVersion, upgradeLatestOptions.OverrideTemplateUrl, events, null);
         }
 
         public async Task CollectTestData(SolutionInfo _solutionInfo)

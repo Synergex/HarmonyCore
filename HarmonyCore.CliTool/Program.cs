@@ -32,6 +32,8 @@ namespace HarmonyCore.CliTool
         public string OverrideTemplateUrl { get; set; }
         [Option('v', "template-version")]
         public string OverrideTemplateVersion { get; set; }
+        [Option('z', "zip-path")]
+        public string CurrentTemplates { get; set; }
     }
     [Verb("rps")]
     class RpsOptions
@@ -228,6 +230,10 @@ Known structure properties:
 
         public static async Task<KnownVersion> LoadKnownVersion(string prefix, bool skipCache)
         {
+            if (Environment.GetEnvironmentVariable("pipeline") == "YES")
+            {
+                skipCache = false;
+            }
             var toolVersion = await GitHubRelease.GetCliToolVersions(skipCache);
             var knownVersions = JsonConvert.DeserializeObject<Root>(toolVersion).KnownVersions;
             return knownVersions.First(ver => ver.TargetFramework.StartsWith(prefix));
@@ -408,6 +414,7 @@ Known structure properties:
                           (UpgradeLatestOptions opts) =>
                           {
                               Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
+                              var zipPath = opts.CurrentTemplates;
 
 
                               Console.WriteLine("Type YES to proceed: ");
@@ -422,7 +429,7 @@ Known structure properties:
                               if (opts.ProjectOnly)
                                   UpgradeProjects(defaultLoader().Result, versionInfo);
                               else
-                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl, null).Wait();
+                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl, null, zipPath).Wait();
                               return 0;
                           },
                           (Func<CodegenListOptions, int>)new CodegenCommand(defaultLoader).List,
@@ -479,7 +486,7 @@ Known structure properties:
             }
         }
 
-        public static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion, GenerationEvents? events)
+        public static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion, GenerationEvents? events, string zipPath)
         {
             //download templates and traditional bridge source
             //replace templates and traditional bridge source
@@ -527,7 +534,7 @@ Known structure properties:
                 }
             }
 
-            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl);
+            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl, zipPath);
 
             UpgradeProjects(solution, versionInfo);
         }
