@@ -59,31 +59,90 @@ namespace HarmonyCore.CliTool.TUI.Views
                 singleItemView.SetFocus();
                 _getResult = () => oldValue;
             }
-
-            else
+            else 
             {
                 var options = navigationObject.Context.ExtractValueOptionsFromProperty(oldValue);
                 bool allowsMultiSelection = navigationObject.Context.AllowMultiSelectionForProperty(oldValue.Source);
+
                 if (options.Count == 0)
                 {
-                    var helpText = "There are no " + navigationObject.Context.Name.Substring(5) + "s to add."; //Substring() removes "Pick " from start of string. 
-                    var hv = new TextView()
+                    if (navigationObject.Context.Name.Contains("interface") ||
+                    navigationObject.Context.Name.Contains("structure"))
                     {
-                        Text = helpText,
-                        X = 3, Y = 1,
-                        Width = Dim.Fill() - 4,
-                        Height = 3,
-                        ReadOnly = true,
-                        WordWrap = true,
-                        CanFocus = false,
-                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Gray, Color.Gray) }
-                    };
-                    Add(hv);
-                    ok.Enabled = false;
-                    hv.SetFocus();
-                    _getResult = () => hv.Text.ToString();
+                        var helpText = "There are no " + navigationObject.Context.Name.Substring(5) + "s to add."; //Substring() removes "Pick " from start of string. 
+                        var hv = new TextView()
+                        {
+                            Text = helpText,
+                            X = 3,
+                            Y = 1,
+                            Width = Dim.Fill() - 4,
+                            Height = 3,
+                            ReadOnly = true,
+                            WordWrap = true,
+                            CanFocus = false,
+                            ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Gray, Color.Gray) }
+                        };
+                        Add(hv);
+                        ok.Enabled = false;
+                        hv.SetFocus();
+                        _getResult = () => hv.Text.ToString();
+                    }
+                    else
+                    {
+                        var tf = new TextView()
+                        {
+                            Text = oldValue.Value?.ToString() ?? "",
+                            X = 0,
+                            Y = 2,
+                            Width = Dim.Fill(),
+                            Height = Dim.Fill() - 3,
+                            ReadOnly = false,
+                            WordWrap = true,
+                            AllowsTab = true,
+                            AllowsReturn = true,
+                        };
+                        tf.KeyUp += (key) => //If a key is pressed
+                        {
+                            if (tf.Text.Length == 0)
+                            {
+                                ok.Enabled = false;
+                            }
+                            else
+                            {
+                                //If at least one character is typed in the text view
+                                for (int i = 0; i < tf.Text.Length; i++)
+                                    if (char.IsLetterOrDigit((char)tf.Text[i]))
+                                    {
+                                        ok.Enabled = true;
+                                        tf.SetFocus();
+                                        break;
+                                    }
+                                    else
+                                        ok.Enabled = false;
+                            }
+                        };
+                        Add(lbl, tf);
+                        tf.SetFocus();
+                        ok.Enabled = false;
+                        _getResult = () => tf.Text.ToString();
+                    }
                 }
-                else if(allowsMultiSelection)
+                else if (options.Count == 3 && oldValue.Source.PropertyType == typeof(Nullable<bool>))
+                //For three-way selection (check, diamond, dash)
+                {
+                    lbl.GetCurrentWidth(out var labelWidth);
+                    var tscb = new TriStateCheckBox()
+                    {
+                        X = labelWidth + 3,
+                        Y = 1,
+                        Height = Dim.Fill() - 1, //leave room for the buttons at the bottom
+                        Checked = oldValue.Value as Nullable<bool>
+                    };
+                    Add(lbl, tscb);
+                    tscb.SetFocus();
+                    _getResult = () => navigationObject.Context.ExtractValueFromProperty(oldValue.Source, (object)tscb.Checked).ToString();
+                }
+                else if (allowsMultiSelection)
                 {
                     var delimiter = navigationObject.Context.MultiSelectionDelimiterForProperty(oldValue.Source);
                     var listSource = new ListWrapper(options);
@@ -97,8 +156,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                             if (foundIndex != -1)
                                 listSource.SetMark(foundIndex, true);
                         }
-                    } 
-                    
+                    }
                     var lv = new ListView(listSource)
                     {
                         X = 0,
@@ -130,7 +188,8 @@ namespace HarmonyCore.CliTool.TUI.Views
                     var delimiter = navigationObject.Context.MultiSelectionDelimiterForProperty(oldValue.Source);
                     var lv = new ListView()
                     {
-                        X = 8, Y = 3,
+                        X = 8,
+                        Y = 3,
                         Width = Dim.Fill() - 6,
                         Height = Dim.Fill() - 2,
                         AllowsMarking = true,
@@ -139,27 +198,29 @@ namespace HarmonyCore.CliTool.TUI.Views
                     };
                     var searchLabel = new Label()
                     {
-                        X = 2, Y = 4,
+                        X = 2,
+                        Y = 4,
                         Text = "Search/filter:"
                     };
                     var searchField = new TextField()
                     {
-                        X = 17, Y = 4,
+                        X = 17,
+                        Y = 4,
                         Width = 10,
                     };
-                    var helpText =  "Select (check) items by clicking or pressing the " + 
+                    var helpText = "Select (check) items by clicking or pressing the " +
                                     "spacebar when an item is highlighted.";
                     var helpTextView = new TextView()
                     {
                         Text = helpText,
-                        X = 2, Y = 1,
+                        X = 2,
+                        Y = 1,
                         Width = Dim.Fill() - 4,
                         Height = 3,
                         ReadOnly = true,
                         WordWrap = true,
                         ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) }
                     };
-
                     ok.Enter += (e) =>
                     //When ok view gets focus...
                     {
@@ -169,30 +230,27 @@ namespace HarmonyCore.CliTool.TUI.Views
                             if (lv.Source.IsMarked(i))
                             {
                                 ok.Clicked += OkPressed;
-                                ok.SetFocus(); 
+                                ok.SetFocus();
                                 break;
                             }
                     };
-
                     lv.KeyPress += (key) =>
-                     {
-                         ok.Clicked -= OkPressed;
-                         //If anything in the list is selected...
-                         for (int i = 0; i < lv.Source.Count; i++)
-                             if (lv.Source.IsMarked(i))
-                             {
-                                 ok.Enabled = true;
-                                 ok.Clicked += OkPressed;
-                                 break;
-                             }
-                     };
-
+                    {
+                        ok.Clicked -= OkPressed;
+                        //If anything in the list is selected...
+                        for (int i = 0; i < lv.Source.Count; i++)
+                            if (lv.Source.IsMarked(i))
+                            {
+                                ok.Enabled = true;
+                                ok.Clicked += OkPressed;
+                                break;
+                            }
+                    };
                     searchField.Enter += (e) =>
                     //When search field gets focus...
                     {
                         searchField.ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) };
                     };
-
                     searchField.TextChanged += (e) =>
                     //When text changes in search field, filter list
                     {
@@ -207,7 +265,6 @@ namespace HarmonyCore.CliTool.TUI.Views
                         lv.Source = new ListWrapper(newItems);
                         lv.SelectedItem = 0;
                     };
-
                     if (options.Count > 6)
                     {
                         lbl.Y = 6;
