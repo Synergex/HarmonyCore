@@ -135,22 +135,49 @@ namespace HarmonyCore.CliTool.TUI.Models
             [ComplexObjectExtractor]
             public RelationSpecSettings RelationsSpecs { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableRelations { get; set; }
-            
+
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableRelationValidation { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableGetAll { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableGetOne { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableAltGet { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnablePut { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnablePost { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnablePatch { get; set; }
 
+            [NullableBoolInjector]
+            [NullableBoolExtractor]
+            [NullableBoolOptionsExtractor]
             public bool? EnableDelete { get; set; }
 
             [ComplexObjectExtractor]
