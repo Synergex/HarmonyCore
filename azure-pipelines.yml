@@ -577,6 +577,7 @@ stages:
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
       displayName: "Run Services.Test"
+      continueOnError: false
       inputs:
         command: 'test'
         projects: '$(Pipeline.Workspace)\$(project)\Services.Test'
@@ -595,6 +596,7 @@ stages:
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
       displayName: "Run the host and test the endpoint Tb"
+      continueOnError: false
       inputs:
         filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
         arguments: 'TestTb $(Pipeline.Workspace)\$(project)\'
@@ -604,6 +606,7 @@ stages:
     - task: PowerShell@2
       condition: eq(variables.project, 'tbstruct')
       displayName: "Run the host and test endpoints TbStruct"
+      continueOnError: false
       inputs:
         filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
         arguments: 'TestTbStruct $(Pipeline.Workspace)\$(project)\'
