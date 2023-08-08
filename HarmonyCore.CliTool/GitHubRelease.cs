@@ -125,7 +125,7 @@ namespace HarmonyCore.CliTool
                 foreach (var entry in zip.Entries)
                 {
                     var rootFolderName = "HarmonyCore-" + CurrentVersionTag + "/";
-                    if (Environment.GetEnvironmentVariable("pipeline") == "YES")
+                    if (zipPath != null)
                     {
                         rootFolderName = "";
                     }
@@ -151,9 +151,18 @@ namespace HarmonyCore.CliTool
                             }
                         }
                     }
-                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"{rootFolderName}/TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
+                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"{rootFolderName}TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
                     {
-                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"{rootFolderName}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\")));
+                        var targetFileName = "";
+                        if (zipPath != null)
+                        {
+                            targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName));
+                        }
+                        else
+                        {
+                            targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"{rootFolderName}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"))); ;
+                        }
+
                         if (File.Exists(targetFileName))
                             File.Delete(targetFileName);
 

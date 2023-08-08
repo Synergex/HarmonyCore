@@ -230,10 +230,6 @@ Known structure properties:
 
         public static async Task<KnownVersion> LoadKnownVersion(string prefix, bool skipCache)
         {
-            if (Environment.GetEnvironmentVariable("pipeline") == "YES")
-            {
-                skipCache = false;
-            }
             var toolVersion = await GitHubRelease.GetCliToolVersions(skipCache);
             var knownVersions = JsonConvert.DeserializeObject<Root>(toolVersion).KnownVersions;
             return knownVersions.First(ver => ver.TargetFramework.StartsWith(prefix));
@@ -425,7 +421,8 @@ Known structure properties:
                               }
 
                               Console.WriteLine("Checking for current version info");
-                              var versionInfo = LoadVersionInfoSync(true);
+                              var versionInfo = zipPath != null ? LoadVersionInfoSync(false) : LoadVersionInfoSync(true);
+                              
                               if (opts.ProjectOnly)
                                   UpgradeProjects(defaultLoader().Result, versionInfo);
                               else
