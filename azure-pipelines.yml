@@ -415,16 +415,7 @@ stages:
         script: |
           echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-      env: 
-        pipeline: 'YES'
       
-    - task: CmdLine@2
-      displayName: "Run harmonycore regen"
-      inputs:
-        script: |
-          ${{ variables.clitool }} regen
-        workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
     - task: CmdLine@2
       displayName: "Add Structures"
       inputs:
@@ -437,19 +428,9 @@ stages:
       condition: ne(variables.project, 'basic')
       displayName: "Add PK generator and StartupCustom to Services.synproj" 
       inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\Services.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*<Compile Include="Startup.dbl" />*')
-            {
-              $updatedContent += '<Compile Include="PrimaryKeyGenerator.dbl" />'
-              $updatedContent += '<Compile Include="StartupCustom.dbl" />'
-            }
-            $updatedContent += $_
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddServices $(Pipeline.Workspace)\$(project)\Services\Services.synproj'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services'
 
     - task: CmdLine@2
@@ -464,64 +445,27 @@ stages:
       condition: ne(variables.project, 'basic')
       displayName: "Update host.dbl" 
       inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\host.dbl"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*dispatcher = new SuperRoutineDispatcher(MethodDispatcher.GetDispatchers())*')
-            {
-              $updatedContent += 'dispatcher = new SuperRoutineDispatcher(new RoutineDispatcher[#] { new BridgeMethodsDispatcher() })'
-            }
-            else
-            {
-              $updatedContent += $_
-            }
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateHost $(Pipeline.Workspace)\$(project)\TraditionalBridge\Source\host.dbl'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge\Source'
 
     - task: PowerShell@2
       condition: ne(variables.project, 'basic')
       displayName: "Update platform for TB" 
       inputs:
-        targetType: 'inline'
-        script: |
-          $guid = 'empty'
-          $filename = ".\$(project).sln"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*TraditionalBridge\TraditionalBridge.synproj*') {	
-              $guid = $_ -split ',' | Select-String -Pattern '\{.*\}' -AllMatches | % { $_.Matches } | % { $_.Value } | Select-Object -Last 1
-            }
-            if ($_ -like "*$guid*" -and ($_ -like "*Any CPU.ActiveCfg*" -or $_ -like "*Any CPU.Build.0*")) {
-              $lastIndex = $_.LastIndexOf("Any CPU")
-              $replacedplatform = $_.Substring(0, $lastIndex) + "x64" + $_.Substring($lastIndex + "Any CPU".Length)
-              $_ = $replacedplatform 
-            }
-            $updatedContent += $_
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateTbPlatform $(Pipeline.Workspace)\$(project)\$(project).sln'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
       condition: ne(variables.project, 'basic')
       displayName: "Update output path for TB" 
       inputs:
-        targetType: 'inline'
-        script: |
-          $filename = ".\TraditionalBridge.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*<OutputPath>*') {
-                $_ = '<OutputPath>$(SolutionDir)TBEXE\$(Configuration)</OutputPath>'
-            }
-            if ($_ -like '*<UnevaluatedOutputPath>*') {
-                $_ = '<UnevaluatedOutputPath>$(SolutionDir)TBEXE\$(Configuration)</UnevaluatedOutputPath>'
-            }
-            $updatedContent += $_
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateTbOutput $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
 
     - task: CmdLine@2
@@ -533,51 +477,25 @@ stages:
           echo run upgrade-latest
           echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-      env:
-        pipeline: 'YES'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
       displayName: "Add methods to TraditionalBridge.synproj Tb" 
       inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\TraditionalBridge.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*<Compile Include="Source\host.dbl" />*')
-            {
-              $updatedContent += '<Compile Include="Source\Methods\AddTwoNumbers.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\GetEnvironment.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\GetLogicalName.dbl" />'
-            }
-            $updatedContent += $_
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddMethodsTb $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tbstruct')
-      displayName: "Add methods to TraditionalBridge.synproj TbStruct" 
+      displayName: "Add methods to TraditionalBridge.synproj TbStruct"
       inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\TraditionalBridge.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if ($_ -like '*<Compile Include="Source\host.dbl" />*')
-            {
-              $updatedContent += '<Compile Include="Source\Methods\GetAllCustomers.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\GetCustomer.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\ManyCustomers.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\OneCustomer.dbl" />'
-              $updatedContent += '<Compile Include="Source\Methods\ReturnCustomer.dbl" />'
-            }
-            $updatedContent += $_
-          }
-          $updatedContent | Set-Content $filename
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddMethodsTbStruct $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
-
+    
     - task: CmdLine@2
       condition: eq(variables.project, 'tbstruct')
       displayName: "Add TraditionalBridgeGenerator to CUSTOMERS structure"
@@ -598,61 +516,20 @@ stages:
       condition: ne(variables.project, 'basic')
       displayName: "Set ODATA CreateTestFiles option"
       inputs:
-        targetType: 'inline'
-        script: |
-          $options=@'
-          ,
-          "CreateTestFiles": true
-          }
-          '@
-          $filename = 'Harmony.Core.CodeGen.json'
-          $file = Get-Content $filename
-          if ($file[$file.length - 1] -eq '}') 
-          {
-            $file[$file.length - 1] = $options
-            $file | Set-Content $filename	
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'SetCreateTestFiles $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'basic')
       displayName: "Set ODATA Options"
       inputs:
-        targetType: 'inline'
-        script: |
-          $options=@'
-          ,
-          "FullCollectionEndpoints": true,
-          "PrimaryKeyEndpoints": true,
-          "AlternateKeyEndpoints": true,
-          "CollectionCountEndpoints": true,
-          "IndividualPropertyEndpoints": true,
-          "PutEndpoints": true,
-          "PostEndpoints": true,
-          "PatchEndpoints": true,
-          "DeleteEndpoints": true,
-          "ODataSelect": true,
-          "ODataFilter": true,
-          "ODataOrderBy": true,
-          "ODataTop": true,
-          "ODataSkip": true,
-          "ODataRelations": true,
-          "ODataRelationValidation": true,
-          "CreateTestFiles": true,
-          "GenerateUnitTests": true,
-          "DocumentPropertyEndpoints": true,
-          "GenerateOData": true
-          }
-          '@
-          $filename = 'Harmony.Core.CodeGen.json'
-          $file = Get-Content $filename
-          if ($file[$file.length - 1] -eq '}') 
-          {
-            $file[$file.length - 1] = $options
-            $file | Set-Content $filename	
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'SetOdataBasic $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
+   
     - task: CmdLine@2
       condition: eq(variables.project, 'basic')
       displayName: "Add unit tests"
@@ -668,25 +545,6 @@ stages:
           %clitool% regen -p
           echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-      env:
-        pipeline: 'YES'
-
-    - task: PowerShell@2
-      condition: ne(variables.project, 'basic')
-      displayName: "Remove BridgeMethodsTestResponses.dbl from TraditionalBridge.synproj" 
-      inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\TraditionalBridge.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if (-not ($_ -like '*<Compile Include="Source/Methods/BridgeMethodsTestResponses.dbl" />*'))
-            {
-              $updatedContent += $_
-            }
-          }
-          $updatedContent | Set-Content $filename
-        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
 
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
@@ -715,147 +573,29 @@ stages:
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
-      displayName: "Run the host and test the endpoint Tb" 
+      displayName: "Run the host and test the endpoint Tb"
       inputs:
-        targetType: 'inline'
-        script: |
-          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
-          $env:exedir="$env:solutiondir\tbexe\release"
-          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 120
-          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
-          taskkill /f /pid $process.id /t
-          $res
-          if ($res -ne '{"result":3.0000000000}') {
-            echo "Error occured during POST request"
-            exit -1 
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTb $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tbstruct')
-      displayName: "Run the host and test endpoints TbStruct" 
+      displayName: "Run the host and test endpoints TbStruct"
       inputs:
-        targetType: 'inline'
-        script: |
-          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
-          $env:exedir="$env:solutiondir\tbexe\release"
-          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 120
-          echo "Test GetAllCustomers endpoint"
-          $res1 = curl.exe https://localhost:8086/BridgeMethods/GetAllCustomers -k -X GET -H "Content-Type: application/json"
-          $res1
-
-          echo "Test GetCustomer endpoint"
-          $res2 = curl.exe https://localhost:8086/BridgeMethods/GetCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }'
-          $res2
-
-          echo "Test ReturnCustomer endpoint"
-          $res3 = curl.exe https://localhost:8086/BridgeMethods/ReturnCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }'
-          $res3
-
-          echo "Test OneCustomer endpoint"
-          $res4DataReq = $res2 | convertfrom-json
-          $res4DataReq = $res4DataReq.cust
-          $res4DataReq = $res4DataReq | convertto-json
-          $res4DataReq = $res4DataReq -replace "\r\n", ""
-          $res4DataReq = $res4DataReq -replace "`"", "\`""
-          $res4 = curl.exe https://localhost:8086/BridgeMethods/OneCustomer -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res4DataReq}"
-          $res4
-
-          echo "Test ManyCustomers endpoint"
-          $res5DataReq = $res1 | convertfrom-json
-          $res5DataReq = $res5DataReq.cust
-          $res5DataReq = $res5DataReq | convertto-json
-          $res5DataReq = $res5DataReq -replace "\r\n", ""
-          $res5DataReq = $res5DataReq -replace "`"", "\`""
-          $res5 = curl.exe https://localhost:8086/BridgeMethods/ManyCustomers -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res5DataReq}"
-          $res5
-
-          taskkill /f /pid $process.id /t
-
-          echo "Verify requests"
-          
-          echo "GetAllCustomers Test"
-          $res1 = $res1 | convertfrom-json
-          if ($res1.ReturnValue -ne 0 -or $res1.errorMessage -ne "")
-          {
-            echo "Error occured with GetAllCustomers endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "GetCustomer Test"
-          $res2 = $res2 | convertfrom-json
-          if ($res2.ReturnValue -ne 0 -or $res2.errorMessage -ne "")
-          {
-            echo "Error occured with GetCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "ReturnCustomer Test"
-          $res3 = $res3 | convertfrom-json
-          if ($res3.ReturnValue -eq "" -or $res3.errorMessage -ne "")
-          {
-            echo "Error occured with ReturnCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "OneCustomer Test"
-          $res4 = $res4 | convertfrom-json
-          if ($res4.ReturnValue -ne "found" -or $res4.errorMessage -ne "")
-          {
-            echo "Error occured with OneCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "ManyCustomers Test"
-          $res5 = $res5 | convertfrom-json
-          if ($res5.ReturnValue -ne "equal" -or $res5.errorMessage -ne "")
-          {
-            echo "Error occured with ManyCustomers endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbStruct $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
     - task: PowerShell@2
       condition: ne(variables.project, 'basic')
-      displayName: "Update JSON to enable Authentication" 
+      displayName: "Update JSON to enable Authentication"
       inputs:
-        targetType: 'inline'
-        script: |
-          $options=@'
-          ,
-          "Authentication": true,
-          "CustomAuthentication": true
-          }
-          '@
-          $filename = 'Harmony.Core.CodeGen.json'
-          $file = Get-Content $filename
-          if ($file[$file.length - 1] -eq '}') 
-          {
-            $file[$file.length - 1] = $options
-            $file | Set-Content $filename	
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'EnableAuth $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: CmdLine@2
@@ -865,23 +605,6 @@ stages:
         script: |
           %clitool% regen -p
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
-    - task: PowerShell@2
-      condition: ne(variables.project, 'basic')
-      displayName: "Remove BridgeMethodsTestResponses.dbl from TraditionalBridge.synproj" 
-      inputs:
-        targetType: 'inline'
-        script: |
-          $filename =  ".\TraditionalBridge.synproj"
-          $updatedContent = @()
-          Get-Content -Path $filename | ForEach-Object {
-            if (-not ($_ -like '*<Compile Include="Source/Methods/BridgeMethodsTestResponses.dbl" />*'))
-            {
-              $updatedContent += $_
-            }
-          }
-          $updatedContent | Set-Content $filename
-        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
 
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
@@ -893,142 +616,18 @@ stages:
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
-      displayName: "Run the host and test the endpoint AUTH Tb" 
+      displayName: "Run the host and test the endpoint AUTH Tb"
       inputs:
-        targetType: 'inline'
-        script: |
-          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
-          $env:exedir="$env:solutiondir\tbexe\release"
-          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 120
-          $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
-          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $token" -d '{ "number1": 1, "number2":2 }'
-          $res
-          if ($res -ne '{"result":3.0000000000}') {
-            echo "Error occured during POST request"
-            taskkill /f /pid $process.id /t
-            exit -1 
-          }
-          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -d '{ "number1": 1, "number2":2 }'
-          $res
-          if ($res -ne $null) {
-            echo "Error response should be null"
-            taskkill /f /pid $process.id /t
-            exit -1 
-          }
-          $res = curl.exe https://localhost:8086/BridgeMethods/AddTwoNumbers -k -X POST -H "Content-Type: application/json" -H "Authorization: Bearer hello" -d '{ "number1": 1, "number2":2 }'
-          $res
-          if ($res -ne $null) {
-            echo "Error response should be null"
-            taskkill /f /pid $process.id /t
-            exit -1 
-          }
-          taskkill /f /pid $process.id /t
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbAuth $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tbstruct')
-      displayName: "Run the host and test endpoints with AUTH TbStruct" 
+      displayName: "Run the host and test endpoints with AUTH TbStruct"
       inputs:
-        targetType: 'inline'
-        script: |
-          $env:solutiondir="$(Pipeline.Workspace)\$(project)\"
-          $env:exedir="$env:solutiondir\tbexe\release"
-          $process = start-process powershell '-c', {dotnet run} -passthru -windowstyle hidden
-          sleep 120
-          echo "Get Auth Token"
-          $token = curl.exe https://localhost:8086/Authentication/GetToken -k -X POST -H "Content-Type: application/json" -d '{ \"Username\": \"username\", \"Password\": \"password\" }'
-          echo "Test GetAllCustomers endpoint"
-          $res1 = curl.exe https://localhost:8086/BridgeMethods/GetAllCustomers -k -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-          $res1
-
-          echo "Test GetCustomer endpoint"
-          $res2 = curl.exe https://localhost:8086/BridgeMethods/GetCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }' -H "Authorization: Bearer $token"
-          $res2
-
-          echo "Test ReturnCustomer endpoint"
-          $res3 = curl.exe https://localhost:8086/BridgeMethods/ReturnCustomer -k -X POST -H "Content-Type: application/json" -d '{ "id": 1 }' -H "Authorization: Bearer $token"
-          $res3
-
-          echo "Test OneCustomer endpoint"
-          $res4DataReq = $res2 | convertfrom-json
-          $res4DataReq = $res4DataReq.cust
-          $res4DataReq = $res4DataReq | convertto-json
-          $res4DataReq = $res4DataReq -replace "\r\n", ""
-          $res4DataReq = $res4DataReq -replace "`"", "\`""
-          $res4 = curl.exe https://localhost:8086/BridgeMethods/OneCustomer -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res4DataReq}" -H "Authorization: Bearer $token"
-          $res4
-
-          echo "Test ManyCustomers endpoint"
-          $res5DataReq = $res1 | convertfrom-json
-          $res5DataReq = $res5DataReq.cust
-          $res5DataReq = $res5DataReq | convertto-json
-          $res5DataReq = $res5DataReq -replace "\r\n", ""
-          $res5DataReq = $res5DataReq -replace "`"", "\`""
-          $res5 = curl.exe https://localhost:8086/BridgeMethods/ManyCustomers -k -X POST -H "Content-Type: application/json" -d "{`"cust`": $res5DataReq}" -H "Authorization: Bearer $token"
-          $res5
-
-          taskkill /f /pid $process.id /t
-
-          echo "Verify requests"
-          
-          echo "GetAllCustomers Test"
-          $res1 = $res1 | convertfrom-json
-          if ($res1.ReturnValue -ne 0 -or $res1.errorMessage -ne "")
-          {
-            echo "Error occured with GetAllCustomers endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "GetCustomer Test"
-          $res2 = $res2 | convertfrom-json
-          if ($res2.ReturnValue -ne 0 -or $res2.errorMessage -ne "")
-          {
-            echo "Error occured with GetCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "ReturnCustomer Test"
-          $res3 = $res3 | convertfrom-json
-          if ($res3.ReturnValue -eq "" -or $res3.errorMessage -ne "")
-          {
-            echo "Error occured with ReturnCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "OneCustomer Test"
-          $res4 = $res4 | convertfrom-json
-          if ($res4.ReturnValue -ne "found" -or $res4.errorMessage -ne "")
-          {
-            echo "Error occured with OneCustomer endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
-
-          echo "ManyCustomers Test"
-          $res5 = $res5 | convertfrom-json
-          if ($res5.ReturnValue -ne "equal" -or $res5.errorMessage -ne "")
-          {
-            echo "Error occured with ManyCustomers endpoint"
-            exit -1
-          }
-          else
-          {
-            echo "Passed"
-          }
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbStructAuth $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
         workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
