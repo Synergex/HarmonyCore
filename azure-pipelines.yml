@@ -412,9 +412,21 @@ stages:
         cleanDestinationFolder: false
         overwriteExistingFiles: false
 
-    - download: current
-      displayName: "Download HCarchive"
-      artifact: 'HCarchive'
+    # - download: current
+    #   displayName: "Download HCarchive"
+    #   artifact: 'HCarchive'
+
+    # for testing purposes reuse already published sde artifacts
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        buildType: specific
+        project: HarmonyWebServices
+        definition: 31
+        pipelineId: 16359
+        runVersion: specific
+        allowPartiallySucceededBuilds: true
+        artifactName: 'HCarchive'
+        targetPath: '$(Pipeline.Workspace)/HCarchive'
 
     - task: CmdLine@2
       displayName: "Run harmonycore upgrade-latest"
@@ -556,6 +568,7 @@ stages:
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
       displayName: "Build the project Basic"
+      continueOnError: false
       inputs:
         command: 'build'
         projects: '$(Pipeline.Workspace)\$(project)'
@@ -573,6 +586,7 @@ stages:
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
+      continueOnError: false
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
@@ -616,6 +630,7 @@ stages:
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
+      continueOnError: false
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
