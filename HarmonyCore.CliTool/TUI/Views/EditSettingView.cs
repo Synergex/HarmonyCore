@@ -30,7 +30,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             {
                 X = 0,
                 Y = 1,
-                Text = oldValue.Prompt
+                Text = oldValue.Prompt + ":"
             };
 
             if (oldValue is IMultiItemSettingsBase)
@@ -59,29 +59,76 @@ namespace HarmonyCore.CliTool.TUI.Views
                 singleItemView.SetFocus();
                 _getResult = () => oldValue;
             }
-            else
+            else 
             {
                 var options = navigationObject.Context.ExtractValueOptionsFromProperty(oldValue);
                 bool allowsMultiSelection = navigationObject.Context.AllowMultiSelectionForProperty(oldValue.Source);
+
                 if (options.Count == 0)
                 {
-                    var tf = new TextView()
+                    if (navigationObject.Context.Name.Contains("interface") ||
+                    navigationObject.Context.Name.Contains("structure"))
                     {
-                        Text = oldValue.Value?.ToString() ?? "",
-                        X = 0,
-                        Y = 2,
-                        Width = Dim.Fill(),
-                        Height = Dim.Fill() - 3,
-                        ReadOnly = false,
-                        WordWrap = true,
-                        AllowsTab = true,
-                        AllowsReturn = true,
-                    };
-                    Add(lbl, tf);
-                    tf.SetFocus();
-                    _getResult = () => tf.Text.ToString();
+                        var helpText = "There are no " + navigationObject.Context.Name.Substring(5) + "s to add."; //Substring() removes "Pick " from start of string. 
+                        var hv = new TextView()
+                        {
+                            Text = helpText,
+                            X = 3,
+                            Y = 1,
+                            Width = Dim.Fill() - 4,
+                            Height = 3,
+                            ReadOnly = true,
+                            WordWrap = true,
+                            CanFocus = false,
+                            ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Gray, Color.Gray) }
+                        };
+                        Add(hv);
+                        ok.Enabled = false;
+                        hv.SetFocus();
+                        _getResult = () => hv.Text.ToString();
+                    }
+                    else
+                    {
+                        var tf = new TextView()
+                        {
+                            Text = oldValue.Value?.ToString() ?? "",
+                            X = 0,
+                            Y = 2,
+                            Width = Dim.Fill(),
+                            Height = Dim.Fill() - 3,
+                            ReadOnly = false,
+                            WordWrap = true,
+                            AllowsTab = true,
+                            AllowsReturn = true,
+                        };
+                        tf.KeyUp += (key) => //If a key is pressed
+                        {
+                            if (tf.Text.Length == 0)
+                            {
+                                ok.Enabled = false;
+                            }
+                            else
+                            {
+                                //If at least one character is typed in the text view
+                                for (int i = 0; i < tf.Text.Length; i++)
+                                    if (char.IsLetterOrDigit((char)tf.Text[i]))
+                                    {
+                                        ok.Enabled = true;
+                                        tf.SetFocus();
+                                        break;
+                                    }
+                                    else
+                                        ok.Enabled = false;
+                            }
+                        };
+                        Add(lbl, tf);
+                        tf.SetFocus();
+                        ok.Enabled = false;
+                        _getResult = () => tf.Text.ToString();
+                    }
                 }
                 else if (options.Count == 3 && oldValue.Source.PropertyType == typeof(Nullable<bool>))
+                //For three-way selection (check, diamond, dash)
                 {
                     lbl.GetCurrentWidth(out var labelWidth);
                     var tscb = new TriStateCheckBox()
@@ -95,73 +142,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                     tscb.SetFocus();
                     _getResult = () => navigationObject.Context.ExtractValueFromProperty(oldValue.Source, (object)tscb.Checked).ToString();
                 }
-                else if (options.Count < 6 && !allowsMultiSelection)
-                {
-                    var rg = new RadioGroup()
-                    {
-                        X = 0,
-                        Y = 2,
-                        Width = Dim.Fill(),
-                        Height = Dim.Fill() - 8, //leave room for the buttons and help text at the bottom
-                        RadioLabels = options.Select(obj => ustring.Make(obj.ToString())).ToArray(),
-                        SelectedItem = options.IndexOf(oldValue.Value),
-                    };
-                    var helpText = "Click an item to select it, or use arrow keys to move to an item," 
-                                 + "and press the spacebar to select it. Then click Ok or press Enter.";
-                    var helpTextView = new TextView() 
-                    {
-                        Text = helpText,
-                        X = 2,
-                        Y = 11,
-                        Width = Dim.Fill() - 4,
-                        Height = 3,
-                        ReadOnly = true,
-                        WordWrap = true,
-                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) }
-                    };
-                    Add(lbl, rg, helpTextView);
-                    ok.Enabled = false;
-                    helpTextView.CanFocus = false;
-                    rg.SetFocus();
-                    rg.SelectedItemChanged += item =>
-                    {
-                        //If a radio button is selected (e.g., with mouse click), enable the OK button.
-                        ok.Enabled = true;
-                    };
-                    rg.KeyPress += key =>
-                    {
-                        //If a key is pressed and a radio button is selected, enable OK.
-                        if (rg.SelectedItem >= 0)
-                        {
-                            ok.Enabled = true;
-                        }
-                    };
-                    _getResult = () => options[rg.SelectedItem].ToString();
-                }
-                else if (!allowsMultiSelection)
-                {
-                    var cf = new ComboBox()
-                    {
-                        X = 0,
-                        Y = 2,
-                        Width = Dim.Fill(),
-                        Height = Dim.Fill() - 1, //leave room for the buttons at the bottom
-                        Source = new ListWrapper(options)
-                    };
-                    cf.SelectedItem = options.IndexOf(oldValue.Value);
-                    cf.KeyPress += key =>
-                    {
-                        //if the user presses enter while focused on the combobox they want to accept that value
-                        //switch focus to the ok button
-                        if (key.KeyEvent.Key == Key.Enter)
-                            ok.SetFocus();
-                    };
-                    Add(lbl, cf);
-                    cf.SetFocus();
-                    cf.Expand();
-                    _getResult = () => cf.Text.ToString();
-                }
-                else
+                else if (allowsMultiSelection)
                 {
                     var delimiter = navigationObject.Context.MultiSelectionDelimiterForProperty(oldValue.Source);
                     var listSource = new ListWrapper(options);
@@ -176,7 +157,6 @@ namespace HarmonyCore.CliTool.TUI.Views
                                 listSource.SetMark(foundIndex, true);
                         }
                     }
-
                     var lv = new ListView(listSource)
                     {
                         X = 0,
@@ -199,6 +179,116 @@ namespace HarmonyCore.CliTool.TUI.Views
                                 result.Add(options[i].ToString());
                             }
                         }
+                        return string.Join(delimiter, result);
+                    };
+                }
+                else
+                {
+                    ok.Clicked -= OkPressed; //Handler removed but later re-added when an item is marked
+                    var delimiter = navigationObject.Context.MultiSelectionDelimiterForProperty(oldValue.Source);
+                    var lv = new ListView()
+                    {
+                        X = 8,
+                        Y = 3,
+                        Width = Dim.Fill() - 6,
+                        Height = Dim.Fill() - 2,
+                        AllowsMarking = true,
+                        AllowsMultipleSelection = true,
+                        Source = new ListWrapper(options)
+                    };
+                    var searchLabel = new Label()
+                    {
+                        X = 2,
+                        Y = 4,
+                        Text = "Search/filter:"
+                    };
+                    var searchField = new TextField()
+                    {
+                        X = 17,
+                        Y = 4,
+                        Width = 10,
+                    };
+                    var helpText = "Select (check) items by clicking or pressing the " +
+                                    "spacebar when an item is highlighted.";
+                    var helpTextView = new TextView()
+                    {
+                        Text = helpText,
+                        X = 2,
+                        Y = 1,
+                        Width = Dim.Fill() - 4,
+                        Height = 3,
+                        ReadOnly = true,
+                        WordWrap = true,
+                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) }
+                    };
+                    ok.Enter += (e) =>
+                    //When ok view gets focus...
+                    {
+                        ok.Clicked -= OkPressed;
+                        //If anything in the list is selected
+                        for (int i = 0; i < lv.Source.Count; i++)
+                            if (lv.Source.IsMarked(i))
+                            {
+                                ok.Clicked += OkPressed;
+                                ok.SetFocus();
+                                break;
+                            }
+                    };
+                    lv.KeyPress += (key) =>
+                    {
+                        ok.Clicked -= OkPressed;
+                        //If anything in the list is selected...
+                        for (int i = 0; i < lv.Source.Count; i++)
+                            if (lv.Source.IsMarked(i))
+                            {
+                                ok.Enabled = true;
+                                ok.Clicked += OkPressed;
+                                break;
+                            }
+                    };
+                    searchField.Enter += (e) =>
+                    //When search field gets focus...
+                    {
+                        searchField.ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.Black, Color.Gray) };
+                    };
+                    searchField.TextChanged += (e) =>
+                    //When text changes in search field, filter list
+                    {
+                        var searchString = searchField.Text.ToString().ToLower();
+                        IListDataSource originalSource = new ListWrapper(options);
+                        var lvItems = originalSource.ToList();
+                        var newItems = lvItems
+                            .Cast<object>()
+                            .Select(item => item.ToString())
+                            .Where(item => searchString == "" || item.ToLower().Contains(searchString))
+                            .ToList();
+                        lv.Source = new ListWrapper(newItems);
+                        lv.SelectedItem = 0;
+                    };
+                    if (options.Count > 6)
+                    {
+                        lbl.Y = 6;
+                        lv.Y = 6;
+                        Add(lbl, searchLabel, searchField, lv, helpTextView);
+                    }
+                    else
+                    {
+                        lbl.Y = 4;
+                        lv.Y = 4;
+                        Add(lbl, lv, helpTextView);
+                    }
+                    lbl.X = 2;
+                    ok.Enabled = true;
+                    lv.SetFocus();
+
+                    _getResult = () =>
+                    {
+                        //Get all marked items and join with delimiter
+                        var result = new List<string>();
+                        //If anything in the list is selected...
+                        for (int i = 0; i < lv.Source.Count; i++)
+                            if (lv.Source.IsMarked(i))
+                                result.Add(lv.Source.ToList()[i].ToString());
                         return string.Join(delimiter, result);
                     };
                 }

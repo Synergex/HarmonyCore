@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Terminal.Gui;
+using static HarmonyCore.CliTool.TUI.Helpers.ProcessAsyncHelper;
 
 namespace HarmonyCore.CliTool.TUI.Views
 {
@@ -41,24 +43,25 @@ namespace HarmonyCore.CliTool.TUI.Views
                 _currentItemFrame = new FrameView($"No {_settings.Name.ToLower()} are available.");
                 if (_settings.Name.ToLower() == "interfaces")
                 {
-                    var helpText = "To import xfServerPlus interfaces for traditional Synergy routines, "
-                                 + "the solution must have a TraditionalBridge project, "
-                                 + "xfServerPlus importing must be enabled, and "
-                                 + "a Synergy method catalog (SMC) must be selected. "
-                                 + "See the Features menu for options to set this up.";
+                    var helpText = "Before you can add interfaces for traditional Synergy routines, "
+                                 + "your solution must have a Traditional Bridge "
+                                 + "implementation, and xfServerPlus migration must be enabled. "
+                                 + "For options to set up these features, see the Features menu.";
                     var helpTextView = new TextView()
                     {
                         Text = helpText,
-                        X = 1,
+                        X = 3,
                         Y = 1,
-                        Width = Dim.Fill() - 4,
-                        Height = 5,
+                        Width = Dim.Fill() - 3,
+                        Height = 6,
                         ReadOnly = true,
                         WordWrap = true,
-                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.BrightYellow, Color.Black) }
+                        CanFocus = false,
+                        //ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.BrightYellow, Color.Black) }
+                        ColorScheme = new ColorScheme() { Focus = Terminal.Gui.Attribute.Make(Color.BrightGreen, Color.Black) }
+
                     };
                     _currentItemFrame.Add(helpTextView);
-                    helpTextView.CanFocus = false;
                     _currentItemFrame.SetFocus();
                 }
 
@@ -205,6 +208,13 @@ namespace HarmonyCore.CliTool.TUI.Views
             }
         }
 
+        public class PropertyItemSetting : IPropertyItemSetting 
+        {
+            public string Prompt { get; set; }
+            public PropertyInfo Source { get; set; }
+            public object Value { get; set; }
+        }
+
         private async void OnAddThing()
         {
             //show structure/interface picker
@@ -212,8 +222,15 @@ namespace HarmonyCore.CliTool.TUI.Views
             if(picker.Success)
             {
                 //need to run a wizard after selecting the structure or possible as part of selecting the structure
-                //must at the least populate the enabled generators. Would like to multi select structures.
-                _settings.AddItem(picker.Result);
+                //must at the least populate the enabled generators. 
+                var pickerResultAsString = picker.Result.Value.ToString();
+                string[] elements = pickerResultAsString.Split(',');
+                foreach (string element in elements)
+                {
+                    PropertyItemSetting elementAsPropItemSetting = new PropertyItemSetting() ;
+                    elementAsPropItemSetting.Value = element;
+                    _settings.AddItem(elementAsPropItemSetting);
+                }
                 _structureListView.SetSource(_settings.Items.Select(itm => itm.Name).ToList());
                 if (_statusBar.Items.Length < 2)
                     _statusBar.AddItemAt(1, new StatusItem(Key.CtrlMask | Key.R, "~^R~ Remove selected " + _settings.Name.ToLower().Substring(0, _settings.Name.Length - 1), OnRemoveThing));
