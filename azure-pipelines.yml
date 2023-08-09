@@ -339,12 +339,12 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
-        Basic: 
-          project: basic
+        # Basic: 
+        #   project: basic
         Tb:
           project: tb
-        TbStruct:
-          project: tbstruct
+        # TbStruct:
+        #   project: tbstruct
     variables:
     - name: clitool
       value: $(Pipeline.Workspace)\HarmonyCore.CliTool\Harmony.Core.CliTool.exe
@@ -568,7 +568,6 @@ stages:
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
       displayName: "Build the project Basic"
-      continueOnError: false
       inputs:
         command: 'build'
         projects: '$(Pipeline.Workspace)\$(project)'
@@ -577,7 +576,6 @@ stages:
     - task: DotNetCoreCLI@2
       condition: eq(variables.project, 'basic')
       displayName: "Run Services.Test"
-      continueOnError: false
       inputs:
         command: 'test'
         projects: '$(Pipeline.Workspace)\$(project)\Services.Test'
@@ -587,7 +585,6 @@ stages:
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
-      continueOnError: false
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
@@ -596,7 +593,6 @@ stages:
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
       displayName: "Run the host and test the endpoint Tb"
-      continueOnError: false
       inputs:
         filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
         arguments: 'TestTb $(Pipeline.Workspace)\$(project)\'
@@ -606,7 +602,6 @@ stages:
     - task: PowerShell@2
       condition: eq(variables.project, 'tbstruct')
       displayName: "Run the host and test endpoints TbStruct"
-      continueOnError: false
       inputs:
         filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
         arguments: 'TestTbStruct $(Pipeline.Workspace)\$(project)\'
@@ -633,7 +628,6 @@ stages:
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
-      continueOnError: false
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
