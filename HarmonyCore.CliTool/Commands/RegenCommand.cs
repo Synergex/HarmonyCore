@@ -94,7 +94,7 @@ namespace HarmonyCore.CliTool.Commands
                 }
                 //Traditional bridge is configured to output in 'source' folder, bad bat read
                 //test gen not enabled, looks like its missing from regen.bat
-                foreach (var updatedFile in AddedFiles)
+                foreach (var updatedFile in AddedFiles.ToList())
                 {
                     var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
 
