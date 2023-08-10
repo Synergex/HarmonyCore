@@ -75,57 +75,57 @@ namespace HarmonyCore.CliTool.Commands
                 {
                     CallerLogger(error);
                 }
+            }
 
-                var sourceFileLookup = new Dictionary<string, HashSet<string>>();
-                foreach(var project in _solutionInfo.Projects)
+            var sourceFileLookup = new Dictionary<string, HashSet<string>>();
+            foreach(var project in _solutionInfo.Projects)
+            {
+                sourceFileLookup.Add(project.FileName, new HashSet<string>(project.SourceFiles, StringComparer.OrdinalIgnoreCase));
+            }
+
+            //var modifiedButNotAdded = new Dictionary<string, HashSet<string>>();
+            var modifiedOrAdded = new HashSet<string>(UpdatedFiles.Concat(AddedFiles));
+
+            foreach(var updatedFile in UpdatedFiles)
+            {
+                var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
+
+                if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
+                    AddOrInsert(syncAddedFiles, closestProject, updatedFile);
+            }
+            //Traditional bridge is configured to output in 'source' folder, bad bat read
+            //test gen not enabled, looks like its missing from regen.bat
+            foreach (var updatedFile in AddedFiles)
+            {
+                var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
+
+                if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
+                    AddOrInsert(syncAddedFiles, closestProject, updatedFile);
+            }
+
+            foreach(var file in Directory.GetFiles(_solutionInfo.SolutionDir, "*.dbl", SearchOption.AllDirectories))
+            {
+                var closestProject = FindClosestProject(sourceFileLookup, file);
+                if (closestProject != null && !modifiedOrAdded.Contains(file) && IsGeneratedFile(closestProject, file))
+                    AddOrInsert(syncRemovedFiles, closestProject, file);
+            }
+
+            if (syncAddedFiles.Any())
+            {
+                CallerLogger("*** Files that need to be added to projects ***");
+                foreach(var kvp in syncAddedFiles)
                 {
-                    sourceFileLookup.Add(project.FileName, new HashSet<string>(project.SourceFiles, StringComparer.OrdinalIgnoreCase));
+                    foreach (var file in kvp.Value)
+                        CallerLogger(file);
                 }
-
-                //var modifiedButNotAdded = new Dictionary<string, HashSet<string>>();
-                var modifiedOrAdded = new HashSet<string>(UpdatedFiles.Concat(AddedFiles));
-
-                foreach(var updatedFile in UpdatedFiles)
+            }
+            if (syncRemovedFiles.Any())
+            {
+                CallerLogger("*** Files that look like they need to be deleted/removed from projects ***");
+                foreach (var kvp in syncRemovedFiles)
                 {
-                    var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
-
-                    if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
-                        AddOrInsert(syncAddedFiles, closestProject, updatedFile);
-                }
-                //Traditional bridge is configured to output in 'source' folder, bad bat read
-                //test gen not enabled, looks like its missing from regen.bat
-                foreach (var updatedFile in AddedFiles.ToList())
-                {
-                    var closestProject = FindClosestProject(sourceFileLookup, updatedFile);
-
-                    if (closestProject != null && !sourceFileLookup[closestProject].Contains(updatedFile))
-                        AddOrInsert(syncAddedFiles, closestProject, updatedFile);
-                }
-
-                foreach(var file in Directory.GetFiles(_solutionInfo.SolutionDir, "*.dbl", SearchOption.AllDirectories))
-                {
-                    var closestProject = FindClosestProject(sourceFileLookup, file);
-                    if (closestProject != null && !modifiedOrAdded.Contains(file) && IsGeneratedFile(closestProject, file))
-                        AddOrInsert(syncRemovedFiles, closestProject, file);
-                }
-
-                if (syncAddedFiles.Any())
-                {
-                    CallerLogger("*** Files that need to be added to projects ***");
-                    foreach(var kvp in syncAddedFiles)
-                    {
-                        foreach (var file in kvp.Value)
-                            CallerLogger(file);
-                    }
-                }
-                if (syncRemovedFiles.Any())
-                {
-                    CallerLogger("*** Files that look like they need to be deleted/removed from projects ***");
-                    foreach (var kvp in syncRemovedFiles)
-                    {
-                        foreach (var file in kvp.Value)
-                            CallerLogger(file);
-                    }
+                    foreach (var file in kvp.Value)
+                        CallerLogger(file);
                 }
             }
             return 0;
