@@ -6,11 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
-
 using System.Threading;
 using CodeGen.Engine;
 using HarmonyCore.CliTool.Commands;
-using HarmonyCore.CliTool.TUI.Helpers;
 using HarmonyCore.CliTool.TUI.Models;
 using HarmonyCore.CliTool.TUI.ViewModels;
 using HarmonyCoreGenerator.Model;
