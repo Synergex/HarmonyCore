@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using HarmonyCore.CliTool.TUI.Helpers;
 
 namespace HarmonyCore.CliTool
 {
@@ -31,6 +32,8 @@ namespace HarmonyCore.CliTool
         public string OverrideTemplateUrl { get; set; }
         [Option('v', "template-version")]
         public string OverrideTemplateVersion { get; set; }
+        [Option('z', "zip-path")]
+        public string CurrentTemplates { get; set; }
     }
     [Verb("rps")]
     class RpsOptions
@@ -153,6 +156,8 @@ Known structure properties:
         public bool OData { get; set; }
         [Option("ef", SetName = "rps")]
         public bool Ef { get; set; }
+        [Option("tb", SetName = "rps")]
+        public bool Tb { get; set; }
         [Option("custom", SetName = "rps")]
         public bool Custom { get; set; }
         [Option('i', Required = true, Separator = ' ')]
@@ -170,6 +175,22 @@ Known structure properties:
 
         [Option('i', Required = true, Separator = ' ')]
         public IEnumerable<string> Items { get; set; }
+    }
+
+    [Verb("features")]
+    class FeaturesOptions
+    {
+        [Option("add-tb", HelpText = "Add support for running traditional Synergy code")]
+        public bool TraditionalBridge { get; set; }
+
+        [Option("smc", HelpText = "Provide path to SMC file to enable xfServerPlus")]
+        public string EnableSMCImport { get; set; }
+
+        [Option("add-unit-tests", HelpText = "Add support for running unit tests")]
+        public bool AddUnitTests { get; set; }
+
+        [Option("collect-test-data", HelpText = "Collect test data for your Unit Tests")]
+        public bool CollectTestData { get; set; }
     }
 
     public class VersionTargetingInfo
@@ -264,7 +285,7 @@ Known structure properties:
         public static string AppFolder;
         public static Dictionary<string, string> AppSettings = new Dictionary<string, string>();
 
-        static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
+        public static async Task<SolutionInfo> LoadSolutionInfo(Action<string> logger)
         {
             var rawSolDir = Environment.GetEnvironmentVariable("SolutionDir");
             var solutionDir = string.IsNullOrEmpty(rawSolDir) ? string.Empty : Environment.ExpandEnvironmentVariables(rawSolDir);
@@ -383,12 +404,13 @@ Known structure properties:
         private static int ProcessCommandArgs(string[] args)
         {
             var defaultLoader = () => LoadSolutionInfo((str) => Console.WriteLine(str));
-            return Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions>(args)
+            return Parser.Default.ParseArguments<UpgradeLatestOptions, CodegenListOptions, CodegenAddOptions, CodegenRemoveOptions, RpsOptions, RegenOptions, XMLGenOptions, GUIOptions, ReloadBatOptions, FeaturesOptions>(args)
                         .MapResult(
 
                           (UpgradeLatestOptions opts) =>
                           {
                               Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
+                              var zipPath = opts.CurrentTemplates;
 
 
                               Console.WriteLine("Type YES to proceed: ");
@@ -399,11 +421,12 @@ Known structure properties:
                               }
 
                               Console.WriteLine("Checking for current version info");
-                              var versionInfo = LoadVersionInfoSync(true);
+                              var versionInfo = zipPath != null ? LoadVersionInfoSync(false) : LoadVersionInfoSync(true);
+                              
                               if (opts.ProjectOnly)
                                   UpgradeProjects(defaultLoader().Result, versionInfo);
                               else
-                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl).Wait();
+                                  UpgradeLatest(defaultLoader().Result, versionInfo, opts.OverrideTemplateVersion, opts.OverrideTemplateUrl, null, zipPath).Wait();
                               return 0;
                           },
                           (Func<CodegenListOptions, int>)new CodegenCommand(defaultLoader).List,
@@ -413,6 +436,7 @@ Known structure properties:
                           (Func<RegenOptions, int>)new RegenCommand(defaultLoader).Run,
                           (Func<XMLGenOptions, int>)new XMLGenCommand().Run,
                           (Func<GUIOptions, int>)new GUICommand(LoadSolutionInfo).Run,
+                          (Func<FeaturesOptions, int>)new FeaturesCommand(defaultLoader).Run,
                           (ReloadBatOptions opts) =>
                           {
                               ReloadBatFile(defaultLoader);
@@ -449,7 +473,7 @@ Known structure properties:
             }).Result;
         }
 
-        static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
+        public static void UpgradeProjects(SolutionInfo solution, VersionTargetingInfo versionInfo)
         {
             foreach (var project in solution.Projects)
             {
@@ -459,7 +483,7 @@ Known structure properties:
             }
         }
 
-        static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion)
+        public static async Task UpgradeLatest(SolutionInfo solution, VersionTargetingInfo versionInfo, string overrideTemplateUrl, string overrideTemplateVersion, GenerationEvents? events, string zipPath)
         {
             //download templates and traditional bridge source
             //replace templates and traditional bridge source
@@ -479,19 +503,35 @@ Known structure properties:
             var distinctTemplateFolders = templateFiles.Select(fileName => Path.GetDirectoryName(fileName)).Distinct().OrderBy(folder => folder.Length).ToList();
             if (distinctTemplateFolders.Count > 0)
             {
-                Console.WriteLine("Updating template files in {0}", distinctTemplateFolders.First());
+
+                string msg = string.Format("Updating template files in {0}", distinctTemplateFolders.First());
+                events?.StatusUpdate?.Invoke(msg);
+                if (events?.StatusUpdate == null)
+                {
+                    Console.WriteLine(msg);
+                }
                 foreach (var distinctFolder in distinctTemplateFolders.Skip(1))
                 {
-                    Console.WriteLine("Found template files in {0}", distinctFolder);
+                    msg = string.Format("Found template files in {0}", distinctFolder);
+                    events?.Message(msg);
+                    if (events?.Message == null)
+                    {
+                        Console.WriteLine(msg);
+                    }
                 }
             }
 
             if (hasTraditionalBridge)
             {
-                Console.WriteLine("Updating traditional bridge files in {0}", traditionalBridgeFolder);
+                string msg = string.Format("Updating traditional bridge files in {0}", traditionalBridgeFolder);
+                events?.Message(msg);
+                if (events?.Message == null)
+                {
+                    Console.WriteLine(msg);
+                }
             }
 
-            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl);
+            await GitHubRelease.GetAndUnpackLatest(hasTraditionalBridge, traditionalBridgeFolder, distinctTemplateFolders, solution, overrideTemplateVersion, overrideTemplateUrl, zipPath);
 
             UpgradeProjects(solution, versionInfo);
         }

@@ -10,8 +10,10 @@ using HarmonyCore.CliTool.Commands;
 using HarmonyCore.CliTool.TUI.Helpers;
 using HarmonyCore.CliTool.TUI.Models;
 using HarmonyCore.CliTool.TUI.ViewModels;
+using HarmonyCore.CliTool.TUI.Views;
 using HarmonyCoreGenerator.Model;
 using Microsoft.Build.Locator;
+using Microsoft.Build.Tasks;
 using Terminal.Gui;
 
 namespace HarmonyCore.CliTool.TUI.ViewModels
@@ -27,10 +29,12 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
         Dictionary<string, ISettingsBase> DynamicSettings { get; set; }
         public List<string> InactiveSettings { get; } = new List<string>();
         public List<ISettingsBase> ActiveSettings { get; } = new List<ISettingsBase>();
+        Func<Task<SolutionInfo>> solutionInfo;
 
         public MainViewModel(Func<Task<SolutionInfo>> contextLoader)
         {
             _loader = new Lazy<Task<SolutionInfo>>(contextLoader);
+            solutionInfo = contextLoader;
         }
 
         public async void EnsureSolutionLoad(Func<string> getFileName, Action<string> statusUpdate, Action<string> error, Action loaded)
@@ -90,13 +94,18 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
                         runPartsCompleted = 5;
                         runningTaskset = tsk;
                     };
-                    regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate($"Generating {tsk.Templates.FirstOrDefault()}",
-                        (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
-
-                    regenCommand.GenerationEvents.TaskComplete = tsk =>
+                    if (regenCommand.GenerationEvents.TaskStarted != null)
                     {
-                        runPartsCompleted++;
-                    };
+                        regenCommand.GenerationEvents.TaskStarted = tsk => progressUpdate($"Generating {tsk.Templates.FirstOrDefault()}",
+                        (1.0f / (runningTaskset.Tasks.Count + 5)) * runPartsCompleted);
+                    }
+                    if (regenCommand.GenerationEvents.TaskComplete != null)
+                    {
+                        regenCommand.GenerationEvents.TaskComplete = tsk =>
+                        {
+                            runPartsCompleted++;
+                        };
+                    }
 
                     regenCommand.CancelToken = cancelToken;
                     Dictionary<string, HashSet<string>> syncAddedFiles = new Dictionary<string, HashSet<string>>();
@@ -217,15 +226,11 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddTraditionalBridge(GenerationEvents events)
         {
+            var commonCommands = new CommonCommands(events);
             try
             {
-                await DotnetTool.AddTemplateToSolution("harmonycore-tb",
-                Path.Combine(_context.SolutionDir, "TraditionalBridge"), _context.SolutionPath, events.Message);
-                events.Message("Instantiated and added Traditional Bridge project to solution");
-                _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge() { EnableSampleDispatchers = true };
+                await commonCommands.AddTraditionalBridge(_context);    
                 Save();
-                events.Message("Saved initial feature settings to Harmony Core configuration file");
-                events.Message("Completed");
                 _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
                 OnSmcAdded();
             }
@@ -266,23 +271,12 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddSmc(GenerationEvents events)
         {
+            var commonCommands = new CommonCommands(events);
             try
             {
                 var smcPath = GetSmcPath(events);
-
-                if (_context.CodeGenSolution.TraditionalBridge == null)
-                    _context.CodeGenSolution.TraditionalBridge = new TraditionalBridge();
-
-                _context.CodeGenSolution.TraditionalBridge.EnableXFServerPlusMigration = true;
-                _context.CodeGenSolution.TraditionalBridge.XFServerSMCPath = smcPath;
-                if (Directory.Exists(Path.Combine(_context.SolutionDir, "TraditionalBridge", "Source")))
-                    _context.CodeGenSolution.TraditionalBridge.GenerateIntoSourceFolder = true;
-
-                events.Message("\nSetting up SMC import (enabling import and saving SMC path)...");
+                await commonCommands.AddSmc(_context, smcPath);
                 _context.SaveSolution();
-                events.Message("SMC setup completed.\n\nSCM path (relative to SolutionDir):");
-                events.Message(smcPath);
-
                 _traditionalBridgeSettings.LoadTraditionalBridgeSettings(_context);
                 OnSmcAdded();
             }
@@ -320,70 +314,31 @@ namespace HarmonyCore.CliTool.TUI.ViewModels
 
         async Task AddUnitTests(GenerationEvents events)
         {
-            try
+            // ask user before taking any action
+            var cts = new CancellationTokenSource();
+            var dialog = new ConfirmationDialog(cts);
+            Application.Run(dialog);
+            if (cts.IsCancellationRequested == false)
             {
-                events?.StatusUpdate.Invoke("Adding unit test project template");
-                if (!await DotnetTool.AddTemplateToSolution("harmonycore-ut",
-                        Path.Combine(_context.SolutionDir, "Services.Test"), _context.SolutionPath, events.Message))
+                var commonCommands = new CommonCommands(events);
+                try
                 {
-                    events.Message("Template creation failed for Services.Test");
-                    return;
+                    await commonCommands.LoadTestProjects(_context);
+                    Save();
+                    await commonCommands.RunRegen(_context);
+                    await commonCommands.RunUpgradeLatest();
+                    await commonCommands.CollectTestData(_context);
                 }
-
-                events?.StatusUpdate.Invoke("Adding unit test value generator template");
-                if (!await DotnetTool.AddTemplateToSolution("harmonycore-utg",
-                        Path.Combine(_context.SolutionDir, "Services.Test.GenerateValues"), _context.SolutionPath,
-                        events.Message))
+                finally
                 {
-                    events.Message("Template creation failed for Services.Test.GenerateValues");
-                    return;
+                    events.OnLoaded();
                 }
-
-                events?.StatusUpdate.Invoke("Loading new projects");
-                var utProj = _context.LoadProject(Path.Combine(_context.SolutionDir, "Services.Test",
-                    "Services.Test.synproj"));
-                var gvProj = _context.LoadProject(Path.Combine(_context.SolutionDir, "Services.Test.GenerateValues",
-                    "Services.Test.GenerateValues.synproj"));
-                _context.Projects.Add(utProj);
-                _context.Projects.Add(gvProj);
-
-                _context.CodeGenSolution.GenerateUnitTests = true;
-                _context.CodeGenSolution.UnitTestProject = "Services.Test";
-                _context.CodeGenSolution.UnitTestFolder = "Services.Test";
-                _context.CodeGenSolution.UnitTestsBaseNamespace = "Services.Test";
-                _context.CodeGenSolution.UnitTestsNamespace = "Services.Test.UnitTests";
-
-                Save();
-
-                //regen sets loaded status in the events but it will fire too soon so make it, its own event set
-                var regenEvents = new GenerationEvents(events, null);
-                Regen(regenEvents.ProgressUpdate, regenEvents.StatusUpdate, regenEvents.Message, regenEvents.OnLoaded, (proj, addedFiles) =>
-                {
-                    events?.StatusUpdate.Invoke("Adding new files");
-                    if (proj.EndsWith("Services.Test.synproj", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        utProj.AddRemoveFiles(addedFiles, Enumerable.Empty<string>());
-                        utProj.MSBuildProject.Save();
-                    }
-                    else if (proj.EndsWith("Services.Test.GenerateValues.synproj", StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        gvProj.AddRemoveFiles(addedFiles, Enumerable.Empty<string>());
-                        gvProj.MSBuildProject.Save();
-                    }
-                }, (proj, remvedFiles) => { }, regenEvents.CancelToken);
-
-                //Add Generated files to Services.Test and Services.Test.GenerateValues
-
-                await regenEvents.LoadedAsync;
-
-                await CollectTestData(events);
             }
-            finally
+            else
             {
-                events.OnLoaded();
+                events.OnLoaded();  
+                events.Message("\nOperation canceled.");
             }
-            //RunRegen
-            //CollectTestData
         }
 
         public List<ValueTuple<string, string, Func<GenerationEvents, Task>>> GetFeatureItems()

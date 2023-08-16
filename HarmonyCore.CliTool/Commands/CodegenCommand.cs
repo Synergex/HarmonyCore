@@ -32,7 +32,7 @@ namespace HarmonyCore.CliTool.Commands
                 _extendedStructureLookup = _solutionInfo.CodeGenSolution.ExtendedStructures.ToDictionary(strc => strc.Name, StringComparer.OrdinalIgnoreCase);
 
             if (_interfaceLookup == null)
-                _interfaceLookup = _solutionInfo.CodeGenSolution.TraditionalBridge.Smc.Interfaces.ToDictionary(iface => iface.Name, StringComparer.OrdinalIgnoreCase);
+                _interfaceLookup = _solutionInfo.CodeGenSolution.TraditionalBridge?.Smc?.Interfaces?.ToDictionary(iface => iface.Name, StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, SmcInterface>();
 
             if (_extendedInterfaceLookup == null)
                 _extendedInterfaceLookup = _solutionInfo.CodeGenSolution.ExtendedInterfaces.ToDictionary(iface => iface.Name, StringComparer.OrdinalIgnoreCase);
@@ -95,9 +95,12 @@ namespace HarmonyCore.CliTool.Commands
                     }
                     else
                     {
-                        structEx.Aliases.Add(alias);
-                    }
-
+                        if (alias != null)
+                        {
+                            structEx.Aliases.Add(alias);
+                        }
+                    }   
+                    
                     if (structEx.EnabledGenerators == null)
                         structEx.EnabledGenerators = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -123,6 +126,12 @@ namespace HarmonyCore.CliTool.Commands
                             structEx.EnabledGenerators.Add(nameof(ModelGenerator));
                         if (!structEx.EnabledGenerators.Contains(nameof(EFCoreGenerator)))
                             structEx.EnabledGenerators.Add(nameof(EFCoreGenerator));
+                    }
+                    
+                    if (opts.Tb)
+                    {
+                        if (!structEx.EnabledGenerators.Contains(nameof(TraditionalBridgeGenerator)))
+                            structEx.EnabledGenerators.Add(nameof(TraditionalBridgeGenerator));
                     }
                 }
             }

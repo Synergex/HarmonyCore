@@ -32,7 +32,7 @@ namespace HarmonyCore.CliTool
                 await httpStream.CopyToAsync(writer);
                 writer.Close();
             }
-            
+
             sourceDistStream = File.OpenRead(targetFile);
             try
             {
@@ -100,18 +100,40 @@ namespace HarmonyCore.CliTool
         }
 
         public static async Task GetAndUnpackLatest(bool hasTraditionalBridge, string traditionalBridgeFolder, List<string> distinctTemplateFolders, SolutionInfo solution,
-            string overrideVersionName = null, string overrideTargetUrl = null)
+            string overrideVersionName = null, string overrideTargetUrl = null, string zipPath = null)
         {
-            var (zip, CurrentVersionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+            var (zip, CurrentVersionTag) = new ValueTuple<ZipArchive, string>();
+            if (zipPath != null)
+            {
+                try
+                {
+                    var sourceDistStream = File.OpenRead(zipPath);
+                    zip = new ZipArchive(sourceDistStream, ZipArchiveMode.Read);
+                    CurrentVersionTag = "";
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            else
+            {
+                (zip, CurrentVersionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+            }
             using (zip)
             {
                 foreach (var entry in zip.Entries)
                 {
-                    if (entry.CompressedLength > 0 && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/Templates/"))
+                    var rootFolderName = "HarmonyCore-" + CurrentVersionTag + "/";
+                    if (zipPath != null)
+                    {
+                        rootFolderName = "";
+                    }
+                    if (entry.CompressedLength > 0 && entry.FullName.StartsWith($"{rootFolderName}Templates/"))
                     {
                         if (distinctTemplateFolders.Count > 0)
                         {
-                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}/Templates/", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"));
+                            var targetFileName = Path.Combine(distinctTemplateFolders.First(), entry.FullName.Replace($"{rootFolderName}Templates/", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"));
 
                             if (targetFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
                                 continue;
@@ -129,9 +151,18 @@ namespace HarmonyCore.CliTool
                             }
                         }
                     }
-                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"HarmonyCore-{CurrentVersionTag}/TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
+                    else if (entry.CompressedLength > 0 && hasTraditionalBridge && entry.FullName.StartsWith($"{rootFolderName}TraditionalBridge/") && entry.FullName.EndsWith(".dbl"))
                     {
-                        var targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"HarmonyCore-{CurrentVersionTag}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\")));
+                        var targetFileName = "";
+                        if (zipPath != null)
+                        {
+                            targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName));
+                        }
+                        else
+                        {
+                            targetFileName = Path.Combine(traditionalBridgeFolder, Path.GetFileName(entry.FullName.Replace($"{rootFolderName}", "", StringComparison.CurrentCultureIgnoreCase).Replace("/", "\\").Replace("\\\\", "\\"))); ;
+                        }
+
                         if (File.Exists(targetFileName))
                             File.Delete(targetFileName);
 
@@ -143,7 +174,7 @@ namespace HarmonyCore.CliTool
                             }
                         }
                     }
-                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/regen.bat")
+                    else if (entry.CompressedLength > 0 && entry.FullName == $"{rootFolderName}regen.bat")
                     {
                         var targetFileName = Path.Combine(solution.SolutionDir, "regen.bat.example");
                         if (File.Exists(targetFileName))
@@ -158,7 +189,7 @@ namespace HarmonyCore.CliTool
                         }
                     }
 
-                    else if (entry.CompressedLength > 0 && entry.FullName == $"HarmonyCore-{CurrentVersionTag}/UserDefinedTokens.tkn")
+                    else if (entry.CompressedLength > 0 && entry.FullName == $"{rootFolderName}UserDefinedTokens.tkn")
                     {
                         var targetFileName = Path.Combine(solution.SolutionDir, "UserDefinedTokens.tkn.example");
                         if (File.Exists(targetFileName))

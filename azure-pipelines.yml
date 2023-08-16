@@ -4,6 +4,13 @@
 # https://aka.ms/yaml
 name: 6.0.$(Rev:r)
 
+resources: 
+  repositories:
+  - repository: HarmonyCoreSamples
+    type: github
+    endpoint: Synergex
+    name: Synergex/HarmonyCoreSamples
+
 parameters:
   - name: PublishProjects
     type: object
@@ -48,6 +55,26 @@ stages:
       submodules: true
       fetchDepth: 1
       fetchTags: false
+    - task: ArchiveFiles@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: "Archive sources"
+      inputs:
+        rootFolderOrFile: '$(Build.SourcesDirectory)'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/net6-release.zip'
+        replaceExistingArchive: true
+    - task: PublishPipelineArtifact@1
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: "Publish HCarchive"
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'HCarchive'
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 7.0.x'
       inputs:
@@ -84,6 +111,32 @@ stages:
         configuration: $(Configuration)
         logFileVerbosity: diagnostic
         clean: false
+
+    # publish cli tool
+    - task: DotNetCoreCLI@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Publish HarmonyCore.CliTool'
+      inputs:
+        command: publish
+        publishWebProjects: false
+        arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)'
+        verbosityPack: Diagnostic
+        zipAfterPublish: True
+        projects: |
+          HarmonyCore.CliTool
+
+    - task: PublishPipelineArtifact@1
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Publish HarmonyCore.CliTool as Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'HarmonyCore.CliTool'
+
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
 
     # publish test binaries
     - ${{ each project in parameters.PublishProjects }}:
@@ -195,80 +248,405 @@ stages:
          AgentPool: Default
          AgentName: moe64
     steps:
-      - checkout: none
+    - checkout: none
 
-      - task: UseDotNet@2
-        displayName: 'Get .NET SDK 6.0.x'
+    - task: UseDotNet@2
+      displayName: 'Get .NET SDK 6.0.x'
+      inputs:
+        packageType: 'sdk'
+        version: '6.0.x'
+
+    - download: current
+      displayName: "Download Artifacts"
+      artifact: 'TestArtifacts$(Configuration)$(Platform)'
+
+    # # for testing purposes reuse already published sde artifacts
+    # - task: DownloadPipelineArtifact@2
+    #   inputs:
+    #     buildType: specific
+    #     project: HarmonyWebServices
+    #     definition: 31
+    #     pipelineId: 15541
+    #     runVersion: specific
+    #     allowPartiallySucceededBuilds: true
+    #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+    #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
+
+    - task: Bash@3
+      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+      displayName: "Run setsde"
+      inputs:
+        targetType: 'inline'
+        script: |
+          . setsde
+          echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
+        workingDirectory: $(Agent.HomeDirectory)
+
+    # unzip each project and run test
+    - ${{ each project in parameters.PublishProjects }}:
+      - task: ExtractFiles@1
+        displayName: "Extract ${{ project }}"
         inputs:
-          packageType: 'sdk'
-          version: '6.0.x'
+          archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
+          destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
+          cleanDestinationFolder: false
+          overwriteExistingFiles: false
 
-      - download: current
-        displayName: "Download Artifacts"
-        artifact: 'TestArtifacts$(Configuration)$(Platform)'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run HarmonyCore.Test'
+      inputs:
+        command: 'test'
+        testRunTitle: "HarmonyCore.Test $(Platform)"
+        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
 
-      # # for testing purposes reuse already published sde artifacts
-      # - task: DownloadPipelineArtifact@2
-      #   inputs:
-      #     buildType: specific
-      #     project: HarmonyWebServices
-      #     definition: 31
-      #     pipelineId: 15541
-      #     runVersion: specific
-      #     allowPartiallySucceededBuilds: true
-      #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
-      #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Services.Test.CS'
+      inputs:
+        command: 'test'
+        testRunTitle: "Services.Test.CS $(Platform)"
+        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
 
-      - task: Bash@3
-        condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-        displayName: "Run setsde"
-        inputs:
-          targetType: 'inline'
-          script: |
-            . setsde
-            echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
-          workingDirectory: $(Agent.HomeDirectory)
+    - task: DotNetCoreCLI@2
+      displayName: 'Run Services.Test'
+      inputs:
+        command: 'test'
+        testRunTitle: "Services.Test $(Platform)"
+        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
 
-      # unzip each project and run test
-      - ${{ each project in parameters.PublishProjects }}:
-        - task: ExtractFiles@1
-          displayName: "Extract ${{ project }}"
-          inputs:
-            archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
-            destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
-            cleanDestinationFolder: false
-            overwriteExistingFiles: false
+    # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
+    - task: CopyFiles@2
+      condition: ne(variables['Platform'], 'linux64')
+      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+      inputs:
+        SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
+        Contents: '**'
+        TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
 
-      - task: DotNetCoreCLI@2
-        displayName: 'Run HarmonyCore.Test'
-        inputs:
-          command: 'test'
-          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
+    - task: DotNetCoreCLI@2
+      condition: ne(variables['Platform'], 'linux64')
+      displayName: 'Run TraditionalBridge.UnitTest'
+      inputs:
+        command: 'test'
+        testRunTitle: "TraditionalBridge.UnitTest $(Platform)"
+        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
 
-      - task: DotNetCoreCLI@2
-        displayName: 'Run Services.Test.CS'
-        inputs:
-          command: 'test'
-          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
+  - job: BuildHarmonyCoreProjects
+    dependsOn: BuildJob
+    workspace:
+      clean: all
+    pool:
+      name: Synergy-10-3-3Build
+    strategy:
+      maxParallel: 4
+      matrix:
+        Basic: 
+          project: basic
+        Tb:
+          project: tb
+        TbStruct:
+          project: tbstruct
+    variables:
+    - name: clitool
+      value: $(Pipeline.Workspace)\HarmonyCore.CliTool\Harmony.Core.CliTool.exe
+    - name: SolutionDir
+      value: $(Pipeline.Workspace)\$(project)\
+    steps:
+    - checkout: HarmonyCoreSamples
+      clean: true
 
-      - task: DotNetCoreCLI@2
-        displayName: 'Run Services.Test'
-        inputs:
-          command: 'test'
-          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+    - task: CopyFiles@2
+      condition: ne(variables.project, 'basic')
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\$(project)'
+        Contents: '**'
+        TargetFolder: '$(Pipeline.Workspace)\$(project)'
 
-      # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
-      - task: CopyFiles@2
-        condition: ne(variables['Platform'], 'linux64')
-        displayName: "Copy TraditionalBridge.UnitTest/TBTest"
-        inputs:
-          SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
-          Contents: '**'
-          TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
+    - task: CopyFiles@2
+      displayName: 'Copy powershell scripts'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\CICD'
+        Contents: '**'
+        TargetFolder: '$(Pipeline.Workspace)\CICD'
 
-      - task: DotNetCoreCLI@2
-        condition: ne(variables['Platform'], 'linux64')
-        displayName: 'Run TraditionalBridge.UnitTest'
-        inputs:
-          command: 'test'
-          arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
+    - task: UseDotNet@2
+      displayName: 'Get .NET SDK 7.0.x'
+      inputs:
+        packageType: 'sdk'
+        version: '7.0.x'
+  
+    - task: CmdLine@2
+      displayName: "Install Harmony Core templates"
+      inputs:
+        script: |
+          dotnet new install Harmony.Core.ProjectTemplates
+
+    - task: CmdLine@2
+      displayName: "Create new project from a template"
+      inputs:
+        script: |
+          dotnet new harmonycore -o $(project)
+        workingDirectory: '$(Pipeline.Workspace)'
+
+    # download clitools
+    - download: current
+      displayName: "Download Artifacts"
+      artifact: 'HarmonyCore.CliTool'
+
+    # # for testing purposes reuse already published sde artifacts
+    # - task: DownloadPipelineArtifact@2
+    #   inputs:
+    #     buildType: specific
+    #     project: HarmonyWebServices
+    #     definition: 31
+    #     pipelineId: 16359
+    #     runVersion: specific
+    #     allowPartiallySucceededBuilds: true
+    #     artifactName: 'HarmonyCore.CliTool'
+    #     targetPath: '$(Pipeline.Workspace)/HarmonyCore.CliTool'
+
+    - task: ExtractFiles@1
+      displayName: "Extract HarmonyCore.CliTool"
+      inputs:
+        archiveFilePatterns: '$(Pipeline.Workspace)/HarmonyCore.CliTool/*.zip'
+        destinationFolder: '$(Pipeline.Workspace)/HarmonyCore.CliTool'
+        cleanDestinationFolder: false
+        overwriteExistingFiles: false
+
+    - download: current
+      displayName: "Download HCarchive"
+      artifact: 'HCarchive'
+
+    # # for testing purposes reuse already published sde artifacts
+    # - task: DownloadPipelineArtifact@2
+    #   inputs:
+    #     buildType: specific
+    #     project: HarmonyWebServices
+    #     definition: 31
+    #     pipelineId: 16359
+    #     runVersion: specific
+    #     allowPartiallySucceededBuilds: true
+    #     artifactName: 'HCarchive'
+    #     targetPath: '$(Pipeline.Workspace)/HCarchive'
+
+    - task: CmdLine@2
+      displayName: "Run harmonycore upgrade-latest"
+      inputs:
+        script: |
+          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+      
+    - task: CmdLine@2
+      displayName: "Add Structures"
+      inputs:
+        script: |
+          ${{ variables.clitool }} codegen-add --structure --odata --ef -i CUSTOMERS ITEMS ORDERS ORDER_ITEMS VENDORS
+          ${{ variables.clitool }} regen -p
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add PK generator and StartupCustom to Services.synproj" 
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddServices $(Pipeline.Workspace)\$(project)\Services\Services.synproj'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add Traditional Bridge"
+      inputs:
+        script: |
+          ${{ variables.clitool }} features --add-tb
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update host.dbl" 
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateHost $(Pipeline.Workspace)\$(project)\TraditionalBridge\Source\host.dbl'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge\Source'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update platform for TB" 
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateTbPlatform $(Pipeline.Workspace)\$(project)\$(project).sln'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update output path for TB" 
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'UpdateTbOutput $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Enable SMC import and run upgrade-latest"
+      inputs:
+        script: |
+          %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
+          echo run upgrade-latest
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tb')
+      displayName: "Add methods to TraditionalBridge.synproj Tb" 
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddMethodsTb $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Add methods to TraditionalBridge.synproj TbStruct"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'AddMethodsTbStruct $(Pipeline.Workspace)\$(project)\TraditionalBridge\TraditionalBridge.synproj'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\TraditionalBridge'
+    
+    - task: CmdLine@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Add TraditionalBridgeGenerator to CUSTOMERS structure"
+      inputs:
+        script: |
+          %clitool% codegen-add --structure --tb -i CUSTOMERS
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Add BridgeMethods interface"
+      inputs:
+        script: |
+          %clitool% codegen-add --interface --webapi -i BridgeMethods
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Set ODATA CreateTestFiles option"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'SetCreateTestFiles $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'basic')
+      displayName: "Set ODATA Options"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'SetOdataBasic $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+   
+    - task: CmdLine@2
+      condition: eq(variables.project, 'basic')
+      displayName: "Add unit tests"
+      inputs:
+        script: |
+          echo YES| %clitool% features --add-unit-tests
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      displayName: "Run regen -p and upgrade-latest"
+      inputs:
+        script: |
+          %clitool% regen -p
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: DotNetCoreCLI@2
+      condition: eq(variables.project, 'basic')
+      displayName: "Build the project Basic"
+      inputs:
+        command: 'build'
+        projects: '$(Pipeline.Workspace)\$(project)'
+        arguments: '--configuration Release'
+
+    - task: DotNetCoreCLI@2
+      condition: eq(variables.project, 'basic')
+      displayName: "Run Services.Test"
+      inputs:
+        command: 'test'
+        projects: '$(Pipeline.Workspace)\$(project)\Services.Test'
+        testRunTitle: "Services.Test Basic Solution"
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: VSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Build the project Tb"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        configuration: 'Release'
+        restoreNugetPackages: true
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tb')
+      displayName: "Run the host and test the endpoint Tb"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTb $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Run the host and test endpoints TbStruct"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbStruct $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Update JSON to enable Authentication"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'EnableAuth $(Pipeline.Workspace)\$(project)\Harmony.Core.CodeGen.json'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      condition: ne(variables.project, 'basic')
+      displayName: "Run regen -p"
+      inputs:
+        script: |
+          %clitool% regen -p
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
+    - task: VSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Build the project Tb"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        configuration: 'Release'
+        restoreNugetPackages: true
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tb')
+      displayName: "Run the host and test the endpoint AUTH Tb"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbAuth $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
+
+    - task: PowerShell@2
+      condition: eq(variables.project, 'tbstruct')
+      displayName: "Run the host and test endpoints with AUTH TbStruct"
+      inputs:
+        filePath: '$(Pipeline.Workspace)\CICD\automationscripts.ps1'
+        arguments: 'TestTbStructAuth $(Pipeline.Workspace)\$(project)\'
+        failOnStderr: true
+        workingDirectory: '$(Pipeline.Workspace)\$(project)\Services.Host'
