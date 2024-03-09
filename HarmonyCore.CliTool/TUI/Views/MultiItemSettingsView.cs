@@ -33,14 +33,16 @@ namespace HarmonyCore.CliTool.TUI.Views
                 Height = Dim.Fill(),
             };
 
-            _leftFrame = new FrameView(settings.Name);
+            _leftFrame = new FrameView(settings.Name) {  Width = Dim.Percent(25), Height = Dim.Fill() };
             if (_settings.CanAddItems)
             {
-                _currentItemFrame = new FrameView($"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar");
+                _currentItemFrame = new FrameView($"To add {_settings.Name.ToLower()}, select \"Add {_settings.Name.ToLower()}\" in the status bar")
+                { Width = Dim.Percent(75), Height = Dim.Fill() };
             }
             else
             {
-                _currentItemFrame = new FrameView($"No {_settings.Name.ToLower()} are available.");
+                _currentItemFrame = new FrameView($"No {_settings.Name.ToLower()} are available.")
+                { Width = Dim.Percent(75), Height = Dim.Fill() };
                 if (_settings.Name.ToLower() == "interfaces")
                 {
                     var helpText = "Before you can add interfaces for traditional Synergy routines, "
@@ -109,6 +111,7 @@ namespace HarmonyCore.CliTool.TUI.Views
             };
 
             Add(_leftFrame, _currentItemFrame, _structureListScrollBarView);
+            SetNeedsDisplay();
         }
 
 
@@ -181,6 +184,11 @@ namespace HarmonyCore.CliTool.TUI.Views
 
         public void AttachStatusBar(StatusBar target)
         {
+            Application.Top.Resized += Top_Resized;
+            if (Application.Top.GetCurrentWidth(out var currentWidth) && 
+                Application.Top.GetCurrentHeight(out var currentHeight))
+                Top_Resized(new Size(currentWidth, currentHeight));
+
             _statusBar = target;
             if (_settings.CanAddItems)
             {
@@ -266,11 +274,13 @@ namespace HarmonyCore.CliTool.TUI.Views
                 while (_statusBar.Items.Length > 0)
                     _statusBar.RemoveItem(0);
             _statusBar = null;
+
+            Application.Top.Resized -= Top_Resized;
         }
 
-        public override void LayoutSubviews()
+        private void Top_Resized(Size obj)
         {
-            Application.Top.GetCurrentWidth(out var applicationWidth);
+            var applicationWidth = obj.Width;
             if (applicationWidth < 120)
             {
                 _currentItemFrame.X = 0;
@@ -295,8 +305,6 @@ namespace HarmonyCore.CliTool.TUI.Views
                 _leftFrame.X = 0;
                 _leftFrame.Y = 0;
             }
-
-            base.LayoutSubviews();
         }
 
         private void _structureListView_SelectedItemChanged(ListViewItemEventArgs obj)

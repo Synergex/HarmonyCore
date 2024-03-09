@@ -31,10 +31,22 @@ namespace HarmonyCore.CliTool.TUI.Views
             _dataSource.Columns.Add(_promptColumn);
             _dataSource.Columns.Add(_valueColumn);
 
-            var alignRight = new TableView.ColumnStyle()
+            _tableView = new TableView(_dataSource)
             {
-                AlignmentGetter = (obj) => TextAlignment.Right,
-                RepresentationGetter = (obj) =>
+                X = Pos.Center(),
+                Y = 0,
+                Width = Dim.Fill(),
+                Height = Dim.Fill()
+            };
+            _tableView.FullRowSelect = true;
+            _tableView.Style.ShowHorizontalHeaderOverline = false;
+            _tableView.Style.ShowHorizontalHeaderUnderline = false;
+            _tableView.Style.ShowVerticalHeaderLines = false;
+            _tableView.Style.ShowVerticalCellLines = false;
+
+            var alignRight = _tableView.Style.GetOrCreateColumnStyle(_promptColumn);
+            alignRight.AlignmentGetter = (obj) => TextAlignment.Right;
+            alignRight.RepresentationGetter = (obj) =>
                 {
                     if (!GetCurrentWidth(out var currentWidth))
                         currentWidth = 40;
@@ -42,8 +54,7 @@ namespace HarmonyCore.CliTool.TUI.Views
                         currentWidth = (int)(currentWidth * .30f);
 
                     return Pad(obj.ToString(), currentWidth, true) + Driver.VLine;
-                }
-            };
+                };
 
             string Pad(string value, int minChars, bool left)
             {
@@ -62,34 +73,25 @@ namespace HarmonyCore.CliTool.TUI.Views
 
             int maxPrompt = 0;
 
-            var singleItemSetting = new TableView.ColumnStyle()
-            {
-                RepresentationGetter = (obj) =>
+            var singleItemSetting = _tableView.Style.GetOrCreateColumnStyle(_valueColumn);
+            singleItemSetting.AlignmentGetter = (obj) => TextAlignment.Left;
+            singleItemSetting.RepresentationGetter = (obj) =>
                 {
                     var typedObj = obj as IPropertyItemSetting;
                     if (!GetCurrentWidth(out var currentWidth))
                         currentWidth = 40;
-                    else
+                    if(currentWidth <= 0)
+                        _tableView.GetCurrentWidth(out currentWidth);
+
+                    if(currentWidth > 0)
                         currentWidth = Math.Max(0, Math.Min(currentWidth - maxPrompt, currentWidth / 2) - 5);
+                    else
+                        currentWidth = 40;
 
                     return Truncate(typedObj.Value?.ToString() ?? "-", currentWidth);
-                }
-            };
+                };
 
-            _tableView = new TableView(_dataSource)
-            {
-                X = Pos.Center(),
-                Y = 0,
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
-            _tableView.FullRowSelect = true;
-            _tableView.Style.ShowHorizontalHeaderOverline = false;
-            _tableView.Style.ShowHorizontalHeaderUnderline = false;
-            _tableView.Style.ShowVerticalHeaderLines = false;
-            _tableView.Style.ShowVerticalCellLines = false;
-            _tableView.Style.ColumnStyles.Add(_promptColumn, alignRight);
-            _tableView.Style.ColumnStyles.Add(_valueColumn, singleItemSetting);
+
             Add(_tableView);
             SetupScrollBar();
             foreach (var item in _settings.DisplayProperties)
@@ -170,7 +172,12 @@ namespace HarmonyCore.CliTool.TUI.Views
             {
                 var row = _tableView.Table.Rows[i];
                 if (row[1] is IPropertyItemSetting rowItem && rowItem.Prompt == targetProperty.Prompt)
+                {
+                    var screenPos = _tableView.ScreenToCell(i, 1);
+                    //_scrollBar.Position = 
                     _tableView.SetSelection(1, i, false);
+                    _tableView.EnsureSelectedCellIsVisible();
+                }
             }
             _tableView.SetNeedsDisplay();
         }
