@@ -127,15 +127,14 @@ namespace <NAMESPACE>
 ;//
 ;//
 ;//
-  <IF DATE_PARAMETERS>
-            ;;Define temporary variables to handle date parameters
+            ;;Define any temporary variables
     <PARAMETER_LOOP>
       <IF DATE>
             data tmp<PARAMETER_NAME>, d8, 0
+      <ELSE OUT AND (HANDLE OR BINARY_HANDLE)>
+            data tmp<PARAMETER_NAME>, @string, String.Empty
       </IF>
     </PARAMETER_LOOP>
-
-  </IF>
 ;//
 ;//
 ;//
@@ -154,7 +153,7 @@ namespace <NAMESPACE>
             ;;Make the JSON-RPC call the traditional Synergy routine
             data resultTuple = await CallMethod("<METHOD_NAME>"
   <PARAMETER_LOOP>
-    <IF DATE>
+    <IF DATE OR (OUT AND (HANDLE OR BINARY_HANDLE))>
             &   ,tmp<PARAMETER_NAME>
     <ELSE>
             &   ,<IF OPTIONAL>ArgumentHelper.MayBeOptional(</IF OPTIONAL><IF IN_OR_INOUT>args.<PARAMETER_NAME><ELSE (STRUCTURE OR COLLECTION OR ALPHA OR STRING) AND NOT OPTIONAL>ArgumentHelper.MaybeNull(response.<PARAMETER_NAME>)<ELSE>response.<PARAMETER_NAME></IF IN_OR_INOUT><IF OPTIONAL>)</IF OPTIONAL>
@@ -194,6 +193,9 @@ namespace <NAMESPACE>
       <IF OUT_OR_INOUT>
       <IF OPTIONAL>
             response.<PARAMETER_NAME> = ^as(resultList[<PARAMETER_NUMBER> - 1],<IF COLLECTION>[#]</IF COLLECTION><HARMONYCORE_BRIDGE_PARAMETER_TYPE>)
+      <ELSE OUT AND (HANDLE OR BINARY_HANDLE)>
+            ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, tmp<PARAMETER_NAME>)
+            response.<PARAMETER_NAME> = Convert.FromBase64String(tmp<PARAMETER_NAME>)
       <ELSE>
             ArgumentHelper.Argument(<PARAMETER_NUMBER>, resultTuple, response.<PARAMETER_NAME>)
       </IF>

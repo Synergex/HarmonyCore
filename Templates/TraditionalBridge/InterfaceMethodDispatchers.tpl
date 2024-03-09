@@ -407,7 +407,7 @@ namespace <NAMESPACE>.<INTERFACE_NAME>
     </IF TIME>
 ;//
     <IF HANDLE OR BINARY_HANDLE>
-            serializer.ArgumentData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle,FieldDataType.IntegerField,4,0,false)
+            serializer.ArgumentHandleBinaryData(<COUNTER_1_VALUE>,arg<COUNTER_1_VALUE>Handle)
     </IF>
 ;//
     <IF STRING>

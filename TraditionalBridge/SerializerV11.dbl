@@ -666,6 +666,34 @@ namespace Json
             jsonWriter.WriteEndObject()
         endmethod
 
+        public method ArgumentHandleBinaryData, void
+            argPos, int
+            value, D_HANDLE
+            
+            record
+                handleLength, int
+            structure fake
+                fld1, a1
+            endstructure
+
+        proc
+
+            handleLength = %mem_proc(DM_GETSIZE,value)
+            MaybeLog(4, "serializing argument handle binary data, handle length was " + %string(handleLength))
+            
+            jsonWriter.WriteStartObject()
+            jsonWriter.WriteNumber("Position", argPos)
+            jsonWriter.WriteStartObject("Value")
+
+            jsonWriter.WriteNumber("DataType", (i)FieldDataType.StringField)
+            jsonWriter.WriteBoolean("ElementIsEncoded", false)
+            ;;dont mark this as encoded, we dont want to auto decode it on the other side
+            jsonWriter.WriteString("PassedValue", Convert.ToBase64String(%STRING_FROM_HANDLE(value)))
+            jsonWriter.WriteEndObject()
+            jsonWriter.WriteEndObject()
+        endmethod
+
+
         public method ArrayOpen, void
         proc
             jsonWriter.WriteStartArray()
