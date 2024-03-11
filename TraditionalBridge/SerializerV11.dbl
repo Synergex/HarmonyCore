@@ -88,6 +88,7 @@ namespace Json
             stack record
                 message, string
                 messageLength, int
+                lengthHeader, string
             endrecord
         proc
             
@@ -102,15 +103,13 @@ namespace Json
             if(messageLength == 0)
                 mreturn
 
-            if(6 <= Logger.LogLevel) then
+            lengthHeader = "Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10)
+            if(6 <= Logger.LogLevel)
             begin
-                data lengthheader, string
-                lengthHeader = "Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10)
                 MaybeLog(6, "Serializer: " + lengthHeader)
-                outStream.FlushData(lengthHeader)
-            end
-            else 
-                outStream.FlushData("Content-Length:" + %string(messageLength) + %char(13) + %char(10) + %char(13) + %char(10))
+            end  
+
+            outStream.FlushData(lengthHeader)
             
             MaybeLog(6, "Serializer: " + message)
             outStream.FlushData(message)
