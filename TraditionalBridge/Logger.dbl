@@ -88,12 +88,18 @@ namespace Harmony.TraditionalBridge
                         data endIndex, int, 32000
                         while(index < resultLogString.Length)
                         begin
-                            writes(mLoggingChannel, resultLogString(index:endIndex))
+                            writes(mLoggingChannel, resultLogString.Substring(index, (endIndex - index)))
                             index = endIndex
                             if(resultLogString.Length > endIndex + 32000) then
                                 endIndex += 32000
                             else
                                 endIndex = resultLogString.Length
+
+                            if(index > 32000 && mActiveSettings.OnDiskLogLevel < 7)
+                            begin
+
+                                exitloop
+                            end
                         end
                     end
                     else
