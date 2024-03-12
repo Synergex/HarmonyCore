@@ -447,16 +447,25 @@ namespace TraditionalBridge.UnitTest
                 endOfObject, int
                 inputLength, int
         proc
-            inputLength = fullInput.Length
-            startOfObject = fullInput.IndexOf("{")
-            endOfObject = fullInput.IndexOf("Content-Length:", startOfObject)
-            if(endOfObject == -1)
-                endOfObject = fullInput.LastIndexOf("}") + 1
+            try
+            begin
+                inputLength = fullInput.Length
+                startOfObject = fullInput.IndexOf("{")
+                endOfObject = fullInput.IndexOf("Content-Length:", startOfObject)
+                if(endOfObject == -1)
+                    endOfObject = fullInput.LastIndexOf("}") + 1
 
-            if(startOfObject > 0) then 
-                mreturn fullInput.Substring(startOfObject, (endOfObject - startOfObject))
-            else
-                mreturn fullInput
+                if(startOfObject > 0) then 
+                    mreturn fullInput.Substring(startOfObject, (endOfObject - startOfObject))
+                else
+                    mreturn fullInput
+            end
+            catch(ex, @Exception)
+            begin
+                Assert.Fail("Failed with exception {0}, and fullInput.Length {1} fullInput {2}", ex.ToString(), fullInput.Length, fullInput)
+                throw
+            end
+            endtry
         endmethod
 
     endclass

@@ -1707,10 +1707,11 @@ namespace Services.Test.UnitTests
         public method AdapterTestRange9, void
         proc
             disposable data client = UnitTestEnvironment.Server.CreateClient()
-            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1").Result
+            disposable data response = client.GetAsync("/odata/v1/Availability/FindAvailability(Adults=5)?$filter=PointsCost lt 5 and PointsCost gt 1 and Date gt 2023-01-01T00:00:00.000Z").Result
             data result = response.Content.ReadAsStringAsync().Result
             response.EnsureSuccessStatusCode()
             data customers, @ODataAvailabilitys, JsonConvert.DeserializeObject<ODataAvailabilitys>(result)
+            Assert.AreEqual<int>(customers.Value.Count, 1) 
         endmethod
 
         {TestMethod}

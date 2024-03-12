@@ -18,7 +18,7 @@ namespace HarmonyCore.CliTool.TUI.Models
         public InterfaceSettings(SolutionInfo context)
         {
             _context = context;
-            foreach(var iface in _context.CodeGenSolution.ExtendedInterfaces)
+            foreach(var iface in _context.CodeGenSolution.ExtendedInterfaces ?? Enumerable.Empty<InterfaceEx>())
             {
                 Items.Add(MakeSingleInterface(iface));
             }
