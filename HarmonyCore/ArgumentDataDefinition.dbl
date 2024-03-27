@@ -44,425 +44,434 @@ import System.Reflection
 
 namespace Harmony.Core
 
-	{JsonObject(ItemNullValueHandling=NullValueHandling.Ignore)}
-	public class ArgumentDataDefinition
-		public PassedValue			,@Object
-		public ReturnedValue		,boolean?
-		public DataType				,FieldDataType
-		public ElementSize			,int?
-		public DecimalPrecision		,int?
-		public ElementIsEncoded		,boolean?
-		public ElementType			,@string
-	endclass
+    {JsonObject(ItemNullValueHandling=NullValueHandling.Ignore)}
+    public class ArgumentDataDefinition
+        public PassedValue			,@Object
+        public ReturnedValue		,boolean?
+        public DataType				,FieldDataType
+        public ElementSize			,int?
+        public DecimalPrecision		,int?
+        public ElementIsEncoded		,boolean?
+        public ElementType			,@string
+    endclass
 
-	public class ReturnParameterDefintion
-		public Position, int
-		{JsonConverter(^typeof(ReturnValueConverter))}
-		public Value, @ArgumentDataDefinition
-	endclass
+    public class ReturnParameterDefintion
+        public Position, int
+        {JsonConverter(^typeof(ReturnValueConverter))}
+        public Value, @ArgumentDataDefinition
+    endclass
 
-	public interface IArgumentPlaceholder
-		readonly property ArgumentType, @Type
-		readonly property Passed, boolean
-	endinterface
-
-	public class ArgumentPlaceholder<T> implements IArgumentPlaceholder
-
-		public readwrite property Passed, Boolean
-		public static Instance, @ArgumentPlaceholder<T>, new ArgumentPlaceholder<T>(){ Passed = false }
-		public static PassedInstance, @ArgumentPlaceholder<T>, new ArgumentPlaceholder<T>() { Passed = true }
-		public virtual property ArgumentType, @Type
-			method get
-			proc
-				mreturn ^typeof(T)
-			endmethod
-		endproperty
-	endclass
-
-	public static class ArgumentHelper
-
-		static method ArgumentHelper
-		proc
-			ArrayArgImplMethod = ^typeof(ArgumentHelper).GetMethod("ArrayArgumentImpl", BindingFlags.NonPublic | BindingFlags.Static)
-		endmethod
+    public class SchemaArgumentDataDefinition extends ArgumentDataDefinition
+        public KnownKeys, [#]@string
+    endclass
 
 
-		public static method MaybeOptional<T(class)>, @object
-			arg, T
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<T>.Instance
-			else
-				mreturn arg
-		endmethod
+    public interface IArgumentPlaceholder
+        readonly property ArgumentType, @Type
+        readonly property Passed, boolean
+    endinterface
 
-		public static method MaybeOptional, @object
-			arg, Nullable<int>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<int>.Instance
-			else
-				mreturn arg
-		endmethod
+    public class ArgumentPlaceholder<T> implements IArgumentPlaceholder
 
-		public static method MaybeOptional, @object
-			arg, Nullable<long>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<long>.Instance
-			else
-				mreturn arg
-		endmethod
+        public readwrite property Passed, Boolean
+        public static Instance, @ArgumentPlaceholder<T>, new ArgumentPlaceholder<T>(){ Passed = false }
+        public static PassedInstance, @ArgumentPlaceholder<T>, new ArgumentPlaceholder<T>() { Passed = true }
+        public virtual property ArgumentType, @Type
+            method get
+            proc
+                mreturn ^typeof(T)
+            endmethod
+        endproperty
+    endclass
 
-		public static method MaybeOptional, @object
-			arg, Nullable<short>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<short>.Instance
-			else
-				mreturn arg
-		endmethod
+    public static class ArgumentHelper
 
-		public static method MaybeOptional, @object
-			arg, Nullable<byte>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<byte>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, Nullable<float>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<float>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, Nullable<double>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<double>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, Nullable<decimal>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<decimal>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, [#]Nullable<int>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]int>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, [#]string
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]string>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeOptional, @object
-			arg, [#]Nullable<decimal>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]decimal>.Instance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<int>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<int>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<long>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<long>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<short>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<short>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<byte>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<byte>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<float>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<float>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<double>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<double>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, Nullable<decimal>
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<decimal>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]int
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]int>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]decimal
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]decimal>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]DateTime
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]DateTime>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]long
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]long>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]short
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]short>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]double
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]double>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]boolean
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]Boolean>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]byte
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]byte>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]uint
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]uint>.PassedInstance
-			else
-				mreturn arg
-		endmethod
-
-		public static method MaybeNull, @object
-			arg, [#]ushort
-		proc
-			if(arg == ^null) then
-				mreturn ArgumentPlaceholder<[#]ushort>.PassedInstance
-			else
-				mreturn arg
-		endmethod
+        static method ArgumentHelper
+        proc
+            ArrayArgImplMethod = ^typeof(ArgumentHelper).GetMethod("ArrayArgumentImpl", BindingFlags.NonPublic | BindingFlags.Static)
+        endmethod
 
 
-		public static method MaybeNull<T(class)>, @Object
-			parm, T
-		proc
-			if(parm == ^null) then
-			begin
-				mreturn ArgumentPlaceholder<T>.PassedInstance
-			end
-			else
-				mreturn (@Object)parm
-		endmethod
+        public static method MaybeOptional<T(class)>, @object
+            arg, T
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<T>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		public static method Argument<T>, T
-			argPos, int
-			argBlock, @Tuple<Object, [#]Object>
-		proc
-			if(argPos == 0) then
-				mreturn ArgumentImpl<T>(argBlock.Item1)
-			else
-				mreturn ArgumentImpl<T>(argBlock.Item2[argPos])
-		endmethod
+        public static method MaybeOptional, @object
+            arg, Nullable<int>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<int>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		public static method Argument<T>, void
-			argPos, int
-			argBlock, @Tuple<Object, [#]Object>
-			out val, T
-		proc
-			if(argPos == 0) then
-				val = ArgumentImpl<T>(argBlock.Item1)
-			else
-				val = ArgumentImpl<T>(argBlock.Item2[argPos])
-		endmethod
+        public static method MaybeOptional, @object
+            arg, Nullable<long>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<long>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		public static method ArgumentInfer<T>, T
-			argPos, int
-			argBlock, @Tuple<Object, [#]Object>
-			val, T
-		proc
-			if(argPos == 0) then
-				mreturn ArgumentImpl<T>(argBlock.Item1)
-			else
-				mreturn ArgumentImpl<T>(argBlock.Item2[argPos])
-		endmethod
+        public static method MaybeOptional, @object
+            arg, Nullable<short>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<short>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		private static ArrayArgImplMethod, @MethodInfo
+        public static method MaybeOptional, @object
+            arg, Nullable<byte>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<byte>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		private static method ArgumentImpl<T>, T
-			arg, @object
-		proc
-			data tVal, T
+        public static method MaybeOptional, @object
+            arg, Nullable<float>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<float>.Instance
+            else
+                mreturn arg
+        endmethod
 
-			;; Null arg is passed in. Will return to default value of T
-			if(arg == ^null)
-			begin
-				Console.WriteLine("Warning: Null was passed into Argument/ArgumentInfer. Default value of {0} will be returned.", ^typeof(T).UnderlyingSystemType.Name)
-				mreturn tVal
-			end
+        public static method MaybeOptional, @object
+            arg, Nullable<double>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<double>.Instance
+            else
+                mreturn arg
+        endmethod
 
-			data argType = arg.GetType()
+        public static method MaybeOptional, @object
+            arg, Nullable<decimal>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<decimal>.Instance
+            else
+                mreturn arg
+        endmethod
 
-			if(arg .is. JToken) then
-			begin
-				mreturn (T)((@JToken)arg).ToObject(^typeof(T))
-			end
-			else if(^typeof(T) == argType || argType.IsAssignableFrom(^typeof(T))) then
-				mreturn (T)arg
-			else if(^typeof(T).IsArray) then
-			begin
-				data elementType = ^typeof(T).GetElementType()
-				data typedEnumerable = ^typeof(IEnumerable<>).MakeGenericType(new Type[#] { elementType })
-				mreturn (T)ArrayArgImplMethod.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new Object[#] { arg })
-			end
-			else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(List<>)) then
-			begin
-				try
-				begin
-					data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
-					mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { typedArgCollection })
-				end
-				catch(ex, @Exception)
-				begin
-					throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
-				end
-				endtry
-			end
-			else if(^typeof(T).IsGenericType && (^typeof(T).GetGenericTypeDefinition() == ^typeof(IEnumerable<>) || 
-			&	^typeof(T).GetGenericTypeDefinition() == ^typeof(ICollection<>) || ^typeof(T).GetGenericTypeDefinition() == ^typeof(IList<>))) then
-			begin
-				try
-				begin
-					data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
-					mreturn (T)Activator.CreateInstance(^typeof(List<>).MakeGenericType(new Type[#] { ^typeof(T).GenericTypeArguments[1] }), new Object[#] { typedArgCollection })
-				end
-				catch(ex, @Exception)
-				begin
-					throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
-				end
-				endtry
-			end
-			else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(Nullable<>)) then
-			begin
-				mreturn (T)arg
-			end
-			else
-				try
-				begin
-					Console.WriteLine("Converting {0} to {1}.", arg, ^typeof(T).UnderlyingSystemType.Name)
-					mreturn (T)Convert.ChangeType(arg, ^typeof(T))
-				end
-				catch(ex, @Exception)
-				begin
-					throw new Exception(string.Format("{0}{1}There was a mismatch trying to convert {2} to {3}.", ex.Message, Environment.NewLine, arg, ^typeof(T).UnderlyingSystemType.Name))
-				end
-				endtry
+        public static method MaybeOptional, @object
+            arg, [#]Nullable<int>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]int>.Instance
+            else
+                mreturn arg
+        endmethod
 
-				
-		endmethod
+        public static method MaybeOptional, @object
+            arg, [#]string
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]string>.Instance
+            else
+                mreturn arg
+        endmethod
 
-		private static method ArrayArgumentImpl<T>, @object
-			obj, @Object
-		proc
-			data enumerable = (IEnumerable<T>)obj
-			mreturn enumerable.ToArray()
-		endmethod
+        public static method MaybeOptional, @object
+            arg, [#]Nullable<decimal>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]decimal>.Instance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<int>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<int>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<long>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<long>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<short>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<short>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<byte>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<byte>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<float>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<float>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<double>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<double>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, Nullable<decimal>
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<decimal>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]int
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]int>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]decimal
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]decimal>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]DateTime
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]DateTime>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]long
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]long>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]short
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]short>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]double
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]double>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]boolean
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]Boolean>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]byte
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]byte>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]uint
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]uint>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+        public static method MaybeNull, @object
+            arg, [#]ushort
+        proc
+            if(arg == ^null) then
+                mreturn ArgumentPlaceholder<[#]ushort>.PassedInstance
+            else
+                mreturn arg
+        endmethod
+
+
+        public static method MaybeNull<T(class)>, @Object
+            parm, T
+        proc
+            if(parm == ^null) then
+            begin
+                mreturn ArgumentPlaceholder<T>.PassedInstance
+            end
+            else
+                mreturn (@Object)parm
+        endmethod
+
+        public static method Argument<T>, T
+            argPos, int
+            argBlock, @Tuple<Object, [#]Object>
+        proc
+            if(argPos == 0) then
+                mreturn ArgumentImpl<T>(argBlock.Item1)
+            else
+                mreturn ArgumentImpl<T>(argBlock.Item2[argPos])
+        endmethod
+
+        public static method Argument<T>, void
+            argPos, int
+            argBlock, @Tuple<Object, [#]Object>
+            out val, T
+        proc
+            if(argPos == 0) then
+                val = ArgumentImpl<T>(argBlock.Item1)
+            else
+                val = ArgumentImpl<T>(argBlock.Item2[argPos])
+        endmethod
+
+        public static method ArgumentInfer<T>, T
+            argPos, int
+            argBlock, @Tuple<Object, [#]Object>
+            val, T
+        proc
+            if(argPos == 0) then
+                mreturn ArgumentImpl<T>(argBlock.Item1)
+            else
+                mreturn ArgumentImpl<T>(argBlock.Item2[argPos])
+        endmethod
+
+        private static ArrayArgImplMethod, @MethodInfo
+
+        private static method ArgumentImpl<T>, T
+            arg, @object
+        proc
+            data tVal, T
+
+            ;; Null arg is passed in. Will return to default value of T
+            if(arg == ^null)
+            begin
+                Console.WriteLine("Warning: Null was passed into Argument/ArgumentInfer. Default value of {0} will be returned.", ^typeof(T).UnderlyingSystemType.Name)
+                mreturn tVal
+            end
+
+            data argType = arg.GetType()
+
+            if(arg .is. JToken) then
+            begin
+                mreturn (T)((@JToken)arg).ToObject(^typeof(T))
+            end
+            else if(^typeof(T) == argType || argType.IsAssignableFrom(^typeof(T))) then
+                mreturn (T)arg
+            else if(^typeof(T).IsArray) then
+            begin
+                data elementType = ^typeof(T).GetElementType()
+                data typedEnumerable = ^typeof(IEnumerable<>).MakeGenericType(new Type[#] { elementType })
+                mreturn (T)ArrayArgImplMethod.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new Object[#] { arg })
+            end
+            else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(List<>)) then
+            begin
+                try
+                begin
+                    data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
+                    mreturn (T)Activator.CreateInstance(^typeof(T), new Object[#] { typedArgCollection })
+                end
+                catch(ex, @Exception)
+                begin
+                    throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
+                end
+                endtry
+            end
+            else if(^typeof(T) == ^typeof(Dictionary<string, string>)) then
+            begin
+
+            end
+            else if(^typeof(T).IsGenericType && (^typeof(T).GetGenericTypeDefinition() == ^typeof(IEnumerable<>) || 
+            &	^typeof(T).GetGenericTypeDefinition() == ^typeof(ICollection<>) || ^typeof(T).GetGenericTypeDefinition() == ^typeof(IList<>))) then
+            begin
+                try
+                begin
+                    data typedArgCollection = ^typeof(Enumerable).GetMethod("OfType").MakeGenericMethod(^typeof(T).GenericTypeArguments[1]).Invoke(^null, new Object[#] { arg })
+                    mreturn (T)Activator.CreateInstance(^typeof(List<>).MakeGenericType(new Type[#] { ^typeof(T).GenericTypeArguments[1] }), new Object[#] { typedArgCollection })
+                end
+                catch(ex, @Exception)
+                begin
+                    throw new Exception(string.Format("Failed to create instance of {0} using argument of type {1}", ^typeof(T), argType))
+                end
+                endtry
+            end
+            else if(^typeof(T).IsGenericType && ^typeof(T).GetGenericTypeDefinition() == ^typeof(Nullable<>)) then
+            begin
+                mreturn (T)arg
+            end
+            else
+                try
+                begin
+                    Console.WriteLine("Converting {0} to {1}.", arg, ^typeof(T).UnderlyingSystemType.Name)
+                    mreturn (T)Convert.ChangeType(arg, ^typeof(T))
+                end
+                catch(ex, @Exception)
+                begin
+                    throw new Exception(string.Format("{0}{1}There was a mismatch trying to convert {2} to {3}.", ex.Message, Environment.NewLine, arg, ^typeof(T).UnderlyingSystemType.Name))
+                end
+                endtry
+
+                
+        endmethod
+
+        private static method ArrayArgumentImpl<T>, @object
+            obj, @Object
+        proc
+            data enumerable = (IEnumerable<T>)obj
+            mreturn enumerable.ToArray()
+        endmethod
 
 
 
@@ -475,268 +484,276 @@ namespace Harmony.Core
 ;				mreturn arg
 ;		endmethod
 
-	endclass
+    endclass
 
 
-	public class ReturnValueConverter extends JsonConverter
+    public class ReturnValueConverter extends JsonConverter
 
-		private static WindowsEncoding, @Encoding, Encoding.GetEncoding("windows-1252")
+        private static WindowsEncoding, @Encoding, Encoding.GetEncoding("windows-1252")
 
-		public override method CanConvert, boolean
-			type, @Type
-		proc
-			mreturn true
-		endmethod
+        public override method CanConvert, boolean
+            type, @Type
+        proc
+            mreturn true
+        endmethod
 
-		public static OverrideReadJson, @Func<JsonReader, Type, object, JsonSerializer, object>
+        public static OverrideReadJson, @Func<JsonReader, Type, object, JsonSerializer, object>
 
-		public override property CanRead, boolean
-			method get
-			proc
-				mreturn true
-			endmethod
-		endproperty
+        public override property CanRead, boolean
+            method get
+            proc
+                mreturn true
+            endmethod
+        endproperty
 
-		public override method WriteJson, void 
-			writer, @JsonWriter
-			value, @object
-			serializer, @JsonSerializer
-		proc
-		
-			throw new NotImplementedException()
-		endmethod
+        public override method WriteJson, void 
+            writer, @JsonWriter
+            value, @object
+            serializer, @JsonSerializer
+        proc
+        
+            throw new NotImplementedException()
+        endmethod
 
-		public override method ReadJson, @object 
-			reader, @JsonReader 
-			objectType, @Type 
-			existingValue, @object 
-			serializer, @JsonSerializer 
-		proc
-			if(OverrideReadJson != ^null)
-				mreturn OverrideReadJson(reader, objectType, existingValue, serializer)
+        public override method ReadJson, @object 
+            reader, @JsonReader 
+            objectType, @Type 
+            existingValue, @object 
+            serializer, @JsonSerializer 
+        proc
+            if(OverrideReadJson != ^null)
+                mreturn OverrideReadJson(reader, objectType, existingValue, serializer)
 
-			data result = new ArgumentDataDefinition()
-			data jObj = JObject.Load(reader)
-			data dataTypeField = jObj["DataType"]
-			if(dataTypeField != ^null)
-			begin
-				result.DataType = (FieldDataType)dataTypeField.Value<long>()
-				result.ReturnedValue = true
-				if(result.DataType == FieldDataType.DataObjectField) then
-				begin
-					data dataObjectValue = jObj["PassedValue"]
-					if(dataObjectValue == ^null)
-						throw new InvalidCastException()
+            data result = new ArgumentDataDefinition()
+            data jObj = JObject.Load(reader)
+            data dataTypeField = jObj["DataType"]
+            if(dataTypeField != ^null)
+            begin
+                result.DataType = (FieldDataType)dataTypeField.Value<long>()
+                result.ReturnedValue = true
+                if(result.DataType == FieldDataType.DataObjectField) then
+                begin
+                    data dataObjectValue = jObj["PassedValue"]
+                    if(dataObjectValue == ^null)
+                        throw new InvalidCastException()
 
-					data metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+                    data metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
 
-					data grfa = (string)dataObjectValue["GRFA"]
-					data realValue = dataObjectValue.Value<string>((Object)"Value")
-					if(realValue == ^null) then
-					begin
-						result.PassedValue = metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa)
-					end
-					else
-					begin
-						result.PassedValue = metadataType.MakeNew(realValue, grfa)
-					end
-				end
-				else if(result.DataType == FieldDataType.DataObjectCollectionField) then
-				begin
-					data metadataType, @DataObjectMetadataBase
-					data tempResultDO = new List<DataObjectBase>()
-					data tempResultObject = new List<Object>()
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					
-					data briefEncoding = false
-					data briefEncodingHasBinaryData = false
-					data elementTypeObject, @JToken
-					if(jObj.TryGetValue("ElementType", elementTypeObject))
-					begin
-						metadataType = DataObjectMetadataBase.LookupType(elementTypeObject.ToObject<string>())
-						briefEncoding = true
-						data elementIsEncoded, @JToken
-						if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
-						begin
-							briefEncodingHasBinaryData = elementIsEncoded.ToObject<Boolean>()
-						end
+                    data grfa = (string)dataObjectValue["GRFA"]
+                    data realValue = dataObjectValue.Value<string>((Object)"Value")
+                    if(realValue == ^null) then
+                    begin
+                        result.PassedValue = metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa)
+                    end
+                    else
+                    begin
+                        result.PassedValue = metadataType.MakeNew(realValue, grfa)
+                    end
+                end
+                else if(result.DataType == FieldDataType.DictionaryField) then
+                begin
+                    data stringDictionaryValue = jObj.Value<Dictionary<string, string>>("PassedValue")
+                    if(stringDictionaryValue == ^null)
+                        throw new InvalidCastException()
 
-					end
+                    result.PassedValue = stringDictionaryValue
+                end
+                else if(result.DataType == FieldDataType.DataObjectCollectionField) then
+                begin
+                    data metadataType, @DataObjectMetadataBase
+                    data tempResultDO = new List<DataObjectBase>()
+                    data tempResultObject = new List<Object>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    
+                    data briefEncoding = false
+                    data briefEncodingHasBinaryData = false
+                    data elementTypeObject, @JToken
+                    if(jObj.TryGetValue("ElementType", elementTypeObject))
+                    begin
+                        metadataType = DataObjectMetadataBase.LookupType(elementTypeObject.ToObject<string>())
+                        briefEncoding = true
+                        data elementIsEncoded, @JToken
+                        if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
+                        begin
+                            briefEncodingHasBinaryData = elementIsEncoded.ToObject<Boolean>()
+                        end
 
-					data dataObjectToken, @JToken
-					foreach dataObjectToken in dataObjectValues
-					begin
-						if(briefEncoding) then
-						begin
-							if(dataObjectToken.Type != JTokenType.String)
-								throw new InvalidOperationException("brief encoding requires string data")
+                    end
 
-							if(briefEncodingHasBinaryData) then
-								tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectToken.ToObject<string>()), ""))
-							else
-								tempResultDO.Add(metadataType.MakeNew(dataObjectToken.Value<string>(), ""))
-						end
-						else
-						begin
-							if(dataObjectToken .is. JObject) then
-							begin
-								data dataObjectValue = (@JObject)dataObjectToken
-								if(metadataType == ^null)
-									metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
+                    data dataObjectToken, @JToken
+                    foreach dataObjectToken in dataObjectValues
+                    begin
+                        if(briefEncoding) then
+                        begin
+                            if(dataObjectToken.Type != JTokenType.String)
+                                throw new InvalidOperationException("brief encoding requires string data")
 
-								data grfa = (string)dataObjectValue["GRFA"]
-								data realValue = dataObjectValue.Value<string>((Object)"Value")
-								if(realValue == ^null) then
-								begin
-									tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
-								end
-								else
-								begin
-									tempResultDO.Add(metadataType.MakeNew(realValue, grfa))
-								end
-							end
-							else
-							begin
-								using dataObjectToken.Type select
-								(JTokenType.Null),
-									tempResultObject.Add(^null)
-								(JTokenType.Integer),
-									tempResultObject.Add((@object)dataObjectToken.ToObject<int>())
-								(JTokenType.Float),
-									tempResultObject.Add((@object)dataObjectToken.ToObject<float>())
-								(JTokenType.Bytes),
-									tempResultObject.Add((@object)dataObjectToken.ToObject<[#]byte>())
-								(JTokenType.Boolean),
-									tempResultObject.Add((@object)dataObjectToken.ToObject<boolean>())
-								(JTokenType.String),
-									tempResultObject.Add((@object)dataObjectToken.ToObject<string>())
-								endusing
-							end
-						end
+                            if(briefEncodingHasBinaryData) then
+                                tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectToken.ToObject<string>()), ""))
+                            else
+                                tempResultDO.Add(metadataType.MakeNew(dataObjectToken.Value<string>(), ""))
+                        end
+                        else
+                        begin
+                            if(dataObjectToken .is. JObject) then
+                            begin
+                                data dataObjectValue = (@JObject)dataObjectToken
+                                if(metadataType == ^null)
+                                    metadataType = DataObjectMetadataBase.LookupType((string)dataObjectValue["Type"])
 
-					end
+                                data grfa = (string)dataObjectValue["GRFA"]
+                                data realValue = dataObjectValue.Value<string>((Object)"Value")
+                                if(realValue == ^null) then
+                                begin
+                                    tempResultDO.Add(metadataType.MakeNew((a)Convert.FromBase64String(dataObjectValue.Value<string>((Object)"Base64Value")), grfa))
+                                end
+                                else
+                                begin
+                                    tempResultDO.Add(metadataType.MakeNew(realValue, grfa))
+                                end
+                            end
+                            else
+                            begin
+                                using dataObjectToken.Type select
+                                (JTokenType.Null),
+                                    tempResultObject.Add(^null)
+                                (JTokenType.Integer),
+                                    tempResultObject.Add((@object)dataObjectToken.ToObject<int>())
+                                (JTokenType.Float),
+                                    tempResultObject.Add((@object)dataObjectToken.ToObject<float>())
+                                (JTokenType.Bytes),
+                                    tempResultObject.Add((@object)dataObjectToken.ToObject<[#]byte>())
+                                (JTokenType.Boolean),
+                                    tempResultObject.Add((@object)dataObjectToken.ToObject<boolean>())
+                                (JTokenType.String),
+                                    tempResultObject.Add((@object)dataObjectToken.ToObject<string>())
+                                endusing
+                            end
+                        end
 
-					result.PassedValue = tempResultDO.Count > 0 ? tempResultDO : tempResultObject
-				end
-				else if(result.DataType == FieldDataType.AlphaArrayField) then
-				begin
-					data resultArray = new List<string>()
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data elementIsEncoded, @JToken
-					data hasBinaryData = false
-					if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
-					begin
-						hasBinaryData = elementIsEncoded.ToObject<Boolean>()
-					end
+                    end
 
-					data dataObjectToken, @JToken
-					foreach dataObjectToken in dataObjectValues
-					begin
-						if(hasBinaryData) then
-						begin
-							resultArray.Add(WindowsEncoding.GetString(Convert.FromBase64String(dataObjectToken.ToObject<string>())))
-						end
-						else
-						begin
-							resultArray.Add(dataObjectToken.Value<string>())
-						end
-					end
-					result.PassedValue = resultArray
-				end
-				else if(result.DataType == FieldDataType.DecimalArrayField) then
-				begin
-					data resultArray = new List<decimal>()
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data dataObjectToken, @JToken
-					foreach dataObjectToken in dataObjectValues
-					begin
-						resultArray.Add(dataObjectToken.Value<decimal>())
-					end
-					result.PassedValue = resultArray
-				end
-				else if(result.DataType == FieldDataType.ImpliedDecimalArrayField) then
-				begin
-					data resultArray = new List<decimal>()
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data dataObjectToken, @JToken
-					foreach dataObjectToken in dataObjectValues
-					begin
-						resultArray.Add(dataObjectToken.Value<decimal>())
-					end
-					result.PassedValue = resultArray
-				end
-				else if(result.DataType == FieldDataType.IntegerArrayField) then
-				begin
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data dataToken, @JToken
-					data intSize = 4
-					data elementSize, @JToken
-					if(jObj.TryGetValue("ElementSize", elementSize))
-					begin
-						intSize = elementSize.ToObject<int>()
-					end
+                    result.PassedValue = tempResultDO.Count > 0 ? tempResultDO : tempResultObject
+                end
+                else if(result.DataType == FieldDataType.AlphaArrayField) then
+                begin
+                    data resultArray = new List<string>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data elementIsEncoded, @JToken
+                    data hasBinaryData = false
+                    if(jObj.TryGetValue("ElementIsEncoded", elementIsEncoded))
+                    begin
+                        hasBinaryData = elementIsEncoded.ToObject<Boolean>()
+                    end
 
-					if(intSize == 4) then
-					begin
-						data resultArray = new List<int>()
-						foreach dataToken in dataObjectValues
-							resultArray.Add(dataToken.ToObject<int>())
+                    data dataObjectToken, @JToken
+                    foreach dataObjectToken in dataObjectValues
+                    begin
+                        if(hasBinaryData) then
+                        begin
+                            resultArray.Add(WindowsEncoding.GetString(Convert.FromBase64String(dataObjectToken.ToObject<string>())))
+                        end
+                        else
+                        begin
+                            resultArray.Add(dataObjectToken.Value<string>())
+                        end
+                    end
+                    result.PassedValue = resultArray
+                end
+                else if(result.DataType == FieldDataType.DecimalArrayField) then
+                begin
+                    data resultArray = new List<decimal>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data dataObjectToken, @JToken
+                    foreach dataObjectToken in dataObjectValues
+                    begin
+                        resultArray.Add(dataObjectToken.Value<decimal>())
+                    end
+                    result.PassedValue = resultArray
+                end
+                else if(result.DataType == FieldDataType.ImpliedDecimalArrayField) then
+                begin
+                    data resultArray = new List<decimal>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data dataObjectToken, @JToken
+                    foreach dataObjectToken in dataObjectValues
+                    begin
+                        resultArray.Add(dataObjectToken.Value<decimal>())
+                    end
+                    result.PassedValue = resultArray
+                end
+                else if(result.DataType == FieldDataType.IntegerArrayField) then
+                begin
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data dataToken, @JToken
+                    data intSize = 4
+                    data elementSize, @JToken
+                    if(jObj.TryGetValue("ElementSize", elementSize))
+                    begin
+                        intSize = elementSize.ToObject<int>()
+                    end
 
-						result.PassedValue = resultArray
-					end
-					else if(intSize == 8) then
-					begin
-						data resultArray = new List<long>()
-						foreach dataToken in dataObjectValues
-							resultArray.Add(dataToken.ToObject<long>())
+                    if(intSize == 4) then
+                    begin
+                        data resultArray = new List<int>()
+                        foreach dataToken in dataObjectValues
+                            resultArray.Add(dataToken.ToObject<int>())
 
-						result.PassedValue = resultArray
-					end
-					else if(intSize == 2) then
-					begin
-						data resultArray = new List<short>()
-						foreach dataToken in dataObjectValues
-							resultArray.Add(dataToken.ToObject<short>())
+                        result.PassedValue = resultArray
+                    end
+                    else if(intSize == 8) then
+                    begin
+                        data resultArray = new List<long>()
+                        foreach dataToken in dataObjectValues
+                            resultArray.Add(dataToken.ToObject<long>())
 
-						result.PassedValue = resultArray
-					end
-					else if(intSize == 1) then
-					begin
-						data resultArray = new List<sbyte>()
-						foreach dataToken in dataObjectValues
-							resultArray.Add(dataToken.ToObject<sbyte>())
+                        result.PassedValue = resultArray
+                    end
+                    else if(intSize == 2) then
+                    begin
+                        data resultArray = new List<short>()
+                        foreach dataToken in dataObjectValues
+                            resultArray.Add(dataToken.ToObject<short>())
 
-						result.PassedValue = resultArray
-					end
-					else
-						throw new NotImplementedException("int size must be 8/4/2/1")
-				end
-				else if(result.DataType == FieldDataType.StringArrayField) then
-				begin
-					data resultArray = new List<string>()
-					data dataObjectValues = (@JArray)jObj["PassedValue"]
-					data dataObjectToken, @JToken
-					foreach dataObjectToken in dataObjectValues
-					begin
-						resultArray.Add(dataObjectToken.Value<string>())
-					end
-					result.PassedValue = resultArray
-				end
-				else
-				begin
-					data base64Value = jObj.Property("Base64Value")
-					if(base64Value != ^null) then
-					begin
-						result.PassedValue = WindowsEncoding.GetString(Convert.FromBase64String(base64Value.ToObject<string>()))
-					end
-					else
-						result.PassedValue = jObj["PassedValue"]
-				end
-			end
+                        result.PassedValue = resultArray
+                    end
+                    else if(intSize == 1) then
+                    begin
+                        data resultArray = new List<sbyte>()
+                        foreach dataToken in dataObjectValues
+                            resultArray.Add(dataToken.ToObject<sbyte>())
 
-			mreturn result
-		endmethod
+                        result.PassedValue = resultArray
+                    end
+                    else
+                        throw new NotImplementedException("int size must be 8/4/2/1")
+                end
+                else if(result.DataType == FieldDataType.StringArrayField) then
+                begin
+                    data resultArray = new List<string>()
+                    data dataObjectValues = (@JArray)jObj["PassedValue"]
+                    data dataObjectToken, @JToken
+                    foreach dataObjectToken in dataObjectValues
+                    begin
+                        resultArray.Add(dataObjectToken.Value<string>())
+                    end
+                    result.PassedValue = resultArray
+                end
+                else
+                begin
+                    data base64Value = jObj.Property("Base64Value")
+                    if(base64Value != ^null) then
+                    begin
+                        result.PassedValue = WindowsEncoding.GetString(Convert.FromBase64String(base64Value.ToObject<string>()))
+                    end
+                    else
+                        result.PassedValue = jObj["PassedValue"]
+                end
+            end
 
-	endclass
+            mreturn result
+        endmethod
+
+    endclass
 
 endnamespace

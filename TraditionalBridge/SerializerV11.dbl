@@ -350,6 +350,33 @@ namespace Json
 
         public method ArgumentData, void
             argPos, int
+            value, @StringDictionary
+        proc
+            jsonWriter.WriteStartObject()
+            jsonWriter.WriteNumber("Position", argPos)
+            jsonWriter.WriteStartObject("Value")
+
+            jsonWriter.WriteNumber("DataType", (i)FieldDataType.DictionaryField)
+            jsonWriter.WriteStartObject("PassedValue")
+
+            foreach data item in value.Items() as @StringDictionary.KeyValuePair
+            begin
+                if(item.Value .is. String) then
+                begin
+                    data strVal = (@String)item.Value
+                    jsonWriter.WriteString(item.Key, strVal)
+                end
+                else 
+                    throw new Exception("Attempted to serialize unsupported type in StringDictionary")
+            end
+
+            jsonWriter.WriteEndObject()
+            jsonWriter.WriteEndObject()
+            jsonWriter.WriteEndObject()
+        endmethod
+
+        public method ArgumentData, void
+            argPos, int
             value, @ArrayList
             type, FieldDataType
             elementSize, int

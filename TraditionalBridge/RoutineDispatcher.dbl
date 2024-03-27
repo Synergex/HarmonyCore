@@ -192,6 +192,41 @@ namespace Harmony.TraditionalBridge
             mreturn result
         endmethod
 
+        public virtual method DeserializeStringDictionary, @StringDictionary
+            obj, JSON_ELEMENT
+            record
+                passedValue, JSON_ELEMENT
+                knownKeys, JSON_ELEMENT
+                keyVal, JSON_ELEMENT
+                elementValue, JSON_ELEMENT
+                elementObject, JSON_ELEMENT
+                objectMetadata, @DataObjectMetadataBase
+                result, @StringDictionary
+                i, int
+                keyString, @string
+                collectionSize, int
+            endrecord
+        proc
+            result = new StringDictionary()
+            passedValue = obj.GetProperty("PassedValue")
+            knownKeys = obj.GetProperty("KnownKeys")
+
+            collectionSize = knownKeys.GetArrayLength()
+            for i from 0 thru collectionSize - 1 by 1
+            begin
+                keyVal = passedValue[i]
+                keyString = keyval.GetString()
+                elementValue = passedValue.GetProperty(keyString)
+                if(elementValue.ValueKind == JsonValueKind.String) then
+                begin
+                    result.Add(keyString, elementValue.GetString())
+                end
+                else
+                    throw new Exception("Invalid type for key " + keyval.GetString() + " in StringDictionary parameter")
+            end
+            mreturn result
+        endmethod
+
         ;;; <summary>
         ;;; 
         ;;; </summary>
