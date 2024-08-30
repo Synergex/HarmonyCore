@@ -80,7 +80,7 @@ namespace <NAMESPACE>
 			mreturn ^null
 		endmethod
 
-		public virtual method SetIntoArray, void
+		public override method SetIntoArray, void
             dataArea, a
             arrayObject, @object
             index, int
