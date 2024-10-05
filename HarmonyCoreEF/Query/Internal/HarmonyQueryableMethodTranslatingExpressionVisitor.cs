@@ -60,10 +60,6 @@ namespace Harmony.Core.EF.Query.Internal
         protected override QueryableMethodTranslatingExpressionVisitor CreateSubqueryVisitor()
             => new HarmonyQueryableMethodTranslatingExpressionVisitor(this);
 
-        protected override ShapedQueryExpression CreateShapedQueryExpression(Type elementType)
-        {
-            return CreateShapedQueryExpression(_context.Model.FindEntityType(elementType), _parameterToQueryMapping);
-        }
         protected override ShapedQueryExpression CreateShapedQueryExpression(IEntityType elementType)
         {
             return CreateShapedQueryExpression(elementType, _parameterToQueryMapping);
@@ -530,9 +526,9 @@ namespace Harmony.Core.EF.Query.Internal
 
         protected override ShapedQueryExpression TranslateOfType(ShapedQueryExpression source, Type resultType)
         {
-            if (source.ShaperExpression is EntityShaperExpression entityShaperExpression)
+            if (source.ShaperExpression is StructuralTypeShaperExpression entityShaperExpression)
             {
-                var entityType = entityShaperExpression.EntityType;
+                var entityType = entityShaperExpression.StructuralType as IEntityType;
                 if (entityType.ClrType == resultType)
                 {
                     return source;
@@ -541,14 +537,14 @@ namespace Harmony.Core.EF.Query.Internal
                 var baseType = entityType.GetAllBaseTypes().SingleOrDefault(et => et.ClrType == resultType);
                 if (baseType != null)
                 {
-                    return source.UpdateShaperExpression(entityShaperExpression.WithEntityType(baseType));
+                    return source.UpdateShaperExpression(entityShaperExpression.WithType(baseType));
                 }
 
                 var derivedType = entityType.GetDerivedTypes().SingleOrDefault(et => et.ClrType == resultType);
                 if (derivedType != null)
                 {
                     var inMemoryQueryExpression = (HarmonyQueryExpression)source.QueryExpression;
-                    var discriminatorProperty = entityType.GetDiscriminatorProperty();
+                    var discriminatorProperty = entityType.GetProperty(entityType.GetDiscriminatorPropertyName());
                     var parameter = Expression.Parameter(entityType.ClrType);
 
                     var callEFProperty = Expression.Call(
@@ -591,7 +587,7 @@ namespace Harmony.Core.EF.Query.Internal
                             { projectionMember, entityProjection.UpdateEntityType(derivedType) }
                         });
 
-                    return source.UpdateShaperExpression(entityShaperExpression.WithEntityType(derivedType));
+                    return source.UpdateShaperExpression(entityShaperExpression.WithType(derivedType));
                 }
             }
 
@@ -1297,11 +1293,12 @@ namespace Harmony.Core.EF.Query.Internal
                 ((HarmonyQueryExpression)source.QueryExpression).AddSelectMany(
                     (HarmonyQueryExpression)inner.QueryExpression, transparentIdentifierType, defaultIfEmpty);
 
-                return TranslateResultSelectorForJoin(
-                    source,
-                    resultSelector,
-                    innerShaperExpression,
-                    transparentIdentifierType);
+                throw new NotSupportedException();
+                //return TranslateResultSelectorForJoin(
+                //    source,
+                //    resultSelector,
+                //    innerShaperExpression,
+                //    transparentIdentifierType);
             }
 
             return null;
@@ -1957,22 +1954,22 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             protected override Expression VisitExtension(Expression extensionExpression)
-                => extensionExpression is EntityShaperExpression
+                => extensionExpression is StructuralTypeShaperExpression
                     ? extensionExpression
                     : base.VisitExtension(extensionExpression);
 
             private Expression TryExpand(Expression source, MemberIdentity member)
             {
                 source = source.UnwrapTypeConversion(out var convertedType);
-                var entityShaperExpression = source as EntityShaperExpression;
+                var entityShaperExpression = source as StructuralTypeShaperExpression;
                 if (entityShaperExpression == null && convertedType != null)
-                    entityShaperExpression = new EntityShaperExpression(_expressionTranslator.Context.Model.FindEntityType(convertedType), source, false);
+                    entityShaperExpression = new StructuralTypeShaperExpression(_expressionTranslator.Context.Model.FindEntityType(convertedType), source, false);
 
 
                 if (entityShaperExpression == null)
                     return null;
 
-                var entityType = entityShaperExpression.EntityType;
+                var entityType = entityShaperExpression.StructuralType as IEntityType;
                 if (convertedType != null)
                 {
                     entityType = entityType.GetRootType().GetDerivedTypesInclusive()
@@ -1993,16 +1990,17 @@ namespace Harmony.Core.EF.Query.Internal
                     return null;
                 }
 
-                var targetEntityType = navigation.GetTargetType();
-                if (targetEntityType == null
-                    || (!targetEntityType.HasDefiningNavigation()
-                        && !targetEntityType.IsOwned()))
-                {
-                    return null;
-                }
+                //TODO check if this is still needed
+                var targetEntityType = navigation.TargetEntityType;
+                if (targetEntityType == null) return null;
+                //    || (!targetEntityType.HasDefiningNavigation()
+                //        && !targetEntityType.IsOwned()))
+                //{
+                //    return null;
+                //}
 
                 var foreignKey = navigation.ForeignKey;
-                if (navigation.IsCollection())
+                if (navigation.IsCollection)
                 {
                     var innerShapedQuery = CreateShapedQueryExpression(targetEntityType, _parameterToQueryMapping);
                     var innerQueryExpression = (HarmonyQueryExpression)innerShapedQuery.QueryExpression;
@@ -2012,16 +2010,8 @@ namespace Harmony.Core.EF.Query.Internal
                         .Select(p => p.ClrType)
                         .Any(t => t.IsNullableType());
 
-                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(
-                        navigation.IsDependentToPrincipal()
-                            ? foreignKey.Properties
-                            : foreignKey.PrincipalKey.Properties,
-                        makeNullable);
-                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(
-                        navigation.IsDependentToPrincipal()
-                            ? foreignKey.PrincipalKey.Properties
-                            : foreignKey.Properties,
-                        makeNullable);
+                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(foreignKey.PrincipalKey.Properties, makeNullable);
+                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(foreignKey.Properties, makeNullable);
 
                     var outerKeyFirstProperty = outerKey is NewExpression newExpression
                         ? ((UnaryExpression)((NewArrayExpression)newExpression.Arguments[0]).Expressions[0]).Operand
@@ -2042,11 +2032,15 @@ namespace Harmony.Core.EF.Query.Internal
                     return innerShapedQuery;
                 }
 
-                var entityProjectionExpression
-                    = (EntityProjectionExpression)(entityShaperExpression.ValueBufferExpression is
+                var intermediateExpr = (entityShaperExpression.ValueBufferExpression is
                         ProjectionBindingExpression projectionBindingExpression
                         ? _queryExpression.GetMappedProjection(projectionBindingExpression.ProjectionMember)
                         : entityShaperExpression.ValueBufferExpression);
+
+                var entityProjectionExpression
+                    = intermediateExpr as EntityProjectionExpression;
+
+                if(entityProjectionExpression == null) return null;
 
                 var innerShaper = entityProjectionExpression.BindNavigation(navigation);
                 if (innerShaper == null)
@@ -2059,16 +2053,8 @@ namespace Harmony.Core.EF.Query.Internal
                         .Select(p => p.ClrType)
                         .Any(t => t.IsNullableType());
 
-                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(
-                        navigation.IsDependentToPrincipal()
-                            ? foreignKey.Properties
-                            : foreignKey.PrincipalKey.Properties,
-                        makeNullable);
-                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(
-                        navigation.IsDependentToPrincipal()
-                            ? foreignKey.PrincipalKey.Properties
-                            : foreignKey.Properties,
-                        makeNullable);
+                    var outerKey = entityShaperExpression.CreateKeyValuesExpression(foreignKey.PrincipalKey.Properties, makeNullable);
+                    var innerKey = innerShapedQuery.ShaperExpression.CreateKeyValuesExpression(foreignKey.Properties, makeNullable);
 
                     var outerKeySelector = Expression.Lambda(_expressionTranslator.Translate(outerKey), _queryExpression.CurrentParameter);
                     var innerKeySelector = Expression.Lambda(

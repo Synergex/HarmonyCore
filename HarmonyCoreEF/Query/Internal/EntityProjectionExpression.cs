@@ -14,8 +14,8 @@ namespace Harmony.Core.EF.Query.Internal
     {
         private readonly IDictionary<IProperty, Expression> _readExpressionMap;
 
-        private readonly IDictionary<INavigation, EntityShaperExpression> _navigationExpressionsCache
-            = new Dictionary<INavigation, EntityShaperExpression>();
+        private readonly IDictionary<INavigation, StructuralTypeShaperExpression> _navigationExpressionsCache
+            = new Dictionary<INavigation, StructuralTypeShaperExpression>();
 
         public EntityProjectionExpression(
             IEntityType entityType, IDictionary<IProperty, Expression> readExpressionMap)
@@ -34,8 +34,8 @@ namespace Harmony.Core.EF.Query.Internal
             foreach (var kvp in _readExpressionMap)
             {
                 var property = kvp.Key;
-                if (derivedType.IsAssignableFrom(property.DeclaringEntityType)
-                    || property.DeclaringEntityType.IsAssignableFrom(derivedType))
+                if (derivedType.IsAssignableFrom(property.DeclaringType)
+                    || property.DeclaringType.IsAssignableFrom(derivedType))
                 {
                     readExpressionMap[property] = kvp.Value;
                 }
@@ -46,8 +46,8 @@ namespace Harmony.Core.EF.Query.Internal
 
         public virtual Expression BindProperty(IProperty property)
         {
-            if (!EntityType.IsAssignableFrom(property.DeclaringEntityType)
-                && !property.DeclaringEntityType.IsAssignableFrom(EntityType))
+            if (!EntityType.IsAssignableFrom(property.DeclaringType)
+                && !property.DeclaringType.IsAssignableFrom(EntityType))
             {
                 throw new InvalidOperationException(
                     $"Called EntityProjectionExpression.BindProperty() with incorrect IProperty. EntityType:{EntityType.DisplayName()}, Property:{property.Name}");
@@ -56,7 +56,7 @@ namespace Harmony.Core.EF.Query.Internal
             return _readExpressionMap[property];
         }
 
-        public virtual void AddNavigationBinding(INavigation navigation, EntityShaperExpression entityShaper)
+        public virtual void AddNavigationBinding(INavigation navigation, StructuralTypeShaperExpression shaper)
         {
             if (!EntityType.IsAssignableFrom(navigation.DeclaringEntityType)
                 && !navigation.DeclaringEntityType.IsAssignableFrom(EntityType))
@@ -66,10 +66,10 @@ namespace Harmony.Core.EF.Query.Internal
                     + $"EntityType:{EntityType.DisplayName()}, Property:{navigation.Name}");
             }
 
-            _navigationExpressionsCache[navigation] = entityShaper;
+            _navigationExpressionsCache[navigation] = shaper;
         }
 
-        public virtual EntityShaperExpression BindNavigation(INavigation navigation)
+        public virtual StructuralTypeShaperExpression? BindNavigation(INavigation navigation)
         {
             if (!EntityType.IsAssignableFrom(navigation.DeclaringEntityType)
                 && !navigation.DeclaringEntityType.IsAssignableFrom(EntityType))
@@ -84,15 +84,21 @@ namespace Harmony.Core.EF.Query.Internal
                 : null;
         }
 
-        public virtual void Print(ExpressionPrinter expressionPrinter)
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        void IPrintableExpression.Print(ExpressionPrinter expressionPrinter)
         {
             expressionPrinter.AppendLine(nameof(EntityProjectionExpression) + ":");
             using (expressionPrinter.Indent())
             {
-                foreach (var readExpressionMapEntry in _readExpressionMap)
+                foreach (var (property, methodCallExpression) in _readExpressionMap)
                 {
-                    expressionPrinter.Append(readExpressionMapEntry.Key + " -> ");
-                    expressionPrinter.Visit(readExpressionMapEntry.Value);
+                    expressionPrinter.Append(property + " -> ");
+                    expressionPrinter.Visit(methodCallExpression);
                     expressionPrinter.AppendLine();
                 }
             }

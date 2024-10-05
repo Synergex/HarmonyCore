@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Harmony.Core.EF.Storage;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using System;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -105,11 +106,12 @@ namespace Harmony.Core.EF.Query.Internal
             private object GetProjectionIndex(
                 HarmonyQueryExpression queryExpression, ProjectionBindingExpression projectionBindingExpression)
             {
-                return projectionBindingExpression.ProjectionMember != null
-                    ? ((ConstantExpression)queryExpression.GetMappedProjection(projectionBindingExpression.ProjectionMember)).Value
-                    : (projectionBindingExpression.Index != null
-                        ? (object)projectionBindingExpression.Index
-                        : projectionBindingExpression.IndexMap);
+                throw new NotSupportedException();
+                //return projectionBindingExpression.ProjectionMember != null
+                //    ? ((ConstantExpression)queryExpression.GetMappedProjection(projectionBindingExpression.ProjectionMember)).Value
+                //    : (projectionBindingExpression.Index != null
+                //        ? (object)projectionBindingExpression.Index
+                //        : projectionBindingExpression.IndexMap);
             }
         }
     }
