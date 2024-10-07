@@ -15,18 +15,18 @@ namespace Harmony.Core.EF.Extensions
 {
     public static class HarmonyDbSetExtensions
     {
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _queryableLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>> _compiledFindQueryLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledFirstOrDefaultLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledWhereLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
-        static ConcurrentDictionary<Type, ConcurrentDictionary<string, object>> _compiledWhereIncludeLookup = new ConcurrentDictionary<Type, ConcurrentDictionary<string, object>>();
+        static ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>> _queryableLookup = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>>();
+        static ConcurrentDictionary<Guid, ConcurrentDictionary<Type, object>> _compiledFindQueryLookup = new ConcurrentDictionary<Guid, ConcurrentDictionary<Type, object>>();
+        static ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>> _compiledFirstOrDefaultLookup = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>>();
+        static ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>> _compiledWhereLookup = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>>();
+        static ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>> _compiledWhereIncludeLookup = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, object>>();
         static ParsingConfig DefaultParseConfig = new ParsingConfig();
         public static T FindCompiled<K, T>(this DbSet<T> thisp, K keyValue)
             where T : class
         {
             var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
             var context = currentContext.Context;
-            var contextType = context.GetType();
+            var contextType = context.Model.ModelId;
             var entityType = context.Model.FindEntityType(typeof(T));
             var primaryKey = entityType.FindPrimaryKey();
             var primaryKeyName = primaryKey.Properties.First().Name;
@@ -87,7 +87,7 @@ namespace Harmony.Core.EF.Extensions
             {
                 var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
                 var context = currentContext.Context;
-                var contextType = context.GetType();
+                var contextType = context.Model.ModelId;
                 var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
                 {
@@ -221,7 +221,7 @@ namespace Harmony.Core.EF.Extensions
             {
                 var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
                 var context = currentContext.Context;
-                var contextType = context.GetType();
+                var contextType = context.Model.ModelId;
                 var compiledQueryLookup = _compiledFirstOrDefaultLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression + ";including;" + including, (ex) =>
                 {
@@ -302,7 +302,7 @@ namespace Harmony.Core.EF.Extensions
             {
                 var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
                 var context = currentContext.Context;
-                var contextType = context.GetType();
+                var contextType = context.Model.ModelId;
                 var compiledQueryLookup = _compiledWhereLookup.GetOrAdd(contextType, (ty) => new ConcurrentDictionary<string, object>());
                 var compiledQuery = compiledQueryLookup.GetOrAdd(expression, (ex) =>
                 {
@@ -385,7 +385,7 @@ namespace Harmony.Core.EF.Extensions
         {
             var currentContext = ((IInfrastructure<IServiceProvider>)thisp).Instance.GetService(typeof(ICurrentDbContext)) as ICurrentDbContext;
             var context = currentContext.Context;
-            var contextType = context.GetType();
+            var contextType = context.Model.ModelId;
             if (parameters.Length > 5)
             {
                 return thisp.Where(expression, parameters);

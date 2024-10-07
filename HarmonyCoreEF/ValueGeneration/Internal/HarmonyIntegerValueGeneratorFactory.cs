@@ -19,16 +19,8 @@ namespace Harmony.Core.EF.ValueGeneration.Internal
     /// </summary>
     public class HarmonyIntegerValueGeneratorFactory : ValueGeneratorFactory
     {
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public override ValueGenerator Create(IProperty property)
-        {
-            return Create(property, property.DeclaringEntityType);
-        }
 
-        public override ValueGenerator Create(IProperty property, IEntityType entityType)
+        public override ValueGenerator Create(IProperty property, ITypeBase entityType)
         {
             var type = property.ClrType.UnwrapNullableType().UnwrapEnumType();
 

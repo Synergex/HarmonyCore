@@ -214,7 +214,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             switch (extensionExpression)
             {
-                case QueryRootExpression queryRootExpression:
+                case EntityQueryRootExpression queryRootExpression:
                     var entityType = queryRootExpression.EntityType;
 #pragma warning disable CS0618 // Type or member is obsolete
                     var definingQuery = entityType.GetDefiningQuery();
@@ -890,7 +890,7 @@ namespace Harmony.Core.EF.Query.Internal
                 && entityReference.EntityType.GetAllBaseTypes().Concat(entityReference.EntityType.GetDerivedTypesInclusive())
                     .FirstOrDefault(et => et.ClrType == castType) is IEntityType castEntityType)
             {
-                var newEntityReference = new EntityReference(castEntityType, entityReference.QueryRootExpression);
+                var newEntityReference = new EntityReference(castEntityType, entityReference.EntityQueryRootExpression);
                 if (entityReference.IsOptional)
                 {
                     newEntityReference.MarkAsOptional();
@@ -1717,7 +1717,7 @@ namespace Harmony.Core.EF.Query.Internal
                         // entity information through. Construct a MethodCall wrapper for the predicate with the proper query root.
                         var filterWrapper = Expression.Call(
                             QueryableMethods.Where.MakeGenericMethod(rootEntityType.ClrType),
-                            new QueryRootExpression(rootEntityType),
+                            new EntityQueryRootExpression(rootEntityType),
                             filterPredicate);
                         filterPredicate = filterWrapper.Arguments[1].UnwrapLambdaFromQuote();
 
@@ -1761,7 +1761,7 @@ namespace Harmony.Core.EF.Query.Internal
                 }
 
                 if (!_extensibilityHelper.AreQueryRootsCompatible(
-                    outerEntityReference.QueryRootExpression, innerEntityReference.QueryRootExpression))
+                        outerEntityReference.EntityQueryRootExpression, innerEntityReference.EntityQueryRootExpression))
                 {
                     throw new InvalidOperationException(CoreStrings.IncompatibleSourcesForSetOperation);
                 }
@@ -1916,7 +1916,7 @@ namespace Harmony.Core.EF.Query.Internal
         {
             // if sourceExpression is not a query root we will throw when trying to construct temporal root expression
             // regular queries don't use the query root so they will still be fine
-            var entityReference = new EntityReference(entityType, sourceExpression as QueryRootExpression);
+            var entityReference = new EntityReference(entityType, sourceExpression as EntityQueryRootExpression);
             PopulateEagerLoadedNavigations(entityReference.IncludePaths);
 
             var currentTree = new NavigationTreeExpression(entityReference);

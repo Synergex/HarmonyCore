@@ -73,7 +73,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             if (!(expression is NewExpression
                 || expression is MemberInitExpression
-                || expression is EntityShaperExpression
+                || expression is StructuralTypeShaperExpression
                 || expression is IncludeExpression))
             {
                 // This skips the group parameter from GroupJoin
@@ -173,22 +173,18 @@ namespace Harmony.Core.EF.Query.Internal
                 ? (Expression)Expression.Coalesce(expression, Expression.Default(convertTo))
                 : Expression.Convert(expression, convertTo);
 
-        private CollectionShaperExpression AddCollectionProjection(
+        private ProjectionBindingExpression AddCollectionProjection(
             ShapedQueryExpression subquery, INavigation navigation, Type elementType)
-            => new CollectionShaperExpression(
-                new ProjectionBindingExpression(
+            => new ProjectionBindingExpression(
                     _queryExpression,
                     _queryExpression.AddSubqueryProjection(
                         subquery,
                         out var innerShaper),
-                    typeof(IEnumerable<DataObjectBase>)),
-                innerShaper,
-                navigation,
-                elementType);
+                    typeof(IEnumerable<DataObjectBase>));
 
         protected override Expression VisitExtension(Expression extensionExpression)
         {
-            if (extensionExpression is EntityShaperExpression entityShaperExpression)
+            if (extensionExpression is StructuralTypeShaperExpression entityShaperExpression)
             {
                 EntityProjectionExpression entityProjectionExpression;
                 if (entityShaperExpression.ValueBufferExpression is ProjectionBindingExpression projectionBindingExpression)
@@ -204,8 +200,10 @@ namespace Harmony.Core.EF.Query.Internal
 
                 if (_clientEval)
                 {
-                    return entityShaperExpression.Update(
-                        new ProjectionBindingExpression(_queryExpression, _queryExpression.AddToProjection(entityProjectionExpression)));
+                    throw new NotSupportedException();
+                    //_queryExpression.AddToProjection(entityProjectionExpression);
+                    //return entityShaperExpression.Update(
+                    //    new ProjectionBindingExpression(_queryExpression, , entityShaperExpression.StructuralType.ClrType));
                 }
 
                 _projectionMapping[_projectionMembers.Peek()] = entityProjectionExpression;

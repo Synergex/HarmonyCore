@@ -164,7 +164,7 @@ namespace Harmony.Core.EF.Query.Internal
                         return ownedExpansion;
                     }
 
-                    var ownedEntityReference = new EntityReference(targetType, entityReference.QueryRootExpression);
+                    var ownedEntityReference = new EntityReference(targetType, entityReference.EntityQueryRootExpression);
                     _navigationExpandingExpressionVisitor.PopulateEagerLoadedNavigations(ownedEntityReference.IncludePaths);
                     ownedEntityReference.MarkAsOptional();
                     if (entityReference.IncludePaths.TryGetValue(navigation, out var includePath))
@@ -235,7 +235,7 @@ namespace Harmony.Core.EF.Query.Internal
                         var secondTargetType = navigation.TargetEntityType;
                         // we can use the entity reference here. If the join entity wasn't temporal,
                         // the query root creator would have thrown the exception when it was being created
-                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.QueryRootExpression);
+                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.EntityQueryRootExpression);
                         var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
                         if (includeTree != null)
@@ -283,7 +283,7 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         // Second psuedo-navigation is a collection
                         var secondTargetType = navigation.TargetEntityType;
-                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.QueryRootExpression);
+                        var innerQueryable = _extensibilityHelper.CreateQueryRoot(secondTargetType, entityReference.EntityQueryRootExpression);
                         var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
                         if (includeTree != null)
@@ -363,7 +363,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                 Check.DebugAssert(!targetType.IsOwned(), "Owned entity expanding foreign key.");
 
-                var innerQueryable = _extensibilityHelper.CreateQueryRoot(targetType, entityReference.QueryRootExpression);
+                var innerQueryable = _extensibilityHelper.CreateQueryRoot(targetType, entityReference.EntityQueryRootExpression);
                 var innerSource = (NavigationExpansionExpression)_navigationExpandingExpressionVisitor.Visit(innerQueryable);
 
                 // Value known to be non-null
@@ -1101,7 +1101,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 Check.NotNull(extensionExpression, nameof(extensionExpression));
 
-                return extensionExpression is QueryRootExpression queryRootExpression
+                return extensionExpression is EntityQueryRootExpression queryRootExpression
                     && queryRootExpression.EntityType == _entityType
                         ? _navigationExpandingExpressionVisitor.CreateNavigationExpansionExpression(queryRootExpression, _entityType)
                         : base.VisitExtension(extensionExpression);
