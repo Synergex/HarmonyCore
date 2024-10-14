@@ -469,7 +469,7 @@ Known structure properties:
                 if (int.TryParse(versionOverride, out var version))
                     return await VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache);
                 else
-                    return await VersionTargetingInfo.GetVersionTargetingInfo(6, skipCache);
+                    return await VersionTargetingInfo.GetVersionTargetingInfo(8, skipCache);
             }).Result;
         }
 
