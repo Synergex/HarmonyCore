@@ -46,10 +46,10 @@ stages:
 #        Release_x86:
 #          Configuration: Release
 #          Platform: x86
-        Release_linux:
-          Configuration: Release
-          Platform: linux64
-          RID: linux-x64
+        # Release_linux:
+        #   Configuration: Release
+        #   Platform: linux64
+        #   RID: linux-x64
     steps:
     - checkout: self
       submodules: true
@@ -374,11 +374,13 @@ stages:
         packageType: 'sdk'
         version: '8.0.x'
   
-    # - task: CmdLine@2
-    #   displayName: "Install Harmony Core templates"
-    #   inputs:
-    #     script: |
-    #       dotnet new install Harmony.Core.ProjectTemplates
+    - task: CmdLine@2
+      displayName: "Install Harmony Core templates"
+      inputs:
+        script: |
+          dotnet new uninstall Harmony.Core.ProjectTemplates
+          call InstallLocalPackages.bat
+        workingDirectory: 'C:\repos\HarmonyCoreProjectTemplates'
 
     - task: CmdLine@2
       displayName: "Create new project from a template"
