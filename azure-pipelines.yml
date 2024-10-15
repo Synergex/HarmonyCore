@@ -112,6 +112,14 @@ stages:
         logFileVerbosity: diagnostic
         clean: false
 
+    # publish cli-tool-versions
+    - task: PublishPipelineArtifact@1
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Publish cli-tool-versions'
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\cli-tool-versions.json'
+        artifactName: 'cli-tool-versions'
+
     # publish cli tool
     - task: DotNetCoreCLI@2
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
@@ -237,16 +245,16 @@ stages:
     strategy:
       maxParallel: 4
       matrix:
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-          AgentPool: PipelinesTesting-TY
-          AgentName: taras-windows10vm
-        Release_linux:
-         Configuration: Release
-         Platform: linux64
-         AgentPool: Default
-         AgentName: moe64
+        # Release_x64:
+        #   Configuration: Release
+        #   Platform: x64
+        #   AgentPool: PipelinesTesting-TY
+        #   AgentName: taras-windows10vm
+        # Release_linux:
+        #  Configuration: Release
+        #  Platform: linux64
+        #  AgentPool: Default
+        #  AgentName: moe64
     steps:
     - checkout: none
 
@@ -417,6 +425,11 @@ stages:
     - download: current
       displayName: "Download HCarchive"
       artifact: 'HCarchive'
+
+    - download: current
+      displayName: "Download cli-tool-versions"
+      artifact: 'cli-tool-versions'
+      targetPath: '$(Pipeline.Workspace)\$(project)'
 
     # # for testing purposes reuse already published sde artifacts
     # - task: DownloadPipelineArtifact@2
