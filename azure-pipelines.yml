@@ -433,17 +433,25 @@ stages:
         artifact: 'cli-tool-versions'
         targetPath: '$(Pipeline.Workspace)\$(project)'
 
+    - task: CmdLine@2
+      displayName: "Create dir for nuget packages"
+      inputs:
+        script: |
+          mkdir NugetPackagesReleasex64
+        workingDirectory: '$(Pipeline.Workspace)'
+
     # download nuget packages
     - task: DownloadPipelineArtifact@2
       displayName: "Download nugetpackages"
       inputs:
         buildType: 'current'
         artifact: 'NugetPackagesReleasex64'
-        targetPath: '$(Pipeline.Workspace)'
+        targetPath: '$(Pipeline.Workspace)\NugetPackagesReleasex64'
 
     - task: PowerShell@2
       displayName: "Create nuget.config" 
       inputs:
+        targetType: 'inline'
         script: |
           $nugetConfigPath = "$(Pipeline.Workspace)\$(project)\nuget.config"
           $localFeedPath = "$(Pipeline.Workspace)\NugetPackagesReleasex64"
