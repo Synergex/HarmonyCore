@@ -433,6 +433,36 @@ stages:
         artifact: 'cli-tool-versions'
         targetPath: '$(Pipeline.Workspace)\$(project)'
 
+    # download nuget packages
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download nugetpackages"
+      inputs:
+        buildType: 'current'
+        artifact: 'NugetPackagesReleasex64'
+        targetPath: '$(Pipeline.Workspace)'
+
+    - task: PowerShell@2
+      displayName: "Create nuget.config" 
+      inputs:
+        script: |
+          $nugetConfigPath = "$(Pipeline.Workspace)\$(project)\nuget.config"
+          $localFeedPath = "$(Pipeline.Workspace)\NugetPackagesReleasex64"
+
+          # Create the nuget.config content
+          $nugetConfigContent = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <add key="local" value="$localFeedPath" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+          </configuration>
+          "@
+
+        # Write the content to the nuget.config file
+        $nugetConfigContent | Out-File -FilePath $nugetConfigPath -Encoding utf8
+      workingDirectory: '$(Pipeline.Workspace)\$(project)'
+
     # # for testing purposes reuse already published sde artifacts
     # - task: DownloadPipelineArtifact@2
     #   inputs:
