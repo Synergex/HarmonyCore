@@ -39,7 +39,7 @@ namespace HarmonyCore.CliTool.Commands
             {
                 if (!hasUnitTests)
                 {
-                    var addUnitTests = AddUnitTests();
+                    var addUnitTests = AddUnitTests(options.ArchivePath);
                     addUnitTests.Wait();
                 }
                 else
@@ -49,7 +49,7 @@ namespace HarmonyCore.CliTool.Commands
             }
             else if (options.CollectTestData)
             {
-                if (hasUnitTests) 
+                if (hasUnitTests)
                 {
                     Console.WriteLine("Collect Test Data");
                     var commonCommands = new CommonCommands(null);
@@ -114,7 +114,7 @@ namespace HarmonyCore.CliTool.Commands
                             return 1;
                         }
                         smcPath = Path.GetRelativePath(_solutionInfo.SolutionDir + "\\", smcPath);
-                        if(File.Exists(smcPath))
+                        if (File.Exists(smcPath))
                         {
                             Task enableSMC = commonCommands.AddSmc(_solutionInfo, smcPath);
                             enableSMC.Wait();
@@ -140,7 +140,7 @@ namespace HarmonyCore.CliTool.Commands
             return 0;
         }
 
-        public async Task AddUnitTests()
+        public async Task AddUnitTests(string? zipPath = null)
         {
             Console.WriteLine("This utility will make significant changes to projects and other source files in your Harmony Core development environment. Before running this tool we recommend checking the current state of your development environment into your source code repository, taking a backup copy of the environment if you don't use source code control.\n\n");
             Console.WriteLine("Type YES to proceed: ");
@@ -156,7 +156,7 @@ namespace HarmonyCore.CliTool.Commands
                     await commonCommands.LoadTestProjects(_solutionInfo);
                     _solutionInfo.SaveSolution();
                     await commonCommands.RunRegen(_solutionInfo);
-                    await commonCommands.RunUpgradeLatest();
+                    await commonCommands.RunUpgradeLatest(zipPath);
                     await commonCommands.CollectTestData(_solutionInfo);
                     Console.WriteLine("Finished");
                 }

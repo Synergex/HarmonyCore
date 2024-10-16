@@ -191,6 +191,9 @@ Known structure properties:
 
         [Option("collect-test-data", HelpText = "Collect test data for your Unit Tests")]
         public bool CollectTestData { get; set; }
+
+        [Option('z', Hidden = true, HelpText = "Internal: Archive path for unit tests")]
+        public string ArchivePath { get; set; }
     }
 
     public class VersionTargetingInfo

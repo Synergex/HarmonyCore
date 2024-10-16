@@ -156,7 +156,7 @@ namespace HarmonyCore.CliTool
             //TODO show messages interactively
         }
 
-        public async Task RunUpgradeLatest()
+        public async Task RunUpgradeLatest(string? zipPath = null)
         {
             var defaultLoader = () => Program.LoadSolutionInfo((str) =>
             {
@@ -175,7 +175,7 @@ namespace HarmonyCore.CliTool
             }
             var versionInfo = Program.LoadVersionInfoSync(true);
             var upgradeLatestOptions = new UpgradeLatestOptions();
-            await Program.UpgradeLatest(solutionInfo, versionInfo, upgradeLatestOptions.OverrideTemplateVersion, upgradeLatestOptions.OverrideTemplateUrl, events, null);
+            await Program.UpgradeLatest(solutionInfo, versionInfo, upgradeLatestOptions.OverrideTemplateVersion, upgradeLatestOptions.OverrideTemplateUrl, events, zipPath);
         }
 
         public async Task CollectTestData(SolutionInfo _solutionInfo)

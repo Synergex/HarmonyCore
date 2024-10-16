@@ -609,8 +609,10 @@ stages:
       displayName: "Add unit tests"
       inputs:
         script: |
-          echo YES| %clitool% features --add-unit-tests
+          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
+      env: 
+        LOCAL_HC_TEMPLATES: 1
 
     - task: CmdLine@2
       displayName: "Run regen -p and upgrade-latest"
