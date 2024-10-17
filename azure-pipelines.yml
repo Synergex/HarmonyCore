@@ -257,8 +257,8 @@ stages:
         Release_linux:
          Configuration: Release
          Platform: linux64
-         AgentPool: Default
-         AgentName: moe64
+         AgentPool: PipelinesTesting-TY
+         AgentName: taras-windows10wsl
     steps:
     - checkout: none
 
@@ -365,7 +365,8 @@ stages:
     steps:
     - checkout: HarmonyCoreSamples
       clean: true
-
+      path: HarmonyCoreSamples
+      
     - checkout: HarmonyCoreProjectTemplates
       clean: true
       path: HarmonyCoreProjectTemplates
@@ -373,14 +374,14 @@ stages:
     - task: CopyFiles@2
       condition: ne(variables.project, 'basic')
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\$(project)'
+        SourceFolder: '$(Build.SourcesDirectory)\HarmonyCoreSamples\$(project)'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\$(project)'
 
     - task: CopyFiles@2
       displayName: 'Copy powershell scripts'
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\CICD'
+        SourceFolder: '$(Build.SourcesDirectory)\HarmonyCoreSamples\CICD'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\CICD'
 
@@ -397,7 +398,7 @@ stages:
           dotnet new uninstall Harmony.Core.ProjectTemplates
           call GenerateLocalPackages.bat
           call InstallLocalPackages.bat
-        workingDirectory: '$(Pipeline.Workspace)\HarmonyCoreProjectTemplates'
+        workingDirectory: '$(Build.SourcesDirectory)\HarmonyCoreProjectTemplates'
 
     - task: CmdLine@2
       displayName: "Create new project from a template"
