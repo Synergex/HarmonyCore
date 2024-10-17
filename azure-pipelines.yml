@@ -374,14 +374,14 @@ stages:
     - task: CopyFiles@2
       condition: ne(variables.project, 'basic')
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\HarmonyCoreSamples\$(project)'
+        SourceFolder: '$(Pipeline.Workspace)\HarmonyCoreSamples\$(project)'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\$(project)'
 
     - task: CopyFiles@2
       displayName: 'Copy powershell scripts'
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\HarmonyCoreSamples\CICD'
+        SourceFolder: '$(Pipeline.Workspace)\HarmonyCoreSamples\CICD'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\CICD'
 
@@ -398,7 +398,7 @@ stages:
           dotnet new uninstall Harmony.Core.ProjectTemplates
           call GenerateLocalPackages.bat
           call InstallLocalPackages.bat
-        workingDirectory: '$(Build.SourcesDirectory)\HarmonyCoreProjectTemplates'
+        workingDirectory: '$(Pipeline.Workspace)\HarmonyCoreProjectTemplates'
 
     - task: CmdLine@2
       displayName: "Create new project from a template"
