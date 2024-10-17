@@ -80,7 +80,7 @@ namespace HarmonyCore.CliTool
             }
             else
             {
-                var (zip, versionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+                var (zip, versionTag) = await GetLatestRelease("net8", overrideVersionName, overrideTargetUrl);
                 using (zip)
                 {
                     foreach (var entry in zip.Entries)
@@ -118,7 +118,7 @@ namespace HarmonyCore.CliTool
             }
             else
             {
-                (zip, CurrentVersionTag) = await GetLatestRelease("net6", overrideVersionName, overrideTargetUrl);
+                (zip, CurrentVersionTag) = await GetLatestRelease("net8", overrideVersionName, overrideTargetUrl);
             }
             using (zip)
             {

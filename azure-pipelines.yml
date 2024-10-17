@@ -10,6 +10,10 @@ resources:
     type: github
     endpoint: Synergex
     name: Synergex/HarmonyCoreSamples
+  - repository: HarmonyCoreProjectTemplates
+    type: github
+    endpoint: Synergex
+    name: Synergex/HarmonyCoreProjectTemplates
 
 parameters:
   - name: PublishProjects
@@ -29,7 +33,7 @@ stages:
     workspace:
       clean: all
     pool:
-      name: Synergy-10-3-3Build
+      name: PipelinesTesting-TY
     strategy:
       maxParallel: 4
       matrix:
@@ -111,6 +115,14 @@ stages:
         configuration: $(Configuration)
         logFileVerbosity: diagnostic
         clean: false
+
+    # publish cli-tool-versions
+    - task: PublishPipelineArtifact@1
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Publish cli-tool-versions'
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\cli-tool-versions.json'
+        artifactName: 'cli-tool-versions'
 
     # publish cli tool
     - task: DotNetCoreCLI@2
@@ -240,13 +252,13 @@ stages:
         Release_x64:
           Configuration: Release
           Platform: x64
-          AgentPool: Synergy-10-3-3Build
-          AgentName: HARMONYDEVMAIN-
+          AgentPool: PipelinesTesting-TY
+          AgentName: taras-windows10vm
         Release_linux:
          Configuration: Release
          Platform: linux64
-         AgentPool: Default
-         AgentName: moe64
+         AgentPool: PipelinesTesting-TY
+         AgentName: taras-windows10wsl
     steps:
     - checkout: none
 
@@ -335,7 +347,7 @@ stages:
     workspace:
       clean: all
     pool:
-      name: Synergy-10-3-3Build
+      name: PipelinesTesting-TY
     strategy:
       maxParallel: 4
       matrix:
@@ -353,18 +365,23 @@ stages:
     steps:
     - checkout: HarmonyCoreSamples
       clean: true
+      path: HarmonyCoreSamples
+      
+    - checkout: HarmonyCoreProjectTemplates
+      clean: true
+      path: HarmonyCoreProjectTemplates
 
     - task: CopyFiles@2
       condition: ne(variables.project, 'basic')
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\$(project)'
+        SourceFolder: '$(Pipeline.Workspace)\HarmonyCoreSamples\$(project)'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\$(project)'
 
     - task: CopyFiles@2
       displayName: 'Copy powershell scripts'
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\CICD'
+        SourceFolder: '$(Pipeline.Workspace)\HarmonyCoreSamples\CICD'
         Contents: '**'
         TargetFolder: '$(Pipeline.Workspace)\CICD'
 
@@ -378,7 +395,10 @@ stages:
       displayName: "Install Harmony Core templates"
       inputs:
         script: |
-          dotnet new install Harmony.Core.ProjectTemplates
+          dotnet new uninstall Harmony.Core.ProjectTemplates
+          call GenerateLocalPackages.bat
+          call InstallLocalPackages.bat
+        workingDirectory: '$(Pipeline.Workspace)\HarmonyCoreProjectTemplates'
 
     - task: CmdLine@2
       displayName: "Create new project from a template"
@@ -415,6 +435,51 @@ stages:
     - download: current
       displayName: "Download HCarchive"
       artifact: 'HCarchive'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download cli-tool-versions"
+      inputs:
+        buildType: 'current'
+        artifact: 'cli-tool-versions'
+        targetPath: '$(Pipeline.Workspace)\$(project)'
+
+    - task: CmdLine@2
+      displayName: "Create dir for nuget packages"
+      inputs:
+        script: |
+          mkdir NugetPackagesReleasex64
+        workingDirectory: '$(Pipeline.Workspace)'
+
+    # download nuget packages
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download nugetpackages"
+      inputs:
+        buildType: 'current'
+        artifact: 'NugetPackagesReleasex64'
+        targetPath: '$(Pipeline.Workspace)\NugetPackagesReleasex64'
+
+    - task: PowerShell@2
+      displayName: "Create nuget.config" 
+      inputs:
+        targetType: 'inline'
+        script: |
+          $nugetConfigPath = "$(Pipeline.Workspace)\$(project)\nuget.config"
+          $localFeedPath = "$(Pipeline.Workspace)\NugetPackagesReleasex64"
+
+          # Create the nuget.config content
+          $nugetConfigContent = @"
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <add key="local" value="$localFeedPath" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+          </configuration>
+          "@
+
+          # Write the content to the nuget.config file
+          $nugetConfigContent | Out-File -FilePath $nugetConfigPath -Encoding utf8
+        workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     # # for testing purposes reuse already published sde artifacts
     # - task: DownloadPipelineArtifact@2
@@ -554,8 +619,10 @@ stages:
       displayName: "Add unit tests"
       inputs:
         script: |
-          echo YES| %clitool% features --add-unit-tests
+          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
+      env: 
+        LOCAL_HC_TEMPLATES: 1
 
     - task: CmdLine@2
       displayName: "Run regen -p and upgrade-latest"

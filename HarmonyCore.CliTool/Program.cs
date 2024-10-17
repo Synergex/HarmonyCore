@@ -191,6 +191,9 @@ Known structure properties:
 
         [Option("collect-test-data", HelpText = "Collect test data for your Unit Tests")]
         public bool CollectTestData { get; set; }
+
+        [Option('z', Hidden = true, HelpText = "Internal: Archive path for unit tests")]
+        public string ArchivePath { get; set; }
     }
 
     public class VersionTargetingInfo
@@ -223,8 +226,10 @@ Known structure properties:
                 case 3:
                     return new VersionTargetingInfo(await LoadKnownVersion("netcoreapp3.1", skipCache));
                 case 6:
-                default:
                     return new VersionTargetingInfo(await LoadKnownVersion("net6.0", skipCache));
+                case 8:
+                default:
+                    return new VersionTargetingInfo(await LoadKnownVersion("net8.0", skipCache));
             }
         }
 
@@ -238,7 +243,7 @@ Known structure properties:
         public Dictionary<string, string> NugetReferences => _knownVersion.NugetVersions;
         public string BuildPackageVersion => _knownVersion.BuildPackageVersion;
         public string HCBuildVersion => _knownVersion.HCVersion;
-        public string TargetFramework => _knownVersion.TargetFramework ?? "net6";
+        public string TargetFramework => _knownVersion.TargetFramework ?? "net8";
         public List<string> HCRegenRequiredVersions => _knownVersion.HCRegenRequiredVersions ?? new List<string>();
         public List<string> RemoveNugetReferences => _knownVersion.RemoveReferences ?? new List<string>();
     }
@@ -469,7 +474,7 @@ Known structure properties:
                 if (int.TryParse(versionOverride, out var version))
                     return await VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache);
                 else
-                    return await VersionTargetingInfo.GetVersionTargetingInfo(6, skipCache);
+                    return await VersionTargetingInfo.GetVersionTargetingInfo(8, skipCache);
             }).Result;
         }
 
