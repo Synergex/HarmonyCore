@@ -177,8 +177,10 @@ namespace Harmony.Core.Context
 					processExited = true
 					untypedTask = tmpTsk2
 					await untypedTask.WaitAsync(timeoutToken)
-				end
-                readLine = tmpTsk.Result
+                end
+                ;;readLine needs to be initialized to the result of the first read
+				;;but if we only got standard error output this Result would be null
+                readLine = tmpTsk.Result ?? ""
 
 				;;dont listen to standard error it should be used only for out of band communication
                 if (tmpTsk2.IsCompleted)
