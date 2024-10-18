@@ -179,8 +179,9 @@ namespace Harmony.Core.Context
 				end
                 readLine = tmpTsk.Result
 
-                if (tmpTsk2.IsCompleted)
-                    readLine += tmpTsk2.Result
+				;;dont listen to standard error it should be used only for out of band communication
+                ;;if (tmpTsk2.IsCompleted)
+                ;;    readLine += tmpTsk2.Result
 
 				while(!mTargetProcess.HasExited && !readLine.EndsWith("READY"))
                 begin
@@ -192,8 +193,8 @@ namespace Harmony.Core.Context
                         tmpTsk2 = mTargetProcess.StandardError.ReadLineAsync()
                     untypedTask = tmpTsk
                     await untypedTask.WaitAsync(timeoutToken)
-                    if (tmpTsk2.IsCompleted)
-                        readLine += tmpTsk2.Result
+                    ;;if (tmpTsk2.IsCompleted)
+                    ;;    readLine += tmpTsk2.Result
                     readLine += tmpTsk.Result
                     if (tmpTsk.Result == ^null)
                         processExited = true
