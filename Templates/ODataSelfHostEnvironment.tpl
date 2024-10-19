@@ -221,7 +221,7 @@ namespace <NAMESPACE>
             data fileExtension, a10
             xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
             data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
-			EnsurePlatformSpecificLineEndings(textFile.Replace(":", System.IO.Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")), <STRUCTURE_SIZE>)
+			EnsurePlatformSpecificLineEndings(textFile.Replace(":", System.IO.Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT"), StringComparison.CurrentCultureIgnoreCase), <STRUCTURE_SIZE>)
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
             data <structurePlural>Data = new List<<StructureNoplural>>()
