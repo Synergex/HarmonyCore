@@ -57,8 +57,8 @@ namespace <NAMESPACE>
         public static method LoadFromFile, @List<<StructureNoplural>>
         proc
             data dataFile = "<FILE_NAME>"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
-			UnitTestEnvironment.EnsurePlatformSpecificLineEndings(textFile.Replace(":", System.IO.Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")), <STRUCTURE_SIZE>)
+            data textFile = dataFile.Replace(".ism",".txt", StringComparison.CurrentCultureIgnoreCase)
+			UnitTestEnvironment.EnsurePlatformSpecificLineEndings(textFile.Replace(":", System.IO.Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT"), StringComparison.CurrentCultureIgnoreCase), <STRUCTURE_SIZE>)
 			data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
             data grfa, a10

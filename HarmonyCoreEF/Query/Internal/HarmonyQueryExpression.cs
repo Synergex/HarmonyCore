@@ -197,7 +197,7 @@ namespace Harmony.Core.EF.Query.Internal
                         QueryCompilationContext.QueryContextParameter,
                         Expression.Constant(rootExpr.EntityType),
                         Expression.Constant(queryPlan),
-                        Expression.Constant(compilationContext.IsTracking)));
+                        Expression.Constant(compilationContext.QueryTrackingBehavior)));
                 }
 
                 if (splitState.DrivingWhere != null || (unionParts.Count == 0 && splitState.BasesOns.Count > 0))
@@ -214,7 +214,7 @@ namespace Harmony.Core.EF.Query.Internal
                         QueryCompilationContext.QueryContextParameter,
                         Expression.Constant(rootExpr.EntityType),
                         Expression.Constant(queryPlan),
-                        Expression.Constant(compilationContext.IsTracking)));
+                        Expression.Constant(compilationContext.QueryTrackingBehavior)));
                 }
 
                 //this is already distinct union so we shouldnt return any duplicates from this operation
@@ -246,7 +246,7 @@ namespace Harmony.Core.EF.Query.Internal
                     QueryCompilationContext.QueryContextParameter,
                     Expression.Constant(rootExpr.EntityType),
                     Expression.Constant(queryPlan),
-                    Expression.Constant(compilationContext.IsTracking));
+                    Expression.Constant(compilationContext.QueryTrackingBehavior));
             }
 
             static void MarkJoinBuffer(Dictionary<int, object> splits, QueryBuffer queryBuffer)
@@ -827,7 +827,8 @@ namespace Harmony.Core.EF.Query.Internal
                     var mappingValue = ((ConstantExpression)_projectionMapping[projectionBindingExpression.ProjectionMember]).Value;
                     if (mappingValue is IReadOnlyDictionary<IProperty, int> indexMap)
                     {
-                        return new ProjectionBindingExpression(projectionBindingExpression.QueryExpression, indexMap);
+                        throw new NotSupportedException();
+                        //return new ProjectionBindingExpression(projectionBindingExpression.QueryExpression, indexMap);
                     }
 
                     if (mappingValue is int index)
@@ -1267,7 +1268,7 @@ namespace Harmony.Core.EF.Query.Internal
             _projectionMapping = projectionMapping;
         }
 
-        public virtual EntityShaperExpression AddNavigationToWeakEntityType(
+        public virtual StructuralTypeShaperExpression AddNavigationToWeakEntityType(
             EntityProjectionExpression entityProjectionExpression,
             INavigation navigation,
             HarmonyQueryExpression innerQueryExpression,
@@ -1407,7 +1408,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             throw new NotImplementedException();
 
-            var entityShaper = new EntityShaperExpression(innerEntityProjection.EntityType, innerEntityProjection, nullable: true);
+            var entityShaper = new StructuralTypeShaperExpression(innerEntityProjection.EntityType, innerEntityProjection, nullable: true);
             entityProjectionExpression.AddNavigationBinding(navigation, entityShaper);
 
             return entityShaper;

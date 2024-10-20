@@ -170,9 +170,9 @@ namespace Harmony.Core.EF.Query.Internal
         {
             var source = originalSource.UnwrapTypeConversion(out var convertedType);
             result = null;
-            if (source is EntityShaperExpression entityShaperExpression)
+            if (source is StructuralTypeShaperExpression entityShaperExpression)
             {
-                var entityType = entityShaperExpression.EntityType;
+                var entityType = entityShaperExpression.StructuralType as IEntityType;
                 if (convertedType != null)
                 {
                     entityType = entityType.GetRootType().GetDerivedTypesInclusive()
@@ -511,7 +511,8 @@ namespace Harmony.Core.EF.Query.Internal
                 var derivedType = entityType.GetDerivedTypes().SingleOrDefault(et => et.ClrType == typeBinaryExpression.TypeOperand);
                 if (derivedType != null)
                 {
-                    var discriminatorProperty = entityType.GetDiscriminatorProperty();
+                    var discriminatorPropertyName = entityType.GetDiscriminatorPropertyName();
+                    var discriminatorProperty = entityType.GetProperty(discriminatorPropertyName);
                     var boundProperty = BindProperty(entityProjectionExpression, discriminatorProperty);
 
                     var equals = Expression.Equal(
@@ -601,7 +602,7 @@ namespace Harmony.Core.EF.Query.Internal
                 case EntityProjectionExpression _:
                     return extensionExpression;
 
-                case EntityShaperExpression entityShaperExpression:
+                case StructuralTypeShaperExpression entityShaperExpression:
                     return Visit(entityShaperExpression.ValueBufferExpression);
 
                 case ProjectionBindingExpression projectionBindingExpression:

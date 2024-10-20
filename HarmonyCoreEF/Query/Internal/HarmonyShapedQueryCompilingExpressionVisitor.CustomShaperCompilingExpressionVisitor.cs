@@ -79,7 +79,7 @@ namespace Harmony.Core.EF.Query.Internal
                         {
                             fixup(includingEntity, relatedEntity);
                             if (inverseNavigation != null
-                                && !inverseNavigation.IsCollection())
+                                && !inverseNavigation.IsCollection)
                             {
                                 SetIsLoadedNoTracking(relatedEntity, inverseNavigation);
                             }
@@ -173,12 +173,12 @@ namespace Harmony.Core.EF.Query.Internal
 
                     if (includeExpression.Navigation.IsCollection)
                     {
-                        var collectionShaper = (CollectionShaperExpression)includeExpression.NavigationExpression;
+                        var collectionShaper = (ProjectionBindingExpression)includeExpression.NavigationExpression;
                         return Expression.Call(
                             _includeCollectionMethodInfo.MakeGenericMethod(entityClrType, includingClrType, relatedEntityClrType),
                             QueryCompilationContext.QueryContextParameter,
-                            collectionShaper.Projection,
-                            Expression.Constant(((LambdaExpression)Visit(collectionShaper.InnerShaper)).Compile()),
+                            collectionShaper,
+                            Expression.Constant(((LambdaExpression)Visit(collectionShaper)).Compile()),
                             includeExpression.EntityExpression,
                             Expression.Constant(includeExpression.Navigation),
                             Expression.Constant(inverseNavigation, typeof(INavigation)),
@@ -201,19 +201,20 @@ namespace Harmony.Core.EF.Query.Internal
                         Expression.Constant(_tracking));
                 }
 
-                if (extensionExpression is CollectionShaperExpression collectionShaperExpression)
+                if (extensionExpression is ProjectionBindingExpression collectionShaperExpression)
                 {
-                    var elementType = collectionShaperExpression.ElementType;
-                    var collectionType = collectionShaperExpression.Type;
+                    throw new NotImplementedException();
+                    //var elementType = collectionShaperExpression.ElementType;
+                    //var collectionType = collectionShaperExpression.Type;
 
-                    return Expression.Call(
-                        _materializeCollectionMethodInfo.MakeGenericMethod(elementType, collectionType),
-                        QueryCompilationContext.QueryContextParameter,
-                        collectionShaperExpression.Projection,
-                        Expression.Constant(((LambdaExpression)Visit(collectionShaperExpression.InnerShaper)).Compile()),
-                        Expression.Constant(
-                            collectionShaperExpression.Navigation?.GetCollectionAccessor(),
-                            typeof(IClrCollectionAccessor)));
+                    //return Expression.Call(
+                    //    _materializeCollectionMethodInfo.MakeGenericMethod(elementType, collectionType),
+                    //    QueryCompilationContext.QueryContextParameter,
+                    //    collectionShaperExpression.Projection,
+                    //    Expression.Constant(((LambdaExpression)Visit(collectionShaperExpression.InnerShaper)).Compile()),
+                    //    Expression.Constant(
+                    //        collectionShaperExpression.Navigation?.GetCollectionAccessor(),
+                    //        typeof(IClrCollectionAccessor)));
                 }
 
                 if (extensionExpression is SingleResultShaperExpression singleResultShaperExpression)
@@ -238,15 +239,15 @@ namespace Harmony.Core.EF.Query.Internal
                 var relatedEntityParameter = Expression.Parameter(relatedEntityType);
                 var expressions = new List<Expression>
                 {
-                    navigation.IsCollection()
-                        ? AddToCollectionNavigation(entityParameter, relatedEntityParameter, navigation)
+                    navigation.IsCollection
+                    ? AddToCollectionNavigation(entityParameter, relatedEntityParameter, navigation)
                         : AssignReferenceNavigation(entityParameter, relatedEntityParameter, navigation)
                 };
 
                 if (inverseNavigation != null)
                 {
                     expressions.Add(
-                        inverseNavigation.IsCollection()
+                        inverseNavigation.IsCollection
                             ? AddToCollectionNavigation(relatedEntityParameter, entityParameter, inverseNavigation)
                             : AssignReferenceNavigation(relatedEntityParameter, entityParameter, inverseNavigation));
                 }

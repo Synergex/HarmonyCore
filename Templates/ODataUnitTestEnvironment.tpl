@@ -269,7 +269,7 @@ namespace <NAMESPACE>
 
             dataFile = "<FILE_NAME>"
   <IF STRUCTURE_ISAM>
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xdlFile = "@" + dataFile.Replace(".ism",".xdl", StringComparison.CurrentCultureIgnoreCase)
 
             data <structureNoplural>, @<StructureNoplural>
             open(chout=0,o:i,dataFile,FDL:xdlFile)

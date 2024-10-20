@@ -154,7 +154,8 @@ namespace Harmony.Core.Context
 		private async method MakeReadyInternal, @Task<JsonRpc>
 			endparams
 		proc
-			data readLine, @string
+            data readLine, @string
+			data errorLine, @string
 			mTargetProcess.EnableRaisingEvents = true
             mTargetProcess.StartInfo.RedirectStandardError = true
             mTargetProcess.StartInfo.StandardErrorEncoding = ASCIIEncoding.ASCII
@@ -176,15 +177,18 @@ namespace Harmony.Core.Context
 					processExited = true
 					untypedTask = tmpTsk2
 					await untypedTask.WaitAsync(timeoutToken)
-				end
-                readLine = tmpTsk.Result
+                end
+                ;;readLine needs to be initialized to the result of the first read
+				;;but if we only got standard error output this Result would be null
+                readLine = tmpTsk.Result ?? ""
 
+				;;dont listen to standard error it should be used only for out of band communication
                 if (tmpTsk2.IsCompleted)
-                    readLine += tmpTsk2.Result
+                    errorLine += tmpTsk2.Result
 
 				while(!mTargetProcess.HasExited && !readLine.EndsWith("READY"))
                 begin
-                    if (processExited && readLine.Length > 0 )
+                    if (processExited && (readLine.Length > 0 || errorLine.Length > 0) )
                         exitloop
 
                     tmpTsk = mTargetProcess.StandardOutput.ReadLineAsync()
@@ -193,7 +197,7 @@ namespace Harmony.Core.Context
                     untypedTask = tmpTsk
                     await untypedTask.WaitAsync(timeoutToken)
                     if (tmpTsk2.IsCompleted)
-                        readLine += tmpTsk2.Result
+                        errorLine += tmpTsk2.Result
                     readLine += tmpTsk.Result
                     if (tmpTsk.Result == ^null)
                         processExited = true
@@ -208,8 +212,9 @@ namespace Harmony.Core.Context
 
 			if(mTargetProcess.HasExited || processExited)
 			begin
-				data outputText = await mTargetProcess.StandardOutput.ReadToEndAsync()
-				outputText = readLine + outputText
+                data outputText = await mTargetProcess.StandardOutput.ReadToEndAsync()
+				data errorText = await mTargetProcess.StandardError.ReadToEndAsync()
+				outputText = readLine + outputText + errorLine + errorText
                 data logs = new string[#] { string.Format(" application: '{0}' arguments: '{1}' working directory: '{2}' stdOut: '{3}'", mTargetProcess.StartInfo.FileName, mTargetProcess.StartInfo.Arguments, mTargetProcess.StartInfo.WorkingDirectory, outputText) }
 				if(outputText.Contains("%DBR-F-NOTDBR")) then
 				begin

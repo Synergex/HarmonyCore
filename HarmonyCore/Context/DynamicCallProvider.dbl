@@ -17,33 +17,33 @@ import System.Globalization
 
 namespace Harmony.Core.Context
 
-	public abstract class DynamicCallProvider extends AsyncPooledContextBase implements IDynamicCallProvider
-		
-		class CallFrame
-			public readwrite property Name, @string
-			public readwrite property Arguments, [#]@ArgumentDataDefinition
-		endclass
+    public abstract class DynamicCallProvider extends AsyncPooledContextBase implements IDynamicCallProvider
+        
+        class CallFrame
+            public readwrite property Name, @string
+            public readwrite property Arguments, [#]@ArgumentDataDefinition
+        endclass
 
 
-		class MethodCallResponseValue
-			public readwrite property ReturnParameters, @List<ReturnParameterDefintion>
-		endclass
+        class MethodCallResponseValue
+            public readwrite property ReturnParameters, @List<ReturnParameterDefintion>
+        endclass
 
-		class MethodCallResponse
-			public readwrite property IsError, boolean
-			public readwrite property Exception, @string
-			public readwrite property Result, @MethodCallResponseValue
-		endclass
+        class MethodCallResponse
+            public readwrite property IsError, boolean
+            public readwrite property Exception, @string
+            public readwrite property Result, @MethodCallResponseValue
+        endclass
 
-		internal static CastMethodInfo, @MethodInfo
-		internal static SelectMethodInfo, @MethodInfo
-		internal static FormatProvider, @IFormatProvider
-		static method DynamicCallProvider
-		proc
-			FormatProvider = CultureInfo.CurrentCulture
-			CastMethodInfo = ^typeof(Enumerable).GetMethod("Cast")
-			SelectMethodInfo = ^typeof(Enumerable).GetMethods().Where(lambda(meth) { meth.Name == "Select" && meth.GetParameters().Length == 2}).First()
-		endmethod
+        internal static CastMethodInfo, @MethodInfo
+        internal static SelectMethodInfo, @MethodInfo
+        internal static FormatProvider, @IFormatProvider
+        static method DynamicCallProvider
+        proc
+            FormatProvider = CultureInfo.CurrentCulture
+            CastMethodInfo = ^typeof(Enumerable).GetMethod("Cast")
+            SelectMethodInfo = ^typeof(Enumerable).GetMethods().Where(lambda(meth) { meth.Name == "Select" && meth.GetParameters().Length == 2}).First()
+        endmethod
 
 ;		public static method ConvertCollection<C, T(IConvertable)>, @IEnumerable<T>
 ;			inputSequence, @IEnumerable
@@ -62,750 +62,761 @@ namespace Harmony.Core.Context
 ;			end
 ;
 ;		endmethod
-		protected connection, @IDynamicCallConnection
-		private semaphore, @Microsoft.VisualStudio.Threading.AsyncSemaphore
-		public readonly property IsolationLevel, ContextIsolationLevel
-		protected method DynamicCallProvider
-			connection, @IDynamicCallConnection
-		proc
-			this.connection = connection
-			semaphore = new Microsoft.VisualStudio.Threading.AsyncSemaphore(1)
-		endmethod
+        protected connection, @IDynamicCallConnection
+        private semaphore, @Microsoft.VisualStudio.Threading.AsyncSemaphore
+        public readonly property IsolationLevel, ContextIsolationLevel
+        protected method DynamicCallProvider
+            connection, @IDynamicCallConnection
+        proc
+            this.connection = connection
+            semaphore = new Microsoft.VisualStudio.Threading.AsyncSemaphore(1)
+        endmethod
 
-		public method AddLocalRpcMethod, void
-			name, @string
-			handler, @Delegate
-		proc
-			;;data arguments = new List<ParameterExpression>()
-			;;data argArray = Expression.Variable(^typeof([#]object))
-			;;data argumentConversions = new List<Expression>()
-			;;data targetParameters = handler.Method.GetParameters()
-			;;data bodyExpressions = new List<Expression>()
-			;;data parameter, @ParameterInfo
-			;;foreach parameter in targetParameters
-			;;begin
-			;;	arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
-			;;	argumentConversions.Add(Expression.Convert(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)), parameter.ParameterType))
-			;;end
+        public method AddLocalRpcMethod, void
+            name, @string
+            handler, @Delegate
+        proc
+            ;;data arguments = new List<ParameterExpression>()
+            ;;data argArray = Expression.Variable(^typeof([#]object))
+            ;;data argumentConversions = new List<Expression>()
+            ;;data targetParameters = handler.Method.GetParameters()
+            ;;data bodyExpressions = new List<Expression>()
+            ;;data parameter, @ParameterInfo
+            ;;foreach parameter in targetParameters
+            ;;begin
+            ;;	arguments.Add(Expression.Parameter(^typeof(ReturnParameterDefintion), parameter.Name))
+            ;;	argumentConversions.Add(Expression.Convert(Expression.ArrayIndex(argArray, Expression.Constant(argumentConversions.Count)), parameter.ParameterType))
+            ;;end
 ;;
-			;;data callHoist = new CallHoist<object>()
+            ;;data callHoist = new CallHoist<object>()
 ;;
-			;;data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
-			;;Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
-			;;data reEncodeArgPack = new Expression[3]
-			;;reEncodeArgPack[1] = Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
-			;;reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
-			;;reEncodeArgPack[3] = argArray
-			;;bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
-			;;data cleanReturn = ^typeof(System.Void)
-			;;if(handler.Method.ReturnType == ^typeof(System.Void)) then
-			;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant(handler), argumentConversions))
-			;;else
-			;;begin
-			;;	cleanReturn = ^typeof(ArgumentDataDefinition)
-			;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant((@Func<object, ArgumentDataDefinition>)PreSerializeArgumentsInternal), new Expression[#] { Expression.Invoke(Expression.Constant(handler), argumentConversions) }))
-			;;end
-			;;data bodyExpression, @Expression, Expression.Block(cleanReturn, new ParameterExpression[#] { argArray }, bodyExpressions)
-			;;data exposedMethod = Expression.Lambda<Func<ReturnParameterDefintion, ArgumentDataDefinition>>(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
-			;;data resultDel = exposedMethod.Compile(true)
-
-			data helper = new ConversionHelper(handler, this)
-			connection.AddLocalRpcMethod(name, helper.InvokeHelper())
-		endmethod
-
-		class ConversionHelper
-			public Target, @Delegate
-			public Provider, @DynamicCallProvider
-			private Hoist, @CallHoist<object>, new CallHoist<object>()
-			
-			private action0, @Func<Task>
-			private action1, @Func<ReturnParameterDefintion, Task>
-			private action2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task>
-			private action3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
-			private action4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
-
-			private func0, @Func<Task<ArgumentDataDefinition>>
-			private func1, @Func<ReturnParameterDefintion, Task<ArgumentDataDefinition>>
-			private func2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
-			private func3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
-			private func4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
-
-			private actions, [#]@Delegate
-			private funcs, [#]@Delegate
-
-			public method ConversionHelper
-				target, @Delegate
-				provider, @DynamicCallProvider
-			proc
-				this.Target = target
-				this.Provider = provider
-
-				action0 = InvokeV0
-				action1 = InvokeV1
-				action2 = InvokeV2
-				action3 = InvokeV3
-				action4 = InvokeV4
-
-				func0 = Invoke0
-				func1 = Invoke1
-				func2 = Invoke2
-				func3 = Invoke3
-				func4 = Invoke4
-
-				actions = new Delegate[#] { action0 ,action1, action2, action3, action4 }
-				funcs = new Delegate[#] { func0 ,func1, func2, func3, func4 }
-			endmethod
-
-			;;missing method keyword causes accvio
-			;public Invoke, @ArgumentDataDefinition
-			;proc
-			;endmethod
-
-			public method InvokeHelper, @Delegate
-			proc
-				data paramCount = Target.Method.GetParameters().Length
-				data hasReturn = Target.Method.ReturnType != ^typeof(System.Void)
-				if(hasReturn) then
-				begin
-					mreturn funcs[paramCount + 1]
-				end
-				else
-				begin
-					mreturn actions[paramCount + 1]
-				end
-			endmethod
-
-			public method Invoke0, @Task<ArgumentDataDefinition>
-			proc
-				mreturn InnerInvoke(new ReturnParameterDefintion[0])
-			endmethod
-
-			public method Invoke1, @Task<ArgumentDataDefinition>
-				arg1, @ReturnParameterDefintion
-			proc
-				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
-			endmethod
-
-			public method Invoke2, @Task<ArgumentDataDefinition>
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-			proc
-				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
-			endmethod
-
-			public method Invoke3, @Task<ArgumentDataDefinition>
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-				arg3, @ReturnParameterDefintion
-			proc
-				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
-			endmethod
-
-			public method Invoke4, @Task<ArgumentDataDefinition>
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-				arg3, @ReturnParameterDefintion
-				arg4, @ReturnParameterDefintion
-			proc
-				mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
-			endmethod
-
-			public async method InvokeV0, @Task
-			proc
-				await InnerInvoke(new ReturnParameterDefintion[0])
-			endmethod
-
-			public async method InvokeV1, @Task
-				arg1, @ReturnParameterDefintion
-			proc
-				await InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
-			endmethod
-
-			public async method InvokeV2, @Task
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-			proc
-				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
-			endmethod
-
-			public async method InvokeV3, @Task
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-				arg3, @ReturnParameterDefintion
-			proc
-				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
-			endmethod
-
-			public async method InvokeV4, @Task
-				arg1, @ReturnParameterDefintion
-				arg2, @ReturnParameterDefintion
-				arg3, @ReturnParameterDefintion
-				arg4, @ReturnParameterDefintion
-			proc
-				await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
-			endmethod
-
-			private async method InnerInvoke, @Task<ArgumentDataDefinition>
-				args, [#]@ReturnParameterDefintion
-			proc
-				data convertedArgs = new object[args.Length]
-				data argList = args.Select(lambda(arg) { arg.Value }).ToList()
-				argList.Insert(0, ^null)
-				Hoist.ReEncodeArgumentsDirect(argList.ToArray(), Target.Method.GetParameters().Select(lambda(parm) { parm.ParameterType }).ToArray(), convertedArgs)
-				data resultObj = Target.DynamicInvoke(convertedArgs)
-				if(resultObj == ^null) then
-					mreturn ^null
-				else
-				begin
-					data tsk = (@Task)resultObj
-					await tsk
-					data tskResult = ^typeof(ConversionHelper).GetMethod(^nameof(BoxTaskResult)).MakeGenericMethod(tsk.GetType().GetGenericArguments()).Invoke(^null, new object[#] { tsk } )
-					mreturn Provider.PreSerializeArgumentsInternal(tskResult)
-				end
-			endmethod
-
-			public static method BoxTaskResult<T>, @object
-				tsk, @Task<T>
-			proc
-				mreturn (@object)tsk.Result
-			endmethod
-		endclass
-
-		public override property IsHealthy, boolean
-			method get
-			proc
-				mreturn this.connection.IsHealthy
-			endmethod
-		endproperty
-
-
-		public override method EnsureReady, @Task
-		proc
-			mreturn connection.MakeReady()
-		endmethod
-
-		public override method DestroyAsync, @Task
-		proc
-			mreturn connection.Disconnect();
-		endmethod
-
-		public override method Destroy, void
-		proc
-			connection.Disconnect().Wait(TimeSpan.FromSeconds(1))
-		endmethod
-
-
-		public override method Recycle, @Task
-		proc
-			mreturn connection.Recycle()
-		endmethod
-
-		public method SetRemoteLogSettings, @Task
-			settings, @RemoteLogSettings
-		proc
-			data settingsDef = new ArgumentDataDefinition() { DataType = FieldDataType.DataObjectField, PassedValue = settings }
-			mreturn this.connection.Notify("rpc.set_log_level", new ArgumentDataDefinition[#] { settingsDef })
-		endmethod
-
-		protected internal virtual method BeforeCall, [#]@Object
-			name, @string
-			args, [#]@Object
-		proc
-			mreturn args
-		endmethod
-
-		protected internal virtual method AfterCall<T>, @Tuple<T, [#]@Object>
-			name, @string
-			result, @Tuple<T, [#]@Object>
-		proc
-			mreturn result
-		endmethod
-
-
-		public virtual method CallMethod, @Task<Tuple<Object, [#]@Object>>
-			name, @string
-			{ParamArray}
-			args, [#]@object 
-			endparams
-		proc
-			mreturn CallMethod<Object>(name, args)
-		endmethod
-
-		public virtual method CallMethod<T>, @Task<Tuple<T, [#]@Object>>
-			name, @string
-			{ParamArray}
-			args, [#]@object 
-			endparams
-		proc
-			data hoist = new CallHoist<T>() { CallProvider = this }
-			mreturn hoist.CallMethod(name, args)
-		endmethod
-		
-		public async virtual method CallMethodV, @Task<[#]@object>
-			name, @string
-			{ParamArray}
-			args, [#]@object 
-			endparams
-		proc
-			data argsTemp = args
-			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length]
-			data i, int, 0
-			for i from 1 thru args.Length
-			begin
-				data arg, @ArgumentDataDefinition, PreSerializeArgument(args[i])
-				arguments[i] = arg
-			end
-
-			;;TODO check identities of objects to potentially write back
-			arguments = await CallMethodImplementation(name, arguments)
-
-			for i from 1 thru args.Length
-			begin
-				if(arguments[i].ReturnedValue != ^null && arguments[i].ReturnedValue.Value)
-				argsTemp[i] = arguments[i].PassedValue
-			end
-
-			mreturn argsTemp
-		endmethod
-
-		private method PreSerializeIEnumerable, @object
-			argValue, @System.Collections.IEnumerable
-		proc
-			data result = new List<object>()
-			data objValue, @Object
-			foreach objValue in argValue
-			begin
-				result.Add(PreSerializeArgument(objValue).PassedValue)
-			end
-			mreturn result
-		endmethod
-
-		;;remove this overload after the async peverify issue is taken care of
-		internal virtual method PreSerializeArgumentsInternal, @ArgumentDataDefinition
-			argValue, @Object
-		proc
-			mreturn PreSerializeArgument(argValue)
-		endmethod
-
-		protected virtual method DataTypeForDotNetType, FieldDataType
-			targetType, @Type
-		proc
-			if(^typeof(DataObjectBase).IsAssignableFrom(targetType)) then
-			begin
-				mreturn FieldDataType.DataObjectField
-			end
-			else if(targetType == ^typeof(string)) then
-			begin
-				mreturn FieldDataType.StringField
-			end
-			else if(^typeof(IEnumerable).IsAssignableFrom(targetType)) then
-			begin
-				data elementType = targetType.GetInterfaces().FirstOrDefault(lambda(iface) { iface.IsGenericType && iface.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) })
-				if(elementType != ^null) then
-				begin
-					data dataType = DataTypeForDotNetType(elementType.GenericTypeArguments.First())
-					if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
-						mreturn FieldDataType.DataObjectCollectionField
-					else
-						mreturn FieldDataType.ArrayField | dataType
-				end
-				else
-					mreturn FieldDataType.DataObjectCollectionField
-			end
-			else if(targetType.IsArray) then
-			begin
-				data dataType = DataTypeForDotNetType(targetType.GetElementType())
-				if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
-					mreturn FieldDataType.DataObjectCollectionField
-				else
-					mreturn FieldDataType.ArrayField | dataType
-			end
-			else if(targetType == ^typeof(int) || targetType == ^typeof(long) || targetType == ^typeof(short) || targetType == ^typeof(sbyte)
-			&	|| targetType == ^typeof(uint) || targetType == ^typeof(ulong) || targetType == ^typeof(ushort) || targetType == ^typeof(byte)) then
-			begin
-				mreturn FieldDataType.IntegerField
-			end
-			else if(^typeof(Synergex.SynergyDE.AlphaDesc).IsAssignableFrom(targetType)) then
-			begin
-				mreturn FieldDataType.AlphaField
-			end
-			else if(^typeof(Synergex.SynergyDE.DecimalDesc).IsAssignableFrom(targetType)) then
-			begin
-				mreturn FieldDataType.DecimalField
-			end
-			else if(^typeof(Synergex.SynergyDE.IntegerDesc).IsAssignableFrom(targetType)) then
-			begin
-				mreturn FieldDataType.IntegerField
-			end
-			else if(targetType == ^typeof(string)) then
-			begin
-				mreturn FieldDataType.StringField
-			end
-			else
-				throw new NotImplementedException(string.Format("unsupported type translating into bridge type, got {0}", targetType))
-		endmethod
-
-
-		protected virtual method PreSerializeArgument, @ArgumentDataDefinition
-			argValue, @Object
-		proc
-			data argDef = new ArgumentDataDefinition()
-				
-			if(argValue .is. ArgumentDataDefinition) then
-				argDef = (@ArgumentDataDefinition)argValue
-			else if(argValue .is. IArgumentPlaceholder) then
-			begin
-				argDef.DataType = DataTypeForDotNetType(((@IArgumentPlaceholder)argValue).ArgumentType)
-				if(((@IArgumentPlaceholder)argValue).Passed)
-					argDef.PassedValue = 0
-			end
-			else if(argValue .is. DataObjectBase) then
-			begin
-				data doValue = (@DataObjectBase)argValue
-				argDef.DataType = FieldDataType.DataObjectField
-				;;we might want to convert to base64 here for the value and grfa
-				lambda preSerializeDataObject(alphaData, grfaData)
-				begin
-					data dict = new Dictionary<string, object>()
-					dict.Add("Type", doValue.Metadata.RPSStructureName)
-					if(doValue.Metadata.RPSStructureHasBinaryData) then
-						dict.Add("Base64Value", Convert.ToBase64String(([#]byte)alphaData))
-					else
-						dict.Add("Value", (@string)alphaData)
-
-					dict.Add("GRFA", Convert.ToBase64String(([#]byte)grfaData))
-					argDef.PassedValue = dict
-				end
-				doValue.InternalSynergyRecord(preSerializeDataObject)
-			end
-			else if(argValue .is. @String) then
-			begin
-				argDef.DataType = FieldDataType.AlphaField
-				argDef.PassedValue = argValue
-			end
-			else if(argValue .is. System.Collections.IEnumerable) then
-			begin
-				argDef.DataType = FieldDataType.DataObjectCollectionField
-				argDef.PassedValue = PreSerializeIEnumerable((@System.Collections.IEnumerable)argValue)
-			end
-			else if(argValue .is. @a) then
-			begin
-				argDef.DataType = FieldDataType.AlphaField
-				;;we might want to convert to base64 here for the value
-				argDef.PassedValue = argValue
-			end
-			else if(argValue .is. @d) then
-			begin
-				argDef.DataType = FieldDataType.DecimalField
-				argDef.PassedValue = argValue.ToString()
-			end
-			else if(argValue .is. @id) then
-			begin
-				argDef.DataType = FieldDataType.ImpliedDecimal
-				argDef.PassedValue = argValue.ToString()
-			end
-			else if(argValue .is. @i) then
-			begin
-				argDef.DataType = FieldDataType.IntegerField
-				argDef.PassedValue = argValue
-			end
-			else if(argValue .is. double || argValue .is. float || argValue .is. decimal) then
-			begin
-				argDef.DataType = FieldDataType.ImpliedDecimal
-				argDef.PassedValue = Convert.ToString(argValue)
-				argDef.DecimalPrecision = 28
-				argDef.ElementSize = 56
-			end
-			else if(argValue .is. byte || argValue .is. sbyte || argValue .is. char || argValue .is. short || argValue .is. ushort || argValue .is. int || argValue .is. uint || argValue .is. long || argValue .is. ulong) then
-			begin
-				argDef.DataType = FieldDataType.IntegerField
-				argDef.PassedValue = argValue
-			end
-			else if(argValue .is. boolean) then
-			begin
-				argDef.DataType = FieldDataType.BooleanField
-				argDef.PassedValue = argValue
-			end
-			else
-				throw new NotImplementedException()
-
-			mreturn argDef
-		endmethod
-
-		protected static SerializerSettings, @JsonSerializerSettings, new JsonSerializerSettings() { NullValueHandling=NullValueHandling.Ignore }
-		protected async method CallMethodImplementation, @Task<[#]@ArgumentDataDefinition>
-			name, @string
-			args, [#]@ArgumentDataDefinition
-		proc
-			;data concurrencyBlocker = await semaphore.EnterAsync(System.Threading.CancellationToken.None)
-			try
-			begin
-				data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
-				data writableArgs = args
-				if(result != ^null)
-				begin
-					data retArg, @ReturnParameterDefintion
-					foreach retArg in result
-					begin
-						writableArgs[retArg.Position + 1].ReturnedValue = true
-						writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
-					end
-				end
-				mreturn writableArgs
-			end
-			finally
-			begin
-				;concurrencyBlocker.Dispose()
-			end
-			endtry
-		endmethod
-		;;remove this overload after the async peverify issue is taken care of
-		internal method CallMethodImplementationInternal, @Task<[#]@ArgumentDataDefinition>
-			name, @string
-			args, [#]@ArgumentDataDefinition
-		proc
-			mreturn CallMethodImplementation(name, args)
-		endmethod
-
-		internal class HarmonyJsonMessageFormatter extends JsonMessageFormatter
-			public method HarmonyJsonMessageFormatter
-				targetEncoding, @Encoding
-				parent(targetEncoding)
-			proc
-			endmethod
-
-			public method IJsonRpcMessageTextFormatter.Serialize, void
-				contentBuffer, @IBufferWriter<byte> 
-				message, @JsonRpcMessage
-			proc
-				if(message .is. JsonRpcRequest)
-				begin
-					data request = (@JsonRpcRequest)message
-					data enumerableArguments = ^as(request.Arguments, @IEnumerable)
-					if(enumerableArguments != ^null)
-						request.ArgumentsArray = enumerableArguments.OfType<Object>().ToArray()
-
-				end
-
-				parent.Serialize(contentBuffer, message)
-			endmethod
-		endclass
-
-	endclass
-
-	internal class CallHoist<T>
-		public readwrite property CallProvider, @DynamicCallProvider
-
-		private static method GetElementType, @Type
-			argType, @Type
-		proc
-			data elementType = argType
-			;;TODO: handle more generic collection types here
-			if(argType.IsGenericType) then
-				elementType = argType.GetGenericArguments()[1]
-			else if(argType.HasElementType) then
-				elementType = argType.GetElementType()
-			else
-				throw new NotImplementedException()
-
-			mreturn elementType
-		endmethod
-
-		private static method GetElementType, @Type
-			arg, @Object
-		proc
-			data argType = arg.GetType()
-
-			if(arg .is. IArgumentPlaceholder) then
-				mreturn GetElementType(((@IArgumentPlaceholder)arg).ArgumentType)
-			else
-				mreturn GetElementType(argType)
-		endmethod
-
-		private static method GetTypeCorrectedCollectionValue, @object
-			arg, @Object
-			retArg, @ArgumentDataDefinition
-		proc
-			data elementType = GetElementType(arg)
-			data argType = arg .is. IArgumentPlaceholder ? ((@IArgumentPlaceholder)arg).ArgumentType : arg.GetType()
-
-			if(retArg.PassedValue == ^null) then
-				mreturn Array.CreateInstance(elementType, 0)
-
-			else if(retArg.PassedValue?.GetType() != elementType) then
-			begin
-				if(elementType.IsPrimitive) then
-				begin
-					mreturn ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").Invoke(^null, new object[#] { retArg.PassedValue })
-				end
-				else
-				begin
-					mreturn DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { retArg.PassedValue })
-				end
-			end
-			else
-				mreturn retArg.PassedValue
-		endmethod
-
-		private static method ConvertArgument, @object
-			arg, @object
-			argType, @Type
-		proc
-			mreturn Convert.ChangeType(arg, argType)
-		endmethod
-
-		private method GetArgumentType, @Type
-			obj, @object
-		proc
-			if(obj .is. IArgumentPlaceholder) then
-			begin
-				mreturn ((@IArgumentPlaceholder)obj).ArgumentType
-			end
-			else if(obj != ^null) then
-				mreturn obj.GetType()
-			else
-				mreturn ^typeof(Object)
-		endmethod
-
-		private method ReEncodeArguments, @Tuple<T, [#]@Object>
-			name, @string
-			arguments, [#]@ArgumentDataDefinition
-			inout args, [#]@object 
-		proc
-			
-			data argTypes = args.Select(GetArgumentType).ToArray()
-			mreturn ReEncodeArguments(name, arguments, argTypes, args)
-		endmethod
-
-		public method ReEncodeArgumentsDirect, void
-			arguments, [#]@ArgumentDataDefinition
-			argTypes, [#]@Type
-			inout args, [#]@object 
-		proc
-			data maxArgs = Math.Min(args.Length, arguments.Length)
-			data i = 0
-			for i from 1 thru maxArgs
-			begin
-				if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
-				begin
-					data argValue = arguments[i + 1]
-					
-					if(argValue.PassedValue .is. JToken) then
-					begin
-						data targetToken = ((@JToken)argValue.PassedValue)
-						args[i] = targetToken.ToObject(argTypes[i])
-					end
-					else
-					begin
-						if(argValue.DataType == FieldDataType.DataObjectField) then
-						begin
-							args[i] = argValue.PassedValue
-						end
-						else if(argValue.DataType == FieldDataType.DataObjectCollectionField || (argValue.DataType & FieldDataType.ArrayField) != (FieldDataType)0) then
-						begin
-							args[i] = GetTypeCorrectedCollectionValue(args[i], argValue)
-						end
-						else
-						begin
-							if(argValue.PassedValue != ^null && argTypes[i] != ^null)
-							begin
-								args[i] = ConvertArgument(argValue.PassedValue, argTypes[i])
-							end
-						end
-
-					end
-				end
-			end
-		endmethod
-
-		private method ReEncodeArguments, @Tuple<T, [#]@Object>
-			name, @string
-			arguments, [#]@ArgumentDataDefinition
-			argTypes, [#]@Type
-			inout args, [#]@object 
-		proc
-			ReEncodeArgumentsDirect(arguments, argTypes, args)
-
-			if(arguments[1].PassedValue .is. JToken) then
-			begin
-				data retValue = ((@JToken)arguments[1].PassedValue)
-				if(CallProvider != ^null) then
-					mreturn CallProvider.AfterCall<T>(name, Tuple.Create(retValue.Value<T>(), args))
-				else
-					mreturn Tuple.Create(retValue.Value<T>(), args)
-			end
-			else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField || (arguments[1].DataType & FieldDataType.ArrayField) != (FieldDataType)0) then
-			begin
-				if(CallProvider != ^null) then
-					mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args))
-				else
-					mreturn Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args)
-			end
-			else if(arguments[1].PassedValue != ^null) then
-			begin
-				if(^typeof(T) == ^typeof(Object)) then
-				begin
-					if(CallProvider != ^null) then
-						mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)arguments[1].PassedValue, args))
-					else
-						mreturn Tuple.Create((T)arguments[1].PassedValue, args)
-				end
-				else
-				begin
-					if(CallProvider != ^null) then
-						mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args))
-					else
-						mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args)
-				end
-			end
-			else
-			begin
-				data defaultT, T
-				if(CallProvider != ^null) then
-					mreturn CallProvider.AfterCall<T>(name, Tuple.Create(defaultT, args))
-				else
-					mreturn Tuple.Create(defaultT, args)
-			end
-		endmethod
-
-
-		public async method CallMethod, @Task<Tuple<T, [#]@Object>>
-			name, @string
-			args, [#]@object 
-		proc
-			data argsTemp, [#]@Object, CallProvider.BeforeCall(name, args)
-			data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[argsTemp.Length + 1]
-			data i, int, 0
-			for i from 1 thru argsTemp.Length
-			begin
-				data arg, @ArgumentDataDefinition, CallProvider.PreSerializeArgumentsInternal(argsTemp[i])
-				arguments[i + 1] = arg
-			end
-
-			arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
-
-			data returnType = ^typeof(T)
-			if(returnType.IsPrimitive) then
-			begin
-				arguments[1].DataType = FieldDataType.IntegerField
-				;;specialize this
-				arguments[1].ElementSize = 4
-			end
-			else if(returnType == ^typeof(string)) then
-				arguments[1].DataType = FieldDataType.AlphaField
-			else
-				arguments[1].DataType = FieldDataType.DataObjectField
-
-			arguments = await CallProvider.CallMethodImplementationInternal(name, arguments)
-			mreturn ReEncodeArguments(name, arguments, argsTemp)
-		endmethod
-	endclass
-
-	class CollectionConverter<T>
-		public static method ConvertResultCollection, @object
-			inputSequence, @IEnumerable
-		proc
-			data converter, @Func<IConvertible, T>, BakeConversion()
+            ;;data reEncodeArguments = ^typeof(CallHoist<object>).GetMethod("ReEncodeArgumentsDirect")
+            ;;Expression.Assign(argArray, Expression.NewArrayBounds(^typeof(object), new Expression[#] { Expression.Constant(targetParameters.Length)}))
+            ;;data reEncodeArgPack = new Expression[3]
+            ;;reEncodeArgPack[1] = Expression.NewArrayInit(^typeof(ArgumentDataDefinition), arguments.Select(lambda(arg) { Expression.PropertyOrField(arg, "Value")}))
+            ;;reEncodeArgPack[2] = Expression.NewArrayInit(^typeof(Type), targetParameters.Select(lambda(param) { Expression.Constant(param.ParameterType)}))
+            ;;reEncodeArgPack[3] = argArray
+            ;;bodyExpressions.Add(Expression.Call(Expression.Constant(callHoist), reEncodeArguments, reEncodeArgPack))
+            ;;data cleanReturn = ^typeof(System.Void)
+            ;;if(handler.Method.ReturnType == ^typeof(System.Void)) then
+            ;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant(handler), argumentConversions))
+            ;;else
+            ;;begin
+            ;;	cleanReturn = ^typeof(ArgumentDataDefinition)
+            ;;	bodyExpressions.Add(Expression.Invoke(Expression.Constant((@Func<object, ArgumentDataDefinition>)PreSerializeArgumentsInternal), new Expression[#] { Expression.Invoke(Expression.Constant(handler), argumentConversions) }))
+            ;;end
+            ;;data bodyExpression, @Expression, Expression.Block(cleanReturn, new ParameterExpression[#] { argArray }, bodyExpressions)
+            ;;data exposedMethod = Expression.Lambda<Func<ReturnParameterDefintion, ArgumentDataDefinition>>(bodyExpression, (@IEnumerable<ParameterExpression>)arguments)
+            ;;data resultDel = exposedMethod.Compile(true)
+
+            data helper = new ConversionHelper(handler, this)
+            connection.AddLocalRpcMethod(name, helper.InvokeHelper())
+        endmethod
+
+        class ConversionHelper
+            public Target, @Delegate
+            public Provider, @DynamicCallProvider
+            private Hoist, @CallHoist<object>, new CallHoist<object>()
+            
+            private action0, @Func<Task>
+            private action1, @Func<ReturnParameterDefintion, Task>
+            private action2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task>
+            private action3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
+            private action4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task>
+
+            private func0, @Func<Task<ArgumentDataDefinition>>
+            private func1, @Func<ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+            private func2, @Func<ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+            private func3, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+            private func4, @Func<ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, ReturnParameterDefintion, Task<ArgumentDataDefinition>>
+
+            private actions, [#]@Delegate
+            private funcs, [#]@Delegate
+
+            public method ConversionHelper
+                target, @Delegate
+                provider, @DynamicCallProvider
+            proc
+                this.Target = target
+                this.Provider = provider
+
+                action0 = InvokeV0
+                action1 = InvokeV1
+                action2 = InvokeV2
+                action3 = InvokeV3
+                action4 = InvokeV4
+
+                func0 = Invoke0
+                func1 = Invoke1
+                func2 = Invoke2
+                func3 = Invoke3
+                func4 = Invoke4
+
+                actions = new Delegate[#] { action0 ,action1, action2, action3, action4 }
+                funcs = new Delegate[#] { func0 ,func1, func2, func3, func4 }
+            endmethod
+
+            ;;missing method keyword causes accvio
+            ;public Invoke, @ArgumentDataDefinition
+            ;proc
+            ;endmethod
+
+            public method InvokeHelper, @Delegate
+            proc
+                data paramCount = Target.Method.GetParameters().Length
+                data hasReturn = Target.Method.ReturnType != ^typeof(System.Void)
+                if(hasReturn) then
+                begin
+                    mreturn funcs[paramCount + 1]
+                end
+                else
+                begin
+                    mreturn actions[paramCount + 1]
+                end
+            endmethod
+
+            public method Invoke0, @Task<ArgumentDataDefinition>
+            proc
+                mreturn InnerInvoke(new ReturnParameterDefintion[0])
+            endmethod
+
+            public method Invoke1, @Task<ArgumentDataDefinition>
+                arg1, @ReturnParameterDefintion
+            proc
+                mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
+            endmethod
+
+            public method Invoke2, @Task<ArgumentDataDefinition>
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+            proc
+                mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
+            endmethod
+
+            public method Invoke3, @Task<ArgumentDataDefinition>
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+                arg3, @ReturnParameterDefintion
+            proc
+                mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
+            endmethod
+
+            public method Invoke4, @Task<ArgumentDataDefinition>
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+                arg3, @ReturnParameterDefintion
+                arg4, @ReturnParameterDefintion
+            proc
+                mreturn InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
+            endmethod
+
+            public async method InvokeV0, @Task
+            proc
+                await InnerInvoke(new ReturnParameterDefintion[0])
+            endmethod
+
+            public async method InvokeV1, @Task
+                arg1, @ReturnParameterDefintion
+            proc
+                await InnerInvoke(new ReturnParameterDefintion[#] { arg1 })
+            endmethod
+
+            public async method InvokeV2, @Task
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+            proc
+                await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2 })
+            endmethod
+
+            public async method InvokeV3, @Task
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+                arg3, @ReturnParameterDefintion
+            proc
+                await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3 })
+            endmethod
+
+            public async method InvokeV4, @Task
+                arg1, @ReturnParameterDefintion
+                arg2, @ReturnParameterDefintion
+                arg3, @ReturnParameterDefintion
+                arg4, @ReturnParameterDefintion
+            proc
+                await InnerInvoke(new ReturnParameterDefintion[#] { arg1, arg2, arg3, arg4 })
+            endmethod
+
+            private async method InnerInvoke, @Task<ArgumentDataDefinition>
+                args, [#]@ReturnParameterDefintion
+            proc
+                data convertedArgs = new object[args.Length]
+                data argList = args.Select(lambda(arg) { arg.Value }).ToList()
+                argList.Insert(0, ^null)
+                Hoist.ReEncodeArgumentsDirect(argList.ToArray(), Target.Method.GetParameters().Select(lambda(parm) { parm.ParameterType }).ToArray(), convertedArgs)
+                data resultObj = Target.DynamicInvoke(convertedArgs)
+                if(resultObj == ^null) then
+                    mreturn ^null
+                else
+                begin
+                    data tsk = (@Task)resultObj
+                    await tsk
+                    data tskResult = ^typeof(ConversionHelper).GetMethod(^nameof(BoxTaskResult)).MakeGenericMethod(tsk.GetType().GetGenericArguments()).Invoke(^null, new object[#] { tsk } )
+                    mreturn Provider.PreSerializeArgumentsInternal(tskResult)
+                end
+            endmethod
+
+            public static method BoxTaskResult<T>, @object
+                tsk, @Task<T>
+            proc
+                mreturn (@object)tsk.Result
+            endmethod
+        endclass
+
+        public override property IsHealthy, boolean
+            method get
+            proc
+                mreturn this.connection.IsHealthy
+            endmethod
+        endproperty
+
+
+        public override method EnsureReady, @Task
+        proc
+            mreturn connection.MakeReady()
+        endmethod
+
+        public override method DestroyAsync, @Task
+        proc
+            mreturn connection.Disconnect();
+        endmethod
+
+        public override method Destroy, void
+        proc
+            connection.Disconnect().Wait(TimeSpan.FromSeconds(1))
+        endmethod
+
+
+        public override method Recycle, @Task
+        proc
+            mreturn connection.Recycle()
+        endmethod
+
+        public method SetRemoteLogSettings, @Task
+            settings, @RemoteLogSettings
+        proc
+            data settingsDef = new ArgumentDataDefinition() { DataType = FieldDataType.DataObjectField, PassedValue = settings }
+            mreturn this.connection.Notify("rpc.set_log_level", new ArgumentDataDefinition[#] { settingsDef })
+        endmethod
+
+        protected internal virtual method BeforeCall, [#]@Object
+            name, @string
+            args, [#]@Object
+        proc
+            mreturn args
+        endmethod
+
+        protected internal virtual method AfterCall<T>, @Tuple<T, [#]@Object>
+            name, @string
+            result, @Tuple<T, [#]@Object>
+        proc
+            mreturn result
+        endmethod
+
+
+        public virtual method CallMethod, @Task<Tuple<Object, [#]@Object>>
+            name, @string
+            {ParamArray}
+            args, [#]@object 
+            endparams
+        proc
+            mreturn CallMethod<Object>(name, args)
+        endmethod
+
+        public virtual method CallMethod<T>, @Task<Tuple<T, [#]@Object>>
+            name, @string
+            {ParamArray}
+            args, [#]@object 
+            endparams
+        proc
+            data hoist = new CallHoist<T>() { CallProvider = this }
+            mreturn hoist.CallMethod(name, args)
+        endmethod
+        
+        public async virtual method CallMethodV, @Task<[#]@object>
+            name, @string
+            {ParamArray}
+            args, [#]@object 
+            endparams
+        proc
+            data argsTemp = args
+            data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[args.Length]
+            data i, int, 0
+            for i from 1 thru args.Length
+            begin
+                data arg, @ArgumentDataDefinition, PreSerializeArgument(args[i])
+                arguments[i] = arg
+            end
+
+            ;;TODO check identities of objects to potentially write back
+            arguments = await CallMethodImplementation(name, arguments)
+
+            for i from 1 thru args.Length
+            begin
+                if(arguments[i].ReturnedValue != ^null && arguments[i].ReturnedValue.Value)
+                argsTemp[i] = arguments[i].PassedValue
+            end
+
+            mreturn argsTemp
+        endmethod
+
+        private method PreSerializeIEnumerable, @object
+            argValue, @System.Collections.IEnumerable
+        proc
+            data result = new List<object>()
+            data objValue, @Object
+            foreach objValue in argValue
+            begin
+                result.Add(PreSerializeArgument(objValue).PassedValue)
+            end
+            mreturn result
+        endmethod
+
+        ;;remove this overload after the async peverify issue is taken care of
+        internal virtual method PreSerializeArgumentsInternal, @ArgumentDataDefinition
+            argValue, @Object
+        proc
+            mreturn PreSerializeArgument(argValue)
+        endmethod
+
+        protected virtual method DataTypeForDotNetType, FieldDataType
+            targetType, @Type
+        proc
+            if(^typeof(DataObjectBase).IsAssignableFrom(targetType)) then
+            begin
+                mreturn FieldDataType.DataObjectField
+            end
+            else if(targetType == ^typeof(string)) then
+            begin
+                mreturn FieldDataType.StringField
+            end
+            else if(^typeof(IEnumerable).IsAssignableFrom(targetType)) then
+            begin
+                data elementType = targetType.GetInterfaces().FirstOrDefault(lambda(iface) { iface.IsGenericType && iface.GetGenericTypeDefinition() == ^typeof(IEnumerable<>) })
+                if(elementType != ^null) then
+                begin
+                    data dataType = DataTypeForDotNetType(elementType.GenericTypeArguments.First())
+                    if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
+                        mreturn FieldDataType.DataObjectCollectionField
+                    else
+                        mreturn FieldDataType.ArrayField | dataType
+                end
+                else
+                    mreturn FieldDataType.DataObjectCollectionField
+            end
+            else if(targetType.IsArray) then
+            begin
+                data dataType = DataTypeForDotNetType(targetType.GetElementType())
+                if(dataType == FieldDataType.DataObjectField || dataType == FieldDataType.DataObjectCollectionField) then
+                    mreturn FieldDataType.DataObjectCollectionField
+                else
+                    mreturn FieldDataType.ArrayField | dataType
+            end
+            else if(targetType == ^typeof(int) || targetType == ^typeof(long) || targetType == ^typeof(short) || targetType == ^typeof(sbyte)
+            &	|| targetType == ^typeof(uint) || targetType == ^typeof(ulong) || targetType == ^typeof(ushort) || targetType == ^typeof(byte)) then
+            begin
+                mreturn FieldDataType.IntegerField
+            end
+            else if(^typeof(Synergex.SynergyDE.AlphaDesc).IsAssignableFrom(targetType)) then
+            begin
+                mreturn FieldDataType.AlphaField
+            end
+            else if(^typeof(Synergex.SynergyDE.DecimalDesc).IsAssignableFrom(targetType)) then
+            begin
+                mreturn FieldDataType.DecimalField
+            end
+            else if(^typeof(Synergex.SynergyDE.IntegerDesc).IsAssignableFrom(targetType)) then
+            begin
+                mreturn FieldDataType.IntegerField
+            end
+            else if(targetType == ^typeof(string)) then
+            begin
+                mreturn FieldDataType.StringField
+            end
+            else
+                throw new NotImplementedException(string.Format("unsupported type translating into bridge type, got {0}", targetType))
+        endmethod
+
+
+        protected virtual method PreSerializeArgument, @ArgumentDataDefinition
+            argValue, @Object
+        proc
+            data argDef = new ArgumentDataDefinition()
+                
+            if(argValue .is. ArgumentDataDefinition) then
+                argDef = (@ArgumentDataDefinition)argValue
+            else if(argValue .is. IArgumentPlaceholder) then
+            begin
+                argDef.DataType = DataTypeForDotNetType(((@IArgumentPlaceholder)argValue).ArgumentType)
+                if(((@IArgumentPlaceholder)argValue).Passed)
+                    argDef.PassedValue = 0
+            end
+            else if(argValue .is. DataObjectBase) then
+            begin
+                data doValue = (@DataObjectBase)argValue
+                argDef.DataType = FieldDataType.DataObjectField
+                ;;we might want to convert to base64 here for the value and grfa
+                lambda preSerializeDataObject(alphaData, grfaData)
+                begin
+                    data dict = new Dictionary<string, object>()
+                    dict.Add("Type", doValue.Metadata.RPSStructureName)
+                    if(doValue.Metadata.RPSStructureHasBinaryData) then
+                        dict.Add("Base64Value", Convert.ToBase64String(([#]byte)alphaData))
+                    else
+                        dict.Add("Value", (@string)alphaData)
+
+                    dict.Add("GRFA", Convert.ToBase64String(([#]byte)grfaData))
+                    argDef.PassedValue = dict
+                end
+                doValue.InternalSynergyRecord(preSerializeDataObject)
+            end
+            else if(argValue .is. @String) then
+            begin
+                argDef.DataType = FieldDataType.AlphaField
+                argDef.PassedValue = argValue
+            end
+            else if(argValue .is. @Dictionary<string, string>) then
+            begin
+                data argDictionary = (@Dictionary<string, string>)argValue
+                argDef = new SchemaArgumentDataDefinition() 
+                &    { 
+                &    DataType = FieldDataType.DictionaryField, 
+                &    PassedValue = argDictionary,
+                &    KnownKeys = argDictionary.Keys.ToArray()
+                &    }
+            end
+
+            else if(argValue .is. System.Collections.IEnumerable) then
+            begin
+                argDef.DataType = FieldDataType.DataObjectCollectionField
+                argDef.PassedValue = PreSerializeIEnumerable((@System.Collections.IEnumerable)argValue)
+            end
+            else if(argValue .is. @a) then
+            begin
+                argDef.DataType = FieldDataType.AlphaField
+                ;;we might want to convert to base64 here for the value
+                argDef.PassedValue = argValue
+            end
+            else if(argValue .is. @d) then
+            begin
+                argDef.DataType = FieldDataType.DecimalField
+                argDef.PassedValue = argValue.ToString()
+            end
+            else if(argValue .is. @id) then
+            begin
+                argDef.DataType = FieldDataType.ImpliedDecimal
+                argDef.PassedValue = argValue.ToString()
+            end
+            else if(argValue .is. @i) then
+            begin
+                argDef.DataType = FieldDataType.IntegerField
+                argDef.PassedValue = argValue
+            end
+            else if(argValue .is. double || argValue .is. float || argValue .is. decimal) then
+            begin
+                argDef.DataType = FieldDataType.ImpliedDecimal
+                argDef.PassedValue = Convert.ToString(argValue)
+                argDef.DecimalPrecision = 28
+                argDef.ElementSize = 56
+            end
+            else if(argValue .is. byte || argValue .is. sbyte || argValue .is. char || argValue .is. short || argValue .is. ushort || argValue .is. int || argValue .is. uint || argValue .is. long || argValue .is. ulong) then
+            begin
+                argDef.DataType = FieldDataType.IntegerField
+                argDef.PassedValue = argValue
+            end
+            else if(argValue .is. boolean) then
+            begin
+                argDef.DataType = FieldDataType.BooleanField
+                argDef.PassedValue = argValue
+            end
+            else
+                throw new NotImplementedException()
+
+            mreturn argDef
+        endmethod
+
+        protected static SerializerSettings, @JsonSerializerSettings, new JsonSerializerSettings() { NullValueHandling=NullValueHandling.Ignore }
+        protected async method CallMethodImplementation, @Task<[#]@ArgumentDataDefinition>
+            name, @string
+            args, [#]@ArgumentDataDefinition
+        proc
+            ;data concurrencyBlocker = await semaphore.EnterAsync(System.Threading.CancellationToken.None)
+            try
+            begin
+                data result, [#]@ReturnParameterDefintion, await this.connection.Call(name, args)
+                data writableArgs = args
+                if(result != ^null)
+                begin
+                    data retArg, @ReturnParameterDefintion
+                    foreach retArg in result
+                    begin
+                        writableArgs[retArg.Position + 1].ReturnedValue = true
+                        writableArgs[retArg.Position + 1].PassedValue = retArg.Value.PassedValue
+                    end
+                end
+                mreturn writableArgs
+            end
+            finally
+            begin
+                ;concurrencyBlocker.Dispose()
+            end
+            endtry
+        endmethod
+        ;;remove this overload after the async peverify issue is taken care of
+        internal method CallMethodImplementationInternal, @Task<[#]@ArgumentDataDefinition>
+            name, @string
+            args, [#]@ArgumentDataDefinition
+        proc
+            mreturn CallMethodImplementation(name, args)
+        endmethod
+
+        internal class HarmonyJsonMessageFormatter extends JsonMessageFormatter
+            public method HarmonyJsonMessageFormatter
+                targetEncoding, @Encoding
+                parent(targetEncoding)
+            proc
+            endmethod
+
+            public method IJsonRpcMessageTextFormatter.Serialize, void
+                contentBuffer, @IBufferWriter<byte> 
+                message, @JsonRpcMessage
+            proc
+                if(message .is. JsonRpcRequest)
+                begin
+                    data request = (@JsonRpcRequest)message
+                    data enumerableArguments = ^as(request.Arguments, @IEnumerable)
+                    if(enumerableArguments != ^null)
+                        request.ArgumentsArray = enumerableArguments.OfType<Object>().ToArray()
+
+                end
+
+                parent.Serialize(contentBuffer, message)
+            endmethod
+        endclass
+
+    endclass
+
+    internal class CallHoist<T>
+        public readwrite property CallProvider, @DynamicCallProvider
+
+        private static method GetElementType, @Type
+            argType, @Type
+        proc
+            data elementType = argType
+            ;;TODO: handle more generic collection types here
+            if(argType.IsGenericType) then
+                elementType = argType.GetGenericArguments()[1]
+            else if(argType.HasElementType) then
+                elementType = argType.GetElementType()
+            else
+                throw new NotImplementedException()
+
+            mreturn elementType
+        endmethod
+
+        private static method GetElementType, @Type
+            arg, @Object
+        proc
+            data argType = arg.GetType()
+
+            if(arg .is. IArgumentPlaceholder) then
+                mreturn GetElementType(((@IArgumentPlaceholder)arg).ArgumentType)
+            else
+                mreturn GetElementType(argType)
+        endmethod
+
+        private static method GetTypeCorrectedCollectionValue, @object
+            arg, @Object
+            retArg, @ArgumentDataDefinition
+        proc
+            data elementType = GetElementType(arg)
+            data argType = arg .is. IArgumentPlaceholder ? ((@IArgumentPlaceholder)arg).ArgumentType : arg.GetType()
+
+            if(retArg.PassedValue == ^null) then
+                mreturn Array.CreateInstance(elementType, 0)
+
+            else if(retArg.PassedValue?.GetType() != elementType) then
+            begin
+                if(elementType.IsPrimitive) then
+                begin
+                    mreturn ^typeof(CollectionConverter<>).MakeGenericType(new Type[#] { elementType }).GetMethod("ConvertResultCollection").Invoke(^null, new object[#] { retArg.PassedValue })
+                end
+                else
+                begin
+                    mreturn DynamicCallProvider.CastMethodInfo.MakeGenericMethod(new Type[#] { elementType }).Invoke(^null, new object[#] { retArg.PassedValue })
+                end
+            end
+            else
+                mreturn retArg.PassedValue
+        endmethod
+
+        private static method ConvertArgument, @object
+            arg, @object
+            argType, @Type
+        proc
+            mreturn Convert.ChangeType(arg, argType)
+        endmethod
+
+        private method GetArgumentType, @Type
+            obj, @object
+        proc
+            if(obj .is. IArgumentPlaceholder) then
+            begin
+                mreturn ((@IArgumentPlaceholder)obj).ArgumentType
+            end
+            else if(obj != ^null) then
+                mreturn obj.GetType()
+            else
+                mreturn ^typeof(Object)
+        endmethod
+
+        private method ReEncodeArguments, @Tuple<T, [#]@Object>
+            name, @string
+            arguments, [#]@ArgumentDataDefinition
+            inout args, [#]@object 
+        proc
+            
+            data argTypes = args.Select(GetArgumentType).ToArray()
+            mreturn ReEncodeArguments(name, arguments, argTypes, args)
+        endmethod
+
+        public method ReEncodeArgumentsDirect, void
+            arguments, [#]@ArgumentDataDefinition
+            argTypes, [#]@Type
+            inout args, [#]@object 
+        proc
+            data maxArgs = Math.Min(args.Length, arguments.Length)
+            data i = 0
+            for i from 1 thru maxArgs
+            begin
+                if(arguments[i + 1].ReturnedValue != ^null && arguments[i + 1].ReturnedValue.Value)
+                begin
+                    data argValue = arguments[i + 1]
+                    
+                    if(argValue.PassedValue .is. JToken) then
+                    begin
+                        data targetToken = ((@JToken)argValue.PassedValue)
+                        args[i] = targetToken.ToObject(argTypes[i])
+                    end
+                    else
+                    begin
+                        if(argValue.DataType == FieldDataType.DataObjectField) then
+                        begin
+                            args[i] = argValue.PassedValue
+                        end
+                        else if(argValue.DataType == FieldDataType.DataObjectCollectionField || (argValue.DataType & FieldDataType.ArrayField) != (FieldDataType)0) then
+                        begin
+                            args[i] = GetTypeCorrectedCollectionValue(args[i], argValue)
+                        end
+                        else
+                        begin
+                            if(argValue.PassedValue != ^null && argTypes[i] != ^null)
+                            begin
+                                args[i] = ConvertArgument(argValue.PassedValue, argTypes[i])
+                            end
+                        end
+
+                    end
+                end
+            end
+        endmethod
+
+        private method ReEncodeArguments, @Tuple<T, [#]@Object>
+            name, @string
+            arguments, [#]@ArgumentDataDefinition
+            argTypes, [#]@Type
+            inout args, [#]@object 
+        proc
+            ReEncodeArgumentsDirect(arguments, argTypes, args)
+
+            if(arguments[1].PassedValue .is. JToken) then
+            begin
+                data retValue = ((@JToken)arguments[1].PassedValue)
+                if(CallProvider != ^null) then
+                    mreturn CallProvider.AfterCall<T>(name, Tuple.Create(retValue.Value<T>(), args))
+                else
+                    mreturn Tuple.Create(retValue.Value<T>(), args)
+            end
+            else if(arguments[1].DataType == FieldDataType.DataObjectCollectionField || (arguments[1].DataType & FieldDataType.ArrayField) != (FieldDataType)0) then
+            begin
+                if(CallProvider != ^null) then
+                    mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args))
+                else
+                    mreturn Tuple.Create((T)GetTypeCorrectedCollectionValue(args[1], arguments[1]), args)
+            end
+            else if(arguments[1].PassedValue != ^null) then
+            begin
+                if(^typeof(T) == ^typeof(Object)) then
+                begin
+                    if(CallProvider != ^null) then
+                        mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)arguments[1].PassedValue, args))
+                    else
+                        mreturn Tuple.Create((T)arguments[1].PassedValue, args)
+                end
+                else
+                begin
+                    if(CallProvider != ^null) then
+                        mreturn CallProvider.AfterCall<T>(name, Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args))
+                    else
+                        mreturn Tuple.Create((T)Convert.ChangeType(arguments[1].PassedValue,^typeof(T)), args)
+                end
+            end
+            else
+            begin
+                data defaultT, T
+                if(CallProvider != ^null) then
+                    mreturn CallProvider.AfterCall<T>(name, Tuple.Create(defaultT, args))
+                else
+                    mreturn Tuple.Create(defaultT, args)
+            end
+        endmethod
+
+
+        public async method CallMethod, @Task<Tuple<T, [#]@Object>>
+            name, @string
+            args, [#]@object 
+        proc
+            data argsTemp, [#]@Object, CallProvider.BeforeCall(name, args)
+            data arguments, [#]@ArgumentDataDefinition, new ArgumentDataDefinition[argsTemp.Length + 1]
+            data i, int, 0
+            for i from 1 thru argsTemp.Length
+            begin
+                data arg, @ArgumentDataDefinition, CallProvider.PreSerializeArgumentsInternal(argsTemp[i])
+                arguments[i + 1] = arg
+            end
+
+            arguments[1] = new ArgumentDataDefinition() { PassedValue = ^null, ReturnedValue = true }
+
+            data returnType = ^typeof(T)
+            if(returnType.IsPrimitive) then
+            begin
+                arguments[1].DataType = FieldDataType.IntegerField
+                ;;specialize this
+                arguments[1].ElementSize = 4
+            end
+            else if(returnType == ^typeof(string)) then
+                arguments[1].DataType = FieldDataType.AlphaField
+            else
+                arguments[1].DataType = FieldDataType.DataObjectField
+
+            arguments = await CallProvider.CallMethodImplementationInternal(name, arguments)
+            mreturn ReEncodeArguments(name, arguments, argsTemp)
+        endmethod
+    endclass
+
+    class CollectionConverter<T>
+        public static method ConvertResultCollection, @object
+            inputSequence, @IEnumerable
+        proc
+            data converter, @Func<IConvertible, T>, BakeConversion()
 ;			if(^typeof(C).IsArray) then
 ;			begin
 ;				mreturn inputSequence.Cast<IConvertible>().Select(converter).ToArray()
@@ -816,24 +827,24 @@ namespace Harmony.Core.Context
 ;			end
 ;			else
 ;			begin
-				mreturn DynamicCallProvider.SelectMethodInfo.MakeGenericMethod(new Type[#] { ^typeof(IConvertible), ^typeof(T) }).Invoke(^null, new object[#] { inputSequence.Cast<IConvertible>(), converter })
-			;end
-			;throw new NotImplementedException()
-		endmethod
+                mreturn DynamicCallProvider.SelectMethodInfo.MakeGenericMethod(new Type[#] { ^typeof(IConvertible), ^typeof(T) }).Invoke(^null, new object[#] { inputSequence.Cast<IConvertible>(), converter })
+            ;end
+            ;throw new NotImplementedException()
+        endmethod
 
-		private static method BakeConversion, @Func<IConvertible, T>
-		proc
-			data result, @Func<IConvertible, T>, ConvertItem
-			mreturn result
-		endmethod
+        private static method BakeConversion, @Func<IConvertible, T>
+        proc
+            data result, @Func<IConvertible, T>, ConvertItem
+            mreturn result
+        endmethod
 
 
-		public static method ConvertItem, T
-			item, @IConvertible
-		proc
-			mreturn (T)item.ToType(^typeof(T), DynamicCallProvider.FormatProvider)
-		endmethod
-	endclass
+        public static method ConvertItem, T
+            item, @IConvertible
+        proc
+            mreturn (T)item.ToType(^typeof(T), DynamicCallProvider.FormatProvider)
+        endmethod
+    endclass
 
 
 endnamespace

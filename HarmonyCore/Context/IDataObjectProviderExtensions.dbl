@@ -55,23 +55,23 @@ namespace Harmony.Core.Context
                 dataObject.Validate(ValidationType.Delete, serviceProvider)
             end
 
+            ;;LOCK PHASE
+            ;;grab manual locks on all deleted records
+            ;;grab manual locks on all updated records
+            foreach dataObject in deleted
+            begin
+                data ioObject = ioHelper(dataObject)
+                FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
+            end
+
+            foreach dataObject in updated
+            begin
+                data ioObject = ioHelper(dataObject)
+                FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
+            end
+
             try
             begin
-                ;;LOCK PHASE
-                ;;grab manual locks on all deleted records
-                ;;grab manual locks on all updated records
-                foreach dataObject in deleted
-                begin
-                    data ioObject = ioHelper(dataObject)
-                    FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
-                end
-
-                foreach dataObject in updated
-                begin
-                    data ioObject = ioHelper(dataObject)
-                    FileIOErrorHelper.EnsureSuccess(ioObject.ManualLockUsingGRFA(dataObject))
-                end
-
                 ;;WRITE PHASE
                 ;;keep a list of stored/updated records for rollback
                 ;;store created records, keep manual lock

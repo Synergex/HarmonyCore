@@ -18,11 +18,11 @@ namespace Harmony.Core.EF.Query.Internal
     {
         private sealed class EntityReference : Expression, IPrintableExpression
         {
-            public EntityReference(IEntityType entityType, QueryRootExpression? queryRootExpression)
+            public EntityReference(IEntityType entityType, EntityQueryRootExpression? queryRootExpression)
             {
                 EntityType = entityType;
                 IncludePaths = new IncludeTreeNode(entityType, this, setLoaded: true);
-                QueryRootExpression = queryRootExpression;
+                EntityQueryRootExpression = queryRootExpression;
             }
 
             public IEntityType EntityType { get; }
@@ -32,7 +32,7 @@ namespace Harmony.Core.EF.Query.Internal
             public bool IsOptional { get; private set; }
             public IncludeTreeNode IncludePaths { get; private set; }
             public IncludeTreeNode? LastIncludeTreeNode { get; private set; }
-            public QueryRootExpression? QueryRootExpression { get; }
+            public EntityQueryRootExpression? EntityQueryRootExpression { get; }
 
             public override ExpressionType NodeType
                 => ExpressionType.Extension;
@@ -49,7 +49,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             public EntityReference Snapshot()
             {
-                var result = new EntityReference(EntityType, QueryRootExpression) { IsOptional = IsOptional };
+                var result = new EntityReference(EntityType, EntityQueryRootExpression) { IsOptional = IsOptional };
                 result.IncludePaths = IncludePaths.Snapshot(result);
 
                 return result;

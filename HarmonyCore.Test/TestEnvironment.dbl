@@ -20,10 +20,10 @@ namespace HarmonyCore.Test
 		proc
             data sampleDataFolder = findRelativeFolderForAssembly("SampleData")
 			data sts, int
-			xcall setlog("DAT",sampleDataFolder,sts)
+            xcall setlog("DAT",sampleDataFolder,sts)
 
 			data dataFile = "DAT:orders.ism"
-			data xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+			data xdlFile = "@" + dataFile.Replace(".ism",".xdl",StringComparison.CurrentCultureIgnoreCase)
 			data chout = 0
 			data order, @Orders
 			open(chout=0,o:i,dataFile,FDL:xdlFile)
@@ -32,7 +32,7 @@ namespace HarmonyCore.Test
 			close chout
 
             dataFile = "DAT:customers.ism"
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xdlFile = "@" + dataFile.Replace(".ism",".xdl",StringComparison.CurrentCultureIgnoreCase)
             chout = 0
             data customer, @Customer
             open(chout=0,o:i,dataFile,FDL:xdlFile)
@@ -44,8 +44,8 @@ namespace HarmonyCore.Test
 		public static method LoadFromFile, @List<Orders>
 		proc
 			data dataFile = "DAT:orders.ism"
-			data textFile = dataFile.ToLower().Replace(".ism",".txt")
-            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")))
+			data textFile = dataFile.Replace(".ism",".txt",StringComparison.CurrentCultureIgnoreCase)
+            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT"),StringComparison.CurrentCultureIgnoreCase))
             data orderCh, int, 0
 			data orderRec, strOrders
             data ordersLst = new List<Orders>()
@@ -63,8 +63,8 @@ namespace HarmonyCore.Test
         public static method LoadCustomersFromFile, @List<Customer>
         proc
             data dataFile = "DAT:customers.ism"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
-            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT")))
+            data textFile = dataFile.Replace(".ism",".txt",StringComparison.CurrentCultureIgnoreCase)
+            EnsurePlatformSpecificLineEndings(textFile.Replace(":", Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT"),StringComparison.CurrentCultureIgnoreCase))
             data orderCh, int, 0
             data orderRec, strCustomer
             data ordersLst = new List<Customer>()

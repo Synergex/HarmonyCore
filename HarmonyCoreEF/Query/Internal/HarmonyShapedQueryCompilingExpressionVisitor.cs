@@ -127,11 +127,11 @@ namespace Harmony.Core.EF.Query.Internal
             QueryContext queryContext,
             IEntityType entityType,
             PreparedQueryPlan queryPlan,
-            bool isTracking)
+            QueryTrackingBehavior trackingBehavior)
         {
             Func<DataObjectBase, DataObjectBase> track = (obj) =>
             {
-                if (isTracking)
+                if (trackingBehavior != QueryTrackingBehavior.NoTracking)
                 {
                     var localType = entityType;
                     if (entityType.ClrType != obj.GetType())

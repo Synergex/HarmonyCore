@@ -43,12 +43,12 @@ namespace Harmony.Core.EF.Query.Internal
         {
             switch (extensionExpression)
             {
-                case EntityShaperExpression entityShaperExpression:
+                case StructuralTypeShaperExpression entityShaperExpression:
                 {
                     var key = GenerateKey((ProjectionBindingExpression)entityShaperExpression.ValueBufferExpression);
                     if (!_mapping.TryGetValue(key, out var variable))
                     {
-                        variable = Expression.Parameter(entityShaperExpression.EntityType.ClrType);
+                        variable = Expression.Parameter(entityShaperExpression.StructuralType.ClrType);
                         _variables.Add(variable);
                         _expressions.Add(Expression.Assign(variable, entityShaperExpression));
                         _mapping[key] = variable;
@@ -74,18 +74,16 @@ namespace Harmony.Core.EF.Query.Internal
                 case IncludeExpression includeExpression:
                 {
                     var entity = Visit(includeExpression.EntityExpression);
-                    if (includeExpression.NavigationExpression is CollectionShaperExpression collectionShaper)
+                    if (includeExpression.NavigationExpression is ProjectionBindingExpression collectionShaper)
                     {
-                        var innerLambda = (LambdaExpression)collectionShaper.InnerShaper;
+                        var innerLambda = (LambdaExpression)collectionShaper.QueryExpression;
                         var innerShaper = new ShaperExpressionProcessingExpressionVisitor(null, innerLambda.Parameters[0])
                             .Inject(innerLambda.Body);
 
                         _expressions.Add(
                             includeExpression.Update(
-                                entity,
-                                collectionShaper.Update(
-                                    Visit(collectionShaper.Projection),
-                                    innerShaper)));
+                                Visit(collectionShaper),
+                                    innerShaper));
                     }
                     else
                     {
@@ -98,26 +96,26 @@ namespace Harmony.Core.EF.Query.Internal
                     return entity;
                 }
 
-                case CollectionShaperExpression collectionShaperExpression:
-                {
-                    var key = GenerateKey((ProjectionBindingExpression)collectionShaperExpression.Projection);
-                    if (!_mapping.TryGetValue(key, out var variable))
-                    {
-                        var projection = Visit(collectionShaperExpression.Projection);
+                //case ProjectionBindingExpression collectionShaperExpression:
+                //{
+                //    var key = GenerateKey(collectionShaperExpression);
+                //    if (!_mapping.TryGetValue(key, out var variable))
+                //    {
+                //        var projection = Visit(collectionShaperExpression);
 
-                        variable = Expression.Parameter(collectionShaperExpression.Type);
-                        _variables.Add(variable);
+                //        variable = Expression.Parameter(collectionShaperExpression.Type);
+                //        _variables.Add(variable);
 
-                        var innerLambda = (LambdaExpression)collectionShaperExpression.InnerShaper;
-                        var innerShaper = new ShaperExpressionProcessingExpressionVisitor(null, innerLambda.Parameters[0])
-                            .Inject(innerLambda.Body);
+                //        var innerLambda = (LambdaExpression)collectionShaperExpression.QueryExpression;
+                //        var innerShaper = new ShaperExpressionProcessingExpressionVisitor(null, innerLambda.Parameters[0])
+                //            .Inject(innerLambda.Body);
 
-                        _expressions.Add(Expression.Assign(variable, collectionShaperExpression.Update(projection, innerShaper)));
-                        _mapping[key] = variable;
-                    }
+                //        _expressions.Add(Expression.Assign(variable, projection));
+                //        _mapping[key] = variable;
+                //    }
 
-                    return variable;
-                }
+                //    return variable;
+                //}
 
                 case SingleResultShaperExpression singleResultShaperExpression:
                 {
