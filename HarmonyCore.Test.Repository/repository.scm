@@ -2562,7 +2562,7 @@ File CUSTOMERS   DBL ISAM   "DAT:customers.ism"
    Description "Customer master file"
    Assign CUSTOMERS
  
-File CUSTOMER_EX   DBL ISAM   "DAT:CUSTOMER_EX.ism"
+File CUSTOMER_EX   DBL ISAM   "DAT:customer_ex.ism"
    Description "extended customer data"
    RecType VARIABLE   Compress   Terabyte   Stored GRFA
    Assign CUSTOMER_EX
