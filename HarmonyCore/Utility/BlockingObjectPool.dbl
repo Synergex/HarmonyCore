@@ -52,80 +52,109 @@ namespace Harmony.Core.Utility
 			_madeItems = new List<ItemPlaceHolder>()
 		endmethod
 
-		protected method Create, T
+        private class AsyncTakeHelper
+			public Token, @CancellationToken
+			public Items, @BlockingCollection<T>
+            public method Take, T
+            proc
+				mreturn Items.Take(Token)
+            endmethod
+		endclass
+
+
+        protected method TakeAsync, @Task<T>
+			token, @CancellationToken
+        proc
+			data helper = new AsyncTakeHelper() { Token = token, Items = _availableItems }
+			mreturn Task.Run(helper.Take, token)
+		endmethod
+
+        protected method CreateFast, T
+            serviceProvider, @IServiceProvider
+        proc
+            data result, @ItemPlaceHolder, ^null
+            data avilableResult, T
+            if (_availableItems.TryTake(avilableResult))
+            begin
+                if(this.Init != ^null)
+                    this.Init(avilableResult, serviceProvider)
+
+                mreturn avilableResult
+            end
+
+            try
+            begin
+                Monitor.Enter(_madeItems)
+                begin
+                    if (_madeItems.Count < _maxCreated || _maxCreated == -1)
+                    begin
+                        result = new ItemPlaceHolder()
+                        _madeItems.Add(result)
+                    end
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
+            if (result != ^null) then
+            begin
+                try
+                begin
+                    ;; make the item and initialize it if possible
+                    result.Item = _factory(serviceProvider)
+                    if (this.Init != ^null)
+                        this.Init(result.Item, serviceProvider)
+                end
+                catch (ex, @Exception)
+                begin
+                    try
+                    begin
+                        Monitor.Enter(_madeItems)
+                        begin
+                            _madeItems.Remove(result)
+                        end
+                    end
+                    finally
+                    begin
+                        Monitor.Exit(_madeItems)
+                    end
+                    endtry
+                    throw
+                end
+                endtry
+                if (_enableDebug)
+                begin
+                    result.AllocatedAt = new StackTrace()
+                end
+                mreturn result.Item
+            end
+            else
+            begin
+                mreturn ^null
+            end
+		endmethod
+
+
+		protected async method CreateAsync, @Task<T>
 			serviceProvider, @IServiceProvider
 			endparams
 		proc
-			data result, @ItemPlaceHolder, ^null
-			data avilableResult, T
-			if (_availableItems.TryTake(avilableResult))
+            data resultObj = CreateFast(serviceProvider)
+            if (resultObj != ^null) then
 			begin
-				if(this.Init != ^null)
-					this.Init(avilableResult, serviceProvider)
-
-				mreturn avilableResult
-			end
-
-			try
-			begin
-				Monitor.Enter(_madeItems)
-				begin
-					if (_madeItems.Count < _maxCreated || _maxCreated == -1)
-					begin
-						result = new ItemPlaceHolder()
-						_madeItems.Add(result)
-					end
-				end
-			end
-			finally
-			begin
-				Monitor.Exit(_madeItems)
-			end
-			endtry
-			if (result != ^null) then
-			begin
-				try
-				begin
-					;; make the item and initialize it if possible
-					result.Item = _factory(serviceProvider)
-					if (this.Init != ^null)
-						this.Init(result.Item, serviceProvider)
-				end
-				catch (ex, @Exception)
-				begin
-					try
-					begin
-						Monitor.Enter(_madeItems)
-						begin
-							_madeItems.Remove(result)
-						end
-					end
-					finally
-					begin
-						Monitor.Exit(_madeItems)
-					end
-					endtry
-					throw
-				end
-				endtry
-				if (_enableDebug)
-				begin
-					result.AllocatedAt = new StackTrace()
-				end
-				mreturn result.Item
-			end
+                mreturn resultObj
+            end
 			else
 			begin
-				data resultObj, T, ^null
-				if (_waitDuration.Ticks != 0) then
+				data token = CancellationToken.None
+				if (_waitDuration.Ticks != 0)
 				begin
-					data tokenSource = new CancellationTokenSource(_waitDuration)
-					resultObj = _availableItems.Take(tokenSource.Token)
-				end
-				else
-				begin
-					resultObj = _availableItems.Take()
-				end
+                    data tokenSource = new CancellationTokenSource(_waitDuration)
+                    token = tokenSource.Token
+                end
+                data resultObj = await TakeAsync(token)
 
 				if (this.Init != ^null)
 					this.Init(resultObj, serviceProvider)
@@ -148,7 +177,9 @@ namespace Harmony.Core.Utility
 				end
 				mreturn resultObj
 			end
-		endmethod
+        endmethod
+
+
 		
 		protected method Return, boolean
 			obj, T 
