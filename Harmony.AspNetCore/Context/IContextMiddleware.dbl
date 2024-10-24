@@ -6,6 +6,7 @@ import System.Threading.Tasks
 import Microsoft.AspNetCore.Builder
 import Microsoft.AspNetCore.Http
 import Microsoft.Extensions.DependencyInjection
+import Microsoft.AspNetCore.Mvc.Filters
 
 namespace Harmony.AspNetCore.Context
 
@@ -17,6 +18,87 @@ namespace Harmony.AspNetCore.Context
 		endmethod
 	endinterface
 
+    public class EagerContextMiddlewareAttribute extends Attribute implements IAsyncActionFilter
+        public ContextType, @Type
+
+        public method EagerContextMiddlewareAttribute
+            contextType, @Type
+        proc
+            this.ContextType = contextType
+        endmethod
+
+        public method OnActionExecutionAsync, @Task 
+            context, @ActionExecutingContext
+            next, @ActionExecutionDelegate
+        proc
+            data internalMiddleware = ^typeof(EagerContextMiddlewareInternal<>).MakeGenericType(ContextType)
+            data innerFilter = ^as(Activator.CreateInstance(internalMiddleware), @IAsyncActionFilter)
+            mreturn innerFilter.OnActionExecutionAsync(context, next)
+        endmethod
+    endclass
+
+
+    public class EagerContextMiddlewareInternal<T(IContextBase, class)> implements IAsyncActionFilter
+        public async method OnActionExecutionAsync, @Task 
+            context, @ActionExecutingContext
+			next, @ActionExecutionDelegate
+        proc
+            data factory = context.HttpContext.RequestServices.GetService<IContextFactory<T>>()
+            data contextFactoryProvider, @ContextFactoryServiceProvider<T>
+            contextFactoryProvider = new ContextFactoryServiceProvider<T>() { InnerProvider = context.HttpContext.RequestServices, Context = context.HttpContext, Factory = factory }
+
+            data madeContext = await Factory.MakeContextAsync(contextFactoryProvider.InnerProvider)
+            contextFactoryProvider.Value = madeContext
+
+            try
+            begin
+                context.HttpContext.RequestServices = contextFactoryProvider
+                await next()
+            end
+            finally
+            begin
+                ;;reset the request services to the original provider
+                context.HttpContext.RequestServices = contextFactoryProvider.InnerProvider
+                if(contextFactoryProvider.Context != ^null && contextFactoryProvider.Value != ^null)
+                begin
+                    Factory.ReturnContext(contextFactoryProvider.Value)
+                end
+            end
+            endtry
+
+        endmethod
+    endclass
+
+    public class ContextFactoryServiceProvider<T(IContextBase, class)> implements IServiceProvider, IDisposable
+        public InnerProvider, @IServiceProvider
+        public Context, @HttpContext
+        public Factory, @IContextFactory<T>
+        public SessionId, @string
+        public Value, T
+        public virtual method GetService, @object
+            serviceType, @Type 
+            endparams
+        proc
+            if(serviceType == ^typeof(T)) then
+            begin
+                if(Value == ^null)
+                    Value = Factory.MakeContext(this)
+                mreturn Value
+            end
+            else
+                mreturn InnerProvider.GetService(serviceType)
+        endmethod
+			
+        public virtual method Dispose, void
+            endparams
+        proc
+            if(InnerProvider .is. IDisposable)
+                ((@IDisposable)InnerProvider).Dispose()
+            if(Value .is. IDisposable)
+                ((@IDisposable)Value).Dispose()
+        endmethod
+    endclass
+
 
 	;;allow the user to specify routes where this context should be applied
 	;;maybe insert it at the service provider level
@@ -26,37 +108,6 @@ namespace Harmony.AspNetCore.Context
 	;;if the context is process isolated grab one from the pool
 	;;if the context is sticky, run the request through the context pool to allow it to either bind or make a new context
 	public static class ContextBaseMiddlewareHelper
-
-		class ContextFactoryServiceProvider<T(IContextBase, class)> implements IServiceProvider, IDisposable
-			public InnerProvider, @IServiceProvider
-			public Context, @HttpContext
-			public Factory, @ContextFactory<T>
-			public SessionId, @string
-			public Value, T
-			public virtual method GetService, @object
-				serviceType, @Type 
-				endparams
-			proc
-				if(serviceType == ^typeof(T)) then
-				begin
-					if(Value == ^null)
-						Value = Factory.MakeContext(this)
-					mreturn Value
-				end
-				else
-					mreturn InnerProvider.GetService(serviceType)
-			endmethod
-			
-			public virtual method Dispose, void
-				endparams
-			proc
-				if(InnerProvider .is. IDisposable)
-					((@IDisposable)InnerProvider).Dispose()
-				if(Value .is. IDisposable)
-					((@IDisposable)Value).Dispose()
-			endmethod
-		endclass
-
 
 		class ContextFactoryHoist<T(IContextBase, class)>
 			public Factory, @ContextFactory<T>

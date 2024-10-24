@@ -21,6 +21,7 @@ import Microsoft.AspNetCore.OData.Results
 import Microsoft.AspNetCore.OData.Formatter
 import Microsoft.AspNetCore.Http
 import Microsoft.AspNetCore.Mvc.Infrastructure
+import Harmony.AspNetCore.Context
 
 namespace Services.Controllers
 
@@ -108,7 +109,8 @@ namespace Services.Controllers
 
 		{HttpGet("GetAllCustomers")}
 		{CallableMethodConfigurationAttribute(IsFunction=true, ReturnsFromEntitySet=true)}
-		{EnableQuery()}
+        {EnableQuery()}
+        {EagerContextMiddlewareAttribute(^typeof(ExternalCallContext))}
         public method GetAllCustomers, @Task<List<Customer>>
         proc
             mreturn CallContext.GetAllCustomers()
