@@ -18,7 +18,7 @@ namespace Harmony.AspNetCore.Context
 		endmethod
 	endinterface
 
-    public class EagerContextMiddlewareAttribute extends Attribute implements IAsyncActionFilter
+    public class EagerContextMiddlewareAttribute extends Attribute implements IAsyncResourceFilter
         public ContextType, @Type
 
         public method EagerContextMiddlewareAttribute
@@ -27,21 +27,21 @@ namespace Harmony.AspNetCore.Context
             this.ContextType = contextType
         endmethod
 
-        public method OnActionExecutionAsync, @Task 
-            context, @ActionExecutingContext
-            next, @ActionExecutionDelegate
+        public method OnResourceExecutionAsync, @Task 
+            context, @ResourceExecutingContext 
+			next, @ResourceExecutionDelegate 
         proc
             data internalMiddleware = ^typeof(EagerContextMiddlewareInternal<>).MakeGenericType(ContextType)
-            data innerFilter = ^as(Activator.CreateInstance(internalMiddleware), @IAsyncActionFilter)
-            mreturn innerFilter.OnActionExecutionAsync(context, next)
+            data innerFilter = ^as(Activator.CreateInstance(internalMiddleware), @IAsyncResourceFilter)
+            mreturn innerFilter.OnResourceExecutionAsync(context, next)
         endmethod
     endclass
 
 
-    public class EagerContextMiddlewareInternal<T(IContextBase, class)> implements IAsyncActionFilter
-        public async method OnActionExecutionAsync, @Task 
-            context, @ActionExecutingContext
-			next, @ActionExecutionDelegate
+    public class EagerContextMiddlewareInternal<T(IContextBase, class)> implements IAsyncResourceFilter
+        public async method OnResourceExecutionAsync, @Task 
+            context, @ResourceExecutingContext 
+			next, @ResourceExecutionDelegate 
         proc
             data factory = context.HttpContext.RequestServices.GetService<IContextFactory<T>>()
             data contextFactoryProvider, @ContextFactoryServiceProvider<T>
