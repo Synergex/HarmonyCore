@@ -78,39 +78,42 @@ namespace Harmony.Core.Utility
 	endclass
 
 	public class MemoryHandleDebugLogHelper
-		public TargetHandle, D_HANDLE
+		public TargetHandle, int
 		public TargetLength, int
 		public Trim, boolean
+		public HandleValue, @string
 		public method MemoryHandleDebugLogHelper
-			targetHandle, D_HANDLE
+			targetHandle, int
 			targetLength, int
 			default trim, boolean, false
-		proc
-			this.TargetHandle = targetHandle
-			this.TargetLength = targetLength
-			this.Trim = trim
-		endmethod
-
-
-		public override method ToString, @string
 			structure tmpAlpha
 				fld	,a1
 			endstructure
 		proc
+			this.TargetHandle = targetHandle
+			this.TargetLength = targetLength
+			this.Trim = trim
+
 			if(Trim) then
-				mreturn %atrim(^m(tmpAlpha(1:TargetLength), TargetHandle))
+				HandleValue = %atrimtostring(^m(tmpAlpha(1:TargetLength), TargetHandle))
 			else
-				mreturn ^m(tmpAlpha(1:TargetLength), TargetHandle)
+				HandleValue = ^m(tmpAlpha(1:TargetLength), TargetHandle)
+		endmethod
+
+
+		public override method ToString, @string
+		proc
+			mreturn HandleValue
 		endmethod
 
 	endclass
 
 	public class MemoryHandleImpliedDebugLogHelper
-		public TargetHandle, D_HANDLE
+		public TargetHandle, int
 		public TargetLength, int
 
 		public method MemoryHandleImpliedDebugLogHelper
-			targetHandle, D_HANDLE
+			targetHandle, int
 			targetLength, int
 		proc
 			this.TargetHandle = targetHandle
@@ -129,33 +132,37 @@ namespace Harmony.Core.Utility
 	endclass
 
 	public class MemoryHandleIntegerDebugLogHelper
-		public TargetHandle, D_HANDLE
+		public TargetHandle, int
 		public TargetLength, int
+		public HandleValue, @string
 
 		public method MemoryHandleIntegerDebugLogHelper
-			targetHandle, D_HANDLE
+			targetHandle, int
 			targetLength, int
-		proc
-			this.TargetHandle = targetHandle
-			this.TargetLength = targetLength
-		endmethod
-
-
-		public override method ToString, @string
 			structure tmpAlpha
 				fld	,a1
 			endstructure
 		proc
+			this.TargetHandle = targetHandle
+			this.TargetLength = targetLength
+
 			try
 			begin
-				mreturn %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+				HandleValue = %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
 			end
 			catch(ex, @Exception)
 			begin
 				Trace.WriteLine(ex)
 			end
 			endtry
-			mreturn ""
+			HandleValue = ""
+		endmethod
+
+
+		public override method ToString, @string
+			
+		proc
+			mreturn HandleValue
 		endmethod
 
 	endclass
