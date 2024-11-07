@@ -92,6 +92,8 @@ namespace Harmony.Core.Context
         public override method Dispose, void
             endparams
         proc
+            _channel.Writer.Complete()
+
             Monitor.Enter(_madeItems)
             try
             begin
@@ -99,7 +101,7 @@ namespace Harmony.Core.Context
                 while(_madeItems.Count > 0)
                 begin
                     data target, T
-                    if(!_availableItems.TryTake(target))
+                    if(!_channel.Reader.TryRead(target))
                         exitloop ;;no more left to remove
                 end
             end
@@ -127,7 +129,7 @@ namespace Harmony.Core.Context
                 while(_madeItems.Count > targetSize)
                 begin
                     data target, T
-                    if(!_availableItems.TryTake(target))
+                    if(!_channel.Reader.TryRead(target))
                         exitloop ;;no more left to remove
                     
                     if(Destroy != ^null)

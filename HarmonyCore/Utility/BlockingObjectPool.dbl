@@ -5,6 +5,7 @@ import System.Diagnostics
 import System.Collections.Concurrent
 import System.Threading
 import System.Threading.Tasks
+import System.Threading.Channels
 
 
 namespace Harmony.Core.Utility
@@ -14,7 +15,21 @@ namespace Harmony.Core.Utility
 		public virtual method Dispose, void
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			_channel.Writer.Complete()
+            
+            ;; Clear made items
+            try
+            begin
+                Monitor.Enter(_madeItems)
+                begin
+                    _madeItems.Clear()
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
 		endmethod
 
 		private _factory, @Func<IServiceProvider, T> 
@@ -23,7 +38,7 @@ namespace Harmony.Core.Utility
 		private _maxCreated, int
 		private _pruneAbove, int
 		protected _madeItems, @List<ItemPlaceHolder>
-		protected _availableItems, @BlockingCollection<T>
+		protected _channel, @Channel<T>
 		private _waitDuration, TimeSpan
 		protected readwrite property Init, @Action<T, IServiceProvider>  
 		protected readwrite property Recycle, @Func<T, Task>
@@ -48,25 +63,8 @@ namespace Harmony.Core.Utility
 			_maxCreated = maxCreated
 			_pruneAbove = pruneAbove
 			_waitDuration = waitDuration
-			_availableItems = new BlockingCollection<T>()
+			_channel = System.Threading.Channels.Channel.CreateUnbounded<T>()
 			_madeItems = new List<ItemPlaceHolder>()
-		endmethod
-
-        private class AsyncTakeHelper
-			public Token, @CancellationToken
-			public Items, @BlockingCollection<T>
-            public method Take, T
-            proc
-				mreturn Items.Take(Token)
-            endmethod
-		endclass
-
-
-        protected method TakeAsync, @Task<T>
-			token, @CancellationToken
-        proc
-			data helper = new AsyncTakeHelper() { Token = token, Items = _availableItems }
-			mreturn Task.Run(helper.Take, token)
 		endmethod
 
         protected method CreateFast, T
@@ -74,7 +72,7 @@ namespace Harmony.Core.Utility
         proc
             data result, @ItemPlaceHolder, ^null
             data avilableResult, T
-            if (_availableItems.TryTake(avilableResult))
+            if (_channel.Reader.TryRead(avilableResult))
             begin
                 if(this.Init != ^null)
                     this.Init(avilableResult, serviceProvider)
@@ -154,7 +152,7 @@ namespace Harmony.Core.Utility
                     data tokenSource = new CancellationTokenSource(_waitDuration)
                     token = tokenSource.Token
                 end
-                data resultObj = await TakeAsync(token)
+                data resultObj = await _channel.Reader.ReadAsync(token)
 
 				if (this.Init != ^null)
 					this.Init(resultObj, serviceProvider)
@@ -185,42 +183,26 @@ namespace Harmony.Core.Utility
 			obj, T 
 			endparams
 		proc
-			if (_availableItems.Count >= _pruneAbove) then
+			try
 			begin
-				try
+				if(CanRecycle == ^null || CanRecycle(obj)) then
+				begin
+					RecycleItem(obj)
+				end
+				else
 				begin
 					RemoveFromMadeItems(obj)
 					FinalDestroyItem(obj)
 				end
-				catch (ex, @Exception)
-				begin
-					;; nothing left to try here
-					Trace.TraceError(ex.ToString())
-				end
-				endtry
 			end
-			else
+			catch (ex, @Exception)
 			begin
-				try
-				begin
-					if(CanRecycle == ^null || CanRecycle(obj)) then
-					begin
-						RecycleItem(obj)
-					end
-					else
-					begin
-						RemoveFromMadeItems(obj)
-						FinalDestroyItem(obj)
-					end
-				end
-				catch (ex, @Exception)
-				begin
-					RemoveFromMadeItems(obj)
-					FinalDestroyItem(obj)
-					Trace.TraceError(ex.ToString())
-				end
-				endtry
+				RemoveFromMadeItems(obj)
+				FinalDestroyItem(obj)
+				Trace.TraceError(ex.ToString())
 			end
+			endtry
+			
 			mreturn false
 		endmethod
 
@@ -234,7 +216,7 @@ namespace Harmony.Core.Utility
 				begin
 					await Recycle(obj)
 				end
-				_availableItems.Add(obj)
+				await _channel.Writer.WriteAsync(obj)
 			end
 			;;async void method - gotta catch em all
 			catch(ex, @Exception)
@@ -285,6 +267,6 @@ namespace Harmony.Core.Utility
 			endtry
 		endmethod
 
-	endclass
+    endclass
 
 endnamespace
