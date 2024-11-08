@@ -64,11 +64,21 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			foreach matState in allStates
 			begin
 				data memPnt, int, matState.typeBuf.MemoryHandle.Value
-				data structureSize, int, matState.typeBuf.Metadata.StructureSize
+                data structureSize, int, matState.typeBuf.Metadata.StructureSize
 				if(string.IsNullOrWhiteSpace(matState.typeBuf.ParentFieldName)) then
 					result.Add(matState, DrivingRowIndex)
 				else
-					result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
+				begin
+					try
+					begin
+						result.Add(matState, joinObj.GetRowArrayIndex(^m(memPnt)))
+					end
+					catch(ex)
+					begin
+						throw new InvalidOperationException(string.Format("Failed to deduce join index from memory handle handle was {0} expected type was {1}", memPnt, matState.typeBuf.Metadata.RPSStructureName))
+					end
+					endtry
+				end
 			end
 			mreturn result
 		endmethod
@@ -92,7 +102,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			data structureSize, int, targetState.typeBuf.Metadata.StructureSize
 			if(currentRow.RowInfo(RowLookup[targetState], targetState.grfa)) then
 			begin
-				targetState.filled = currentRow.Fill(^m(memMapper.fld(1:structureSize), memPnt))
+				targetState.filled = currentRow.Fill(^m(memPnt))
 				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
 					DebugLogSession.Logging.LogTrace("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
 			end

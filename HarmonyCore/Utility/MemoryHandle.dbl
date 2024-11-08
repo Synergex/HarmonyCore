@@ -1,0 +1,53 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.Core.Utility
+
+    public class MemoryHandle implements IDisposable
+        public Handle, int
+
+        public static method GetMemoryHandle, @MemoryHandle
+            size, int
+        proc
+            System.Threading.Monitor.Enter(^typeof(MemoryHandle))
+            try
+            begin
+                mreturn new MemoryHandle() { Handle = %mem_proc(DM_ALLOC | DM_STATIC, size) }
+            end
+            finally
+            begin
+                System.Threading.Monitor.Exit(^typeof(MemoryHandle))
+            end
+            endtry
+        endmethod
+
+
+        private static method ReturnMemoryHandle, void
+            hnd, int
+        proc
+            System.Threading.Monitor.Enter(^typeof(MemoryHandle))
+            try
+            begin
+                mem_proc(DM_FREE, hnd)
+            end
+            finally
+            begin
+                System.Threading.Monitor.Exit(^typeof(MemoryHandle))
+            end
+            endtry
+        endmethod
+
+
+        public method Dispose, void
+        proc
+            if(Handle)
+                ReturnMemoryHandle(Handle)
+
+            Handle = 0
+        endmethod
+
+	endclass
+
+endnamespace

@@ -8,6 +8,7 @@ import System.Linq
 import Harmony.Core.Converters
 import System.Threading
 import Harmony.Core.FileIO
+import Harmony.Core.Utility
 
 namespace Harmony.Core
 
@@ -48,23 +49,55 @@ namespace Harmony.Core
 			mreturn result
 		endmethod
 
-		private RecordBuffers, @ConcurrentBag<int>, new ConcurrentBag<int>()
+        private RecordBuffers, @ConcurrentBag<MemoryHandle>, new ConcurrentBag<MemoryHandle>()
+        private ActiveRecordBuffers, @Dictionary<int, MemoryHandle>, new Dictionary<int, MemoryHandle>()
 		public RPSStructureName	,String
 		public RPSStructureSize	,Int32
 		public RPSStructureHasBinaryData, boolean
 		public method GetBuffer, int
 		proc
-			data result, int
-			if(!RecordBuffers.TryTake(result))
-				result = mem_proc(DM_ALLOC | DM_STATIC, RPSStructureSize)
+			data result, @MemoryHandle
+            if(!RecordBuffers.TryTake(result))
+            begin
+                result = MemoryHandle.GetMemoryHandle(RPSStructureSize)
+            end
 
-			mreturn result
+            Monitor.Enter(ActiveRecordBuffers)
+            try
+            begin
+                ActiveRecordBuffers.Add(result.Handle, result)
+            end
+            finally
+            begin
+                Monitor.Exit(ActiveRecordBuffers)
+            end
+            endtry
+
+			mreturn result.Handle
 		endmethod
 
 		public method ReturnBuffer, void
 			handle, int
 		proc
-			RecordBuffers.Add(handle)
+			Monitor.Enter(ActiveRecordBuffers)
+			try
+            begin
+                if(!ActiveRecordBuffers.ContainsKey(handle)) then
+				begin
+                    Console.WriteLine("Double free of memory handle")
+                end
+                else
+                begin
+					data realHandle = ActiveRecordBuffers[handle]
+                    ActiveRecordBuffers.Remove(handle)
+					RecordBuffers.Add(realHandle)
+                end
+			end
+			finally
+			begin
+				Monitor.Exit(ActiveRecordBuffers)
+			end
+			endtry
 		endmethod
 
 		;;backing field to store the objects field names
@@ -453,11 +486,11 @@ namespace Harmony.Core
 
 		public PrimaryKeyIndex, int
 
-        public virtual method GetPrimaryKeyBytes, [#]byte
+		public virtual method GetPrimaryKeyBytes, [#]byte
 			target, @DataObjectBase
-        proc
+		proc
 			throw new NotImplementedException()
-        endmethod
+		endmethod
 
 	endclass
 
