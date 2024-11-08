@@ -6,46 +6,53 @@ import System.Text
 namespace Harmony.Core.Utility
 
     public class MemoryHandle implements IDisposable
-        public Handle, int
+        public Handle, @Synergex.SynergyDE.AlphaDesc
+
+
+        static MakeNew, @System.Reflection.ConstructorInvoker 
+        static method MemoryHandle
+        proc
+            data constructor, @System.Reflection.ConstructorInfo
+            data type, @System.Type
+            data constructors, [#]@System.Reflection.ConstructorInfo
+            type = ^typeof(Synergex.SynergyDE.PinAlphaDesc)
+            constructors = type.GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            constructor = type.GetConstructor(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, new Type[#] { ^typeof(int) })
+            if(constructor == ^null)
+                throw new System.InvalidOperationException("Could not find constructor for PinAlphaDesc is this a Debug build of synrnt?")
+            MakeNew = System.Reflection.ConstructorInvoker.Create(constructor)
+        endmethod
+
 
         public static method GetMemoryHandle, @MemoryHandle
             size, int
         proc
-            System.Threading.Monitor.Enter(^typeof(MemoryHandle))
-            try
-            begin
-                mreturn new MemoryHandle() { Handle = %mem_proc(DM_ALLOC | DM_STATIC, size) }
-            end
-            finally
-            begin
-                System.Threading.Monitor.Exit(^typeof(MemoryHandle))
-            end
-            endtry
+            mreturn new MemoryHandle() { Handle = (@Synergex.SynergyDE.AlphaDesc)MakeNew.Invoke(size) }
         endmethod
 
-
-        private static method ReturnMemoryHandle, void
-            hnd, int
+        public method Range, @Synergex.SynergyDE.AlphaDesc
+            start, int
+            length, int
         proc
-            System.Threading.Monitor.Enter(^typeof(MemoryHandle))
-            try
-            begin
-                mem_proc(DM_FREE, hnd)
-            end
-            finally
-            begin
-                System.Threading.Monitor.Exit(^typeof(MemoryHandle))
-            end
-            endtry
+            if(Handle == ^null)
+                throw new System.InvalidOperationException("MemoryHandle is not initialized or already disposed")
+
+            mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(start, (start -1) + length)
         endmethod
 
+        public method Only, @Synergex.SynergyDE.AlphaDesc
+            length, int
+        proc
+            if(Handle == ^null)
+                throw new System.InvalidOperationException("MemoryHandle is not initialized or already disposed")
+
+            mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(1, length)
+        endmethod
 
         public method Dispose, void
         proc
-            if(Handle)
-                ReturnMemoryHandle(Handle)
-
-            Handle = 0
+            ;;not actually anything to do here right now
+            Handle = ^null
         endmethod
 
 	endclass

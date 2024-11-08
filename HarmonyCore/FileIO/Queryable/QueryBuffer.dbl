@@ -5,12 +5,13 @@ import System.Linq
 import Harmony.Core.Context
 import System.Diagnostics
 import Newtonsoft.Json
+import Harmony.Core.Utility
 
 namespace Harmony.Core.FileIO.Queryable
 
     public class QueryBuffer implements IDisposable
         public class TypeBuffer
-            public MemoryHandle, int?
+            public MemoryHandle, @MemoryHandle
             public IOChannel, int?
             public RemoteIO, boolean?
             public Metadata, @DataObjectMetadataBase
@@ -248,7 +249,7 @@ namespace Harmony.Core.FileIO.Queryable
             foreach buf in allBuffers
             begin
                 if(buf.MemoryHandle != ^null)
-                    buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
+                    buf.Metadata.ReturnBuffer(buf.MemoryHandle)
                 buf.MemoryHandle = ^null
                 if(DataObjectProvider != ^null && buf.IOChannel != ^null)
                 begin

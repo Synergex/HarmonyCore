@@ -50,11 +50,10 @@ namespace Harmony.Core
 		endmethod
 
         private RecordBuffers, @ConcurrentBag<MemoryHandle>, new ConcurrentBag<MemoryHandle>()
-        private ActiveRecordBuffers, @Dictionary<int, MemoryHandle>, new Dictionary<int, MemoryHandle>()
 		public RPSStructureName	,String
 		public RPSStructureSize	,Int32
 		public RPSStructureHasBinaryData, boolean
-		public method GetBuffer, int
+		public method GetBuffer, @MemoryHandle
 		proc
 			data result, @MemoryHandle
             if(!RecordBuffers.TryTake(result))
@@ -62,42 +61,13 @@ namespace Harmony.Core
                 result = MemoryHandle.GetMemoryHandle(RPSStructureSize)
             end
 
-            Monitor.Enter(ActiveRecordBuffers)
-            try
-            begin
-                ActiveRecordBuffers.Add(result.Handle, result)
-            end
-            finally
-            begin
-                Monitor.Exit(ActiveRecordBuffers)
-            end
-            endtry
-
-			mreturn result.Handle
+			mreturn result
 		endmethod
 
 		public method ReturnBuffer, void
-			handle, int
+			handle, @MemoryHandle
 		proc
-			Monitor.Enter(ActiveRecordBuffers)
-			try
-            begin
-                if(!ActiveRecordBuffers.ContainsKey(handle)) then
-				begin
-                    Console.WriteLine("Double free of memory handle")
-                end
-                else
-                begin
-					data realHandle = ActiveRecordBuffers[handle]
-                    ActiveRecordBuffers.Remove(handle)
-					RecordBuffers.Add(realHandle)
-                end
-			end
-			finally
-			begin
-				Monitor.Exit(ActiveRecordBuffers)
-			end
-			endtry
+			RecordBuffers.Add(handle)
 		endmethod
 
 		;;backing field to store the objects field names

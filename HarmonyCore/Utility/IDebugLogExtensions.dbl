@@ -78,26 +78,21 @@ namespace Harmony.Core.Utility
 	endclass
 
 	public class MemoryHandleDebugLogHelper
-		public TargetHandle, int
 		public TargetLength, int
 		public Trim, boolean
 		public HandleValue, @string
 		public method MemoryHandleDebugLogHelper
-			targetHandle, int
+			targetHandle, @MemoryHandle
 			targetLength, int
 			default trim, boolean, false
-			structure tmpAlpha
-				fld	,a1
-			endstructure
 		proc
-			this.TargetHandle = targetHandle
 			this.TargetLength = targetLength
 			this.Trim = trim
 
 			if(Trim) then
-				HandleValue = %atrimtostring(^m(tmpAlpha(1:TargetLength), TargetHandle))
+				HandleValue = %atrimtostring(targetHandle.Range(1, TargetLength))
 			else
-				HandleValue = ^m(tmpAlpha(1:TargetLength), TargetHandle)
+				HandleValue = targetHandle.Range(1, TargetLength)
 		endmethod
 
 
@@ -109,11 +104,11 @@ namespace Harmony.Core.Utility
 	endclass
 
 	public class MemoryHandleImpliedDebugLogHelper
-		public TargetHandle, int
+		public targetHandle, @MemoryHandle
 		public TargetLength, int
 
 		public method MemoryHandleImpliedDebugLogHelper
-			targetHandle, int
+			targetHandle, @MemoryHandle
 			targetLength, int
 		proc
 			this.TargetHandle = targetHandle
@@ -122,22 +117,19 @@ namespace Harmony.Core.Utility
 
 
 		public override method ToString, @string
-			structure tmpAlpha
-				fld	,a1
-			endstructure
 		proc
-			mreturn %string(%implied(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+			mreturn %string(%implied(targetHandle.Range(1, TargetLength)))
 		endmethod
 
 	endclass
 
 	public class MemoryHandleIntegerDebugLogHelper
-		public TargetHandle, int
+		public TargetHandle, @MemoryHandle
 		public TargetLength, int
 		public HandleValue, @string
 
 		public method MemoryHandleIntegerDebugLogHelper
-			targetHandle, int
+			targetHandle, @MemoryHandle
 			targetLength, int
 			structure tmpAlpha
 				fld	,a1
@@ -148,7 +140,7 @@ namespace Harmony.Core.Utility
 
 			try
 			begin
-				HandleValue = %string(%integer(^m(tmpAlpha(1:TargetLength), TargetHandle)))
+				HandleValue = %string(%integer(targetHandle.Range(1, TargetLength)))
 			end
 			catch(ex, @Exception)
 			begin

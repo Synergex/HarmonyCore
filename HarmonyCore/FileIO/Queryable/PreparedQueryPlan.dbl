@@ -699,12 +699,12 @@ namespace Harmony.Core.FileIO.Queryable
 					mreturn Enumerable.Empty<DataObjectBase>()
 
 				selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
-				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
+				data memPnt = queryBuffer.TypeBuffers[0].MemoryHandle
 				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
 				data structureSize = metadataObject.StructureSize
 				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
 				data result = new List<DataObjectBase>()
-				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+				foreach memPnt.Handle in selectObject
 				begin
 					data grfa	,a10
 					incr currentCount
@@ -720,7 +720,7 @@ namespace Harmony.Core.FileIO.Queryable
 					enumerator.CurrentRFA(grfa)
 					stats.IOOPS = enumerator.TotalReadCount
 					incr stats.RecordsReturned
-					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
+					result.Add(tracker(metadataObject.MakeNew(memPnt.Handle, grfa)))
 				end
 
 				HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
@@ -857,7 +857,7 @@ namespace Harmony.Core.FileIO.Queryable
 						if(!targetBuffers.Contains(typeBuffer))
 							nextloop
 
-						data handle = typeBuffer.MemoryHandle.Value
+						data handle = typeBuffer.MemoryHandle
 						;;TODO: this isnt handling composite keys in a join
 						if(IsJoin && tpl.Item1.QuerySourceKey == 0) then
 						begin
@@ -873,7 +873,7 @@ namespace Harmony.Core.FileIO.Queryable
 						;; verify that we're 12.2 runtime or higher and SRV_COMPAT is unset
 						else if (tpl.Item1.QuerySourceKey == 0 || VerifyVersionCompatibility(typeBuffer.RemoteIO))
 						begin
-							madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
+							madeOrderBy = MapField(handle.Handle, tpl.Item1.FieldDef, tpl.Item2)
 							if(orderByResult == ^null) then
 								orderByResult = madeOrderBy
 							else
@@ -946,6 +946,13 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
+		internal method MakeSparse, @Synergex.SynergyDE.Select.Sparse
+            recData, a
+        proc
+			mreturn new Synergex.SynergyDE.Select.Sparse(recData)
+        endmethod
+
+
 		internal method SparseObject, @Synergex.SynergyDE.Select.Sparse
 			queryBuf, @QueryBuffer
 			targetBuffers, @List<QueryBuffer.TypeBuffer>
@@ -969,8 +976,8 @@ namespace Harmony.Core.FileIO.Queryable
 						if(!targetBuffers.Contains(typeBuffer))
 							nextloop
 
-						data memPtr, int, typeBuffer.MemoryHandle.Value
-						sparseItem = new Synergex.SynergyDE.Select.Sparse(^m(tmpStructure(fieldDetails.StructurePosition:fieldDetails.ElementSize), memPtr))
+						data memPtr = typeBuffer.MemoryHandle
+						sparseItem = MakeSparse(memPtr.Range(fieldDetails.StructurePosition,fieldDetails.ElementSize))
 
 						if(result == ^null) then
 							result = sparseItem
@@ -1018,9 +1025,9 @@ namespace Harmony.Core.FileIO.Queryable
 			data currentJoin, @Synergex.SynergyDE.Select.From, ^null
 			foreach fromItem in targetBuffers
 			begin
-				data memPtr, int, fromItem.MemoryHandle.Value
+				data memPtr = fromItem.MemoryHandle
 				data channel, int, fromItem.IOChannel.Value
-				data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_NO_LOCK | Q_NO_TLOCK, 1, ^m(memPtr))
+				data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_NO_LOCK | Q_NO_TLOCK, 1, memPtr.Handle)
 				if(currentJoin == ^null) then
 				begin
 					currentJoin = madeJoin
