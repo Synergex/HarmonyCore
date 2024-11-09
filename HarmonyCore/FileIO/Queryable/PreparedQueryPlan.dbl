@@ -412,21 +412,38 @@ namespace Harmony.Core.FileIO.Queryable
 			data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
 			data queryBuffer, @QueryBuffer
 			data fromObj, @From
-
+			data cleanedUp = false
 			lambda cleanup(networkDead)
 			begin
+
+				if(cleanedUp)
+					throw new Exception("Cleanup called twice")
+
 				if(networkDead && queryBuffer != ^null)
 					queryBuffer.FailedDueToNetwork = true
 
-				rows?.Dispose()
+				;;COMPILER BUG - this should compile but gives a not implemented error
+				;;foreach data buffer in queryBuffer.TypeBuffers 
+
+				data buffer, @QueryBuffer.TypeBuffer
+				foreach buffer in queryBuffer.TypeBuffers
+				begin
+					if(buffer.MemoryHandle.Handle == ^null)
+						throw new Exception("Handle was cleared early")
+					
+					if(buffer.IOChannel == 0)
+						throw new Exception("IOChannel was cleared early")
+				end
+                fromObj?.Dispose()
 				joinSelectObject?.Dispose()
 				queryBuffer?.Dispose()
-				fromObj?.Dispose()
+				
 
 				rows = ^null
 				joinSelectObject = ^null
 				queryBuffer = ^null
 				fromObj = ^null
+				cleanedUp = true
 			end
 			data cleanupAction, @Action<boolean>, cleanup
 			try
@@ -564,7 +581,11 @@ namespace Harmony.Core.FileIO.Queryable
 				ThrowIfDisposed()
 				
 				if(CurrentNestedEnumerator != ^null)
-					mreturn CurrentNestedEnumerator.MoveNext()
+				begin
+					data moveNextResult = CurrentNestedEnumerator.MoveNext()
+					mreturn moveNextResult
+				end
+
 
 				data endOfIter = false
 				do forever
@@ -598,7 +619,8 @@ namespace Harmony.Core.FileIO.Queryable
 							phase = "FinishIterate"
 							data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
 							CurrentNestedEnumerator = fullResult
-							mreturn fullResult.MoveNext()
+							data moveResult = fullResult.MoveNext()
+							mreturn moveResult
 						end
 					end
 					catch(ex, @Synergex.SynergyDE.NetworkException)
@@ -638,6 +660,9 @@ namespace Harmony.Core.FileIO.Queryable
 				isFinalizer, boolean
 				endparams
 			proc
+				if(disposed)
+					mreturn
+
 				if(!isFinalizer) then
 				begin
 					disposedAt = Environment.StackTrace.ToString()
@@ -947,10 +972,10 @@ namespace Harmony.Core.FileIO.Queryable
 		endmethod
 
 		internal method MakeSparse, @Synergex.SynergyDE.Select.Sparse
-            recData, a
-        proc
+			recData, a
+		proc
 			mreturn new Synergex.SynergyDE.Select.Sparse(recData)
-        endmethod
+		endmethod
 
 
 		internal method SparseObject, @Synergex.SynergyDE.Select.Sparse

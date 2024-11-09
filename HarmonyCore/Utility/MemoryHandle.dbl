@@ -5,9 +5,8 @@ import System.Text
 
 namespace Harmony.Core.Utility
 
-    public class MemoryHandle implements IDisposable
+    public class MemoryHandle
         public Handle, @Synergex.SynergyDE.AlphaDesc
-
 
         static MakeNew, @System.Reflection.ConstructorInvoker 
         static method MemoryHandle
@@ -27,7 +26,9 @@ namespace Harmony.Core.Utility
         public static method GetMemoryHandle, @MemoryHandle
             size, int
         proc
-            mreturn new MemoryHandle() { Handle = (@Synergex.SynergyDE.AlphaDesc)MakeNew.Invoke(size) }
+            data result = new MemoryHandle() { Handle = (@Synergex.SynergyDE.AlphaDesc)MakeNew.Invoke(size) }
+            result.Handle.Clear()
+            mreturn result
         endmethod
 
         public method Range, @Synergex.SynergyDE.AlphaDesc
@@ -35,7 +36,7 @@ namespace Harmony.Core.Utility
             length, int
         proc
             if(Handle == ^null)
-                throw new System.InvalidOperationException("MemoryHandle is not initialized or already disposed")
+                throw new System.InvalidOperationException("MemoryHandle is not initialized")
 
             mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(start, (start -1) + length)
         endmethod
@@ -44,17 +45,44 @@ namespace Harmony.Core.Utility
             length, int
         proc
             if(Handle == ^null)
-                throw new System.InvalidOperationException("MemoryHandle is not initialized or already disposed")
+                throw new System.InvalidOperationException("MemoryHandle is not initialized")
 
             mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(1, length)
         endmethod
 
-        public method Dispose, void
+	endclass
+
+    public class MemoryHandleArena
+        private _arenaBlocks, @System.Collections.Generic.List<MemoryHandle>
+        private _blockPosition, int
+        private _blockSize, int
+        public method MemoryHandleArena
         proc
-            ;;not actually anything to do here right now
-            Handle = ^null
+            _arenaBlocks = new System.Collections.Generic.List<MemoryHandle>()
+            _blockPosition = 0
+            _blockSize = 64 * 1024
         endmethod
 
-	endclass
+        public method GetMemoryHandle, @MemoryHandle
+            size, int
+        proc
+            if(_arenaBlocks.Count == 0)
+            begin
+                _arenaBlocks.Add(MemoryHandle.GetMemoryHandle(_blockSize))
+            end
+
+            data block = _arenaBlocks[_arenaBlocks.Count - 1]
+            if(_blockPosition + size >= _blockSize)
+            begin
+                block = MemoryHandle.GetMemoryHandle(_blockSize)
+                _arenaBlocks.Add(block)
+            end
+
+            data result = block.Range(_blockPosition + 1, size)
+            _blockPosition += size
+            mreturn new MemoryHandle() { Handle = result }
+        endmethod
+    endclass
+
 
 endnamespace
