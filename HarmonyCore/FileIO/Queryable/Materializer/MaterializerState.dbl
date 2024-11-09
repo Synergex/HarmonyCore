@@ -42,20 +42,20 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 						if(!childState.changed && childState.filled && createdItemCount != childState.lastBubbleTarget)
 							childState.MaybeBubbleMake(tracker, true)
 					end
-					data structureSize, i4, typeBuf.Metadata.StructureSize
-					data memPnt, i4, typeBuf.MemoryHandle.Value
+					data structureSize = typeBuf.Metadata.StructureSize
+					data memPnt = typeBuf.MemoryHandle
 					;;construct the object
 					if(dependentItems != ^null) then
 					begin
 						data processedDeps = ProcessDependentItems()
-						data madeItem = typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa, processedDeps)
+						data madeItem = typeBuf.Metadata.MakeNew(memPnt.Handle, grfa, processedDeps)
 						lastMadeItem = tracker(madeItem)
 						if(lastMadeItem != madeItem)
 							typeBuf.Metadata.UpdateExistingJoin(lastMadeItem, processedDeps)
 					end
 					else
 					begin
-						lastMadeItem = tracker(typeBuf.Metadata.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa))
+						lastMadeItem = tracker(typeBuf.Metadata.MakeNew(memPnt.Handle, grfa))
 					end
 
 					createdItemCount += 1

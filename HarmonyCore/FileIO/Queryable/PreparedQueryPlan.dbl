@@ -149,21 +149,21 @@ namespace Harmony.Core.FileIO.Queryable
 			begin
 				data orderByTpl, @Tuple<FieldReference, boolean>
 				foreach orderByTpl in mOrderBy
-                begin
+				begin
 					if(orderByTpl.Item1.QuerySourceKey != 0)
 					begin
 						data typeBuffer = mQueryBufferPrototype.TypeBuffers[orderByTpl.Item1.QuerySourceKey]
-                        ;; Verify that the type buffer is a collection
-                        if (typeBuffer.IsCollection)
-                        begin
-                            data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
-						    data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
+						;; Verify that the type buffer is a collection
+						if (typeBuffer.IsCollection)
+						begin
+							data item1Parm = Expression.Parameter(typeBuffer.DataObjectType, "item1")
+							data item2Parm = Expression.Parameter(typeBuffer.DataObjectType, "item2")
 
-						    data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
-						    data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
+							data item1Target = Expression.Property(item1Parm, orderByTpl.Item1.FieldDef.LanguageName)
+							data item2Target = Expression.Property(item2Parm, orderByTpl.Item1.FieldDef.LanguageName)
 
-                            typeBuffer.OrderBy = MakeOrderByExpression(item1Parm, item2Parm, item1Target, item2Target, orderByTpl.Item2)
-                        end
+							typeBuffer.OrderBy = MakeOrderByExpression(item1Parm, item2Parm, item1Target, item2Target, orderByTpl.Item2)
+						end
 					end
 				end
 			end
@@ -412,21 +412,38 @@ namespace Harmony.Core.FileIO.Queryable
 			data joinSelectObject, @Synergex.SynergyDE.Select.JoinSelect
 			data queryBuffer, @QueryBuffer
 			data fromObj, @From
-
+			data cleanedUp = false
 			lambda cleanup(networkDead)
 			begin
+
+				if(cleanedUp)
+					throw new Exception("Cleanup called twice")
+
 				if(networkDead && queryBuffer != ^null)
 					queryBuffer.FailedDueToNetwork = true
 
-				rows?.Dispose()
+				;;COMPILER BUG - this should compile but gives a not implemented error
+				;;foreach data buffer in queryBuffer.TypeBuffers 
+
+				data buffer, @QueryBuffer.TypeBuffer
+				foreach buffer in queryBuffer.TypeBuffers
+				begin
+					if(buffer.MemoryHandle.Handle == ^null)
+						throw new Exception("Handle was cleared early")
+					
+					if(buffer.IOChannel == 0)
+						throw new Exception("IOChannel was cleared early")
+				end
+                fromObj?.Dispose()
 				joinSelectObject?.Dispose()
 				queryBuffer?.Dispose()
-				fromObj?.Dispose()
+				
 
 				rows = ^null
 				joinSelectObject = ^null
 				queryBuffer = ^null
 				fromObj = ^null
+				cleanedUp = true
 			end
 			data cleanupAction, @Action<boolean>, cleanup
 			try
@@ -507,6 +524,8 @@ namespace Harmony.Core.FileIO.Queryable
 			cleanup, @Action<Boolean>
 			queryPlan, @PreparedQueryPlan
 			deadFromNetworkError, boolean, false
+			disposed, boolean, false
+			disposedAt, @string
 
 			public method MaterializerEnumerator
 				queryPlan, @PreparedQueryPlan
@@ -524,6 +543,8 @@ namespace Harmony.Core.FileIO.Queryable
 			public property Current, @DataObjectBase
 				method get
 				proc
+					ThrowIfDisposed()
+
 					if(CurrentNestedEnumerator != ^null) then
 						mreturn CurrentNestedEnumerator.Current
 					else
@@ -536,6 +557,8 @@ namespace Harmony.Core.FileIO.Queryable
 			property System.Collections.IEnumerator.Current, @object
 				method get
 				proc
+					ThrowIfDisposed()
+
 					if(CurrentNestedEnumerator != ^null) then
 						mreturn CurrentNestedEnumerator.Current
 					else
@@ -543,18 +566,32 @@ namespace Harmony.Core.FileIO.Queryable
 				endmethod
 			endproperty
 
+			private method ThrowIfDisposed, void 
+			proc
+				if(disposed)
+					throw new ObjectDisposedException("MaterializerEnumerator used after disposal at location {0}", disposedAt)
+			endmethod
 
 
 			public virtual method MoveNext, Boolean
 				endparams
 			proc
 				data phase = "init"
+				
+				ThrowIfDisposed()
+				
 				if(CurrentNestedEnumerator != ^null)
-					mreturn CurrentNestedEnumerator.MoveNext()
+				begin
+					data moveNextResult = CurrentNestedEnumerator.MoveNext()
+					mreturn moveNextResult
+				end
+
 
 				data endOfIter = false
 				do forever
 				begin
+					ThrowIfDisposed()
+
 					try
 					begin
 						if(!endOfIter) then
@@ -582,7 +619,8 @@ namespace Harmony.Core.FileIO.Queryable
 							phase = "FinishIterate"
 							data fullResult = DataObjectMaterializer.FinishIteration(iterState).GetEnumerator()
 							CurrentNestedEnumerator = fullResult
-							mreturn fullResult.MoveNext()
+							data moveResult = fullResult.MoveNext()
+							mreturn moveResult
 						end
 					end
 					catch(ex, @Synergex.SynergyDE.NetworkException)
@@ -622,6 +660,20 @@ namespace Harmony.Core.FileIO.Queryable
 				isFinalizer, boolean
 				endparams
 			proc
+				if(disposed)
+					mreturn
+
+				if(!isFinalizer) then
+				begin
+					disposedAt = Environment.StackTrace.ToString()
+				end
+				else
+				begin
+					disposedAt = "finalizer"
+				end
+
+				disposed = true
+
 				cleanup(deadFromNetworkError)
 				if(CurrentNestedEnumerator != ^null)
 					CurrentNestedEnumerator.Dispose()
@@ -672,12 +724,12 @@ namespace Harmony.Core.FileIO.Queryable
 					mreturn Enumerable.Empty<DataObjectBase>()
 
 				selectObject = SelectObject(fromObj, WhereObject(queryBuffer, queryBuffer.TypeBuffers), OrderByObject(queryBuffer, queryBuffer.TypeBuffers), SparseObject(queryBuffer, queryBuffer.TypeBuffers))
-				data memPnt, int, queryBuffer.TypeBuffers[0].MemoryHandle.Value
+				data memPnt = queryBuffer.TypeBuffers[0].MemoryHandle
 				data metadataObject = queryBuffer.TypeBuffers[0].Metadata
 				data structureSize = metadataObject.StructureSize
 				data enumerator, @Synergex.SynergyDE.Select.RestrictedAlphaEnumerator
 				data result = new List<DataObjectBase>()
-				foreach ^m(memMapper.fld(1:structureSize), memPnt) in selectObject
+				foreach memPnt.Handle in selectObject
 				begin
 					data grfa	,a10
 					incr currentCount
@@ -693,7 +745,7 @@ namespace Harmony.Core.FileIO.Queryable
 					enumerator.CurrentRFA(grfa)
 					stats.IOOPS = enumerator.TotalReadCount
 					incr stats.RecordsReturned
-					result.Add(tracker(metadataObject.MakeNew(^m(memMapper.fld(1:structureSize), memPnt), grfa)))
+					result.Add(tracker(metadataObject.MakeNew(memPnt.Handle, grfa)))
 				end
 
 				HarmonyFileIOMetricsEventSource.Log.ReportIOOPS(stats.IOOPS)
@@ -824,13 +876,13 @@ namespace Harmony.Core.FileIO.Queryable
 				begin
 					data madeOrderBy, @Synergex.SynergyDE.Select.OrderBy, ^null
 					data typeBuffer = queryBuf.TypeBuffers[tpl.Item1.QuerySourceKey]
-                    if(tpl.Item1.QuerySourceKey == 0 || !typeBuffer.IsCollection)
-                    begin
+					if(tpl.Item1.QuerySourceKey == 0 || !typeBuffer.IsCollection)
+					begin
 
 						if(!targetBuffers.Contains(typeBuffer))
 							nextloop
 
-						data handle = typeBuffer.MemoryHandle.Value
+						data handle = typeBuffer.MemoryHandle
 						;;TODO: this isnt handling composite keys in a join
 						if(IsJoin && tpl.Item1.QuerySourceKey == 0) then
 						begin
@@ -842,11 +894,11 @@ namespace Harmony.Core.FileIO.Queryable
 								else
 									orderByResult = Synergex.SynergyDE.Select.OrderBy.DescendingKey(targetKey.Value)
 							end
-                        end
-                        ;; verify that we're 12.2 runtime or higher and SRV_COMPAT is unset
-                        else if (tpl.Item1.QuerySourceKey == 0 || VerifyVersionCompatibility(typeBuffer.RemoteIO))
+						end
+						;; verify that we're 12.2 runtime or higher and SRV_COMPAT is unset
+						else if (tpl.Item1.QuerySourceKey == 0 || VerifyVersionCompatibility(typeBuffer.RemoteIO))
 						begin
-							madeOrderBy = MapField(^m(handle), tpl.Item1.FieldDef, tpl.Item2)
+							madeOrderBy = MapField(handle.Handle, tpl.Item1.FieldDef, tpl.Item2)
 							if(orderByResult == ^null) then
 								orderByResult = madeOrderBy
 							else
@@ -861,39 +913,39 @@ namespace Harmony.Core.FileIO.Queryable
 			mreturn orderByResult
 		endmethod
 
-        ;; A helper method that verifies version of runtime and SRV_COMPAT 
-        private method VerifyVersionCompatibility, boolean
-            isRemote, Nullable<Boolean>
-        proc
-            data condition, boolean, false
-            data runtimeVer = SYN_VERSION
-            data splitVer = runtimeVer.Split('.')
-            data versnNum = Int32.Parse(splitVer[1])
-            data majorRevNum = Int32.Parse(splitVer[2])
-            data versionCheck, boolean, false
-            if(versnNum > 12 || (versnNum = 12 && majorRevNum >= 2)) then
-                versionCheck = true
-            else
-                throw new NotImplementedException("Synergy Version 12.2 or higher is expected for OrderBy on Join support.")
+		;; A helper method that verifies version of runtime and SRV_COMPAT 
+		private method VerifyVersionCompatibility, boolean
+			isRemote, Nullable<Boolean>
+		proc
+			data condition, boolean, false
+			data runtimeVer = SYN_VERSION
+			data splitVer = runtimeVer.Split('.')
+			data versnNum = Int32.Parse(splitVer[1])
+			data majorRevNum = Int32.Parse(splitVer[2])
+			data versionCheck, boolean, false
+			if(versnNum > 12 || (versnNum = 12 && majorRevNum >= 2)) then
+				versionCheck = true
+			else
+				throw new NotImplementedException("Synergy Version 12.2 or higher is expected for OrderBy on Join support.")
 
-            if (isRemote) then
-            begin
-                ;; check whether SRV_COMPAT is set
-                data srv_compat = ""
-                srv_compat = Environment.GetEnvironmentVariable("SRV_COMPAT")
-                if (versionCheck && srv_compat == "") then
-                    condition = true
-                else 
-                    throw new NotImplementedException("The OrderBy in the current query could not be processed due to SRV_COMPAT variable being set or old xfServer version.")
+			if (isRemote) then
+			begin
+				;; check whether SRV_COMPAT is set
+				data srv_compat = ""
+				srv_compat = Environment.GetEnvironmentVariable("SRV_COMPAT")
+				if (versionCheck && srv_compat == "") then
+					condition = true
+				else 
+					throw new NotImplementedException("The OrderBy in the current query could not be processed due to SRV_COMPAT variable being set or old xfServer version.")
 
-            end
-            else
-            begin
-                if (versionCheck)
-                    condition = true
-            end
-            mreturn condition
-        endmethod
+			end
+			else
+			begin
+				if (versionCheck)
+					condition = true
+			end
+			mreturn condition
+		endmethod
 
 		internal method SelectObject, @Synergex.SynergyDE.Select.Select
 			fromObject, @Synergex.SynergyDE.Select.From
@@ -919,6 +971,13 @@ namespace Harmony.Core.FileIO.Queryable
 			end
 		endmethod
 
+		internal method MakeSparse, @Synergex.SynergyDE.Select.Sparse
+			recData, a
+		proc
+			mreturn new Synergex.SynergyDE.Select.Sparse(recData)
+		endmethod
+
+
 		internal method SparseObject, @Synergex.SynergyDE.Select.Sparse
 			queryBuf, @QueryBuffer
 			targetBuffers, @List<QueryBuffer.TypeBuffer>
@@ -942,8 +1001,8 @@ namespace Harmony.Core.FileIO.Queryable
 						if(!targetBuffers.Contains(typeBuffer))
 							nextloop
 
-						data memPtr, int, typeBuffer.MemoryHandle.Value
-						sparseItem = new Synergex.SynergyDE.Select.Sparse(^m(tmpStructure(fieldDetails.StructurePosition:fieldDetails.ElementSize), memPtr))
+						data memPtr = typeBuffer.MemoryHandle
+						sparseItem = MakeSparse(memPtr.Range(fieldDetails.StructurePosition,fieldDetails.ElementSize))
 
 						if(result == ^null) then
 							result = sparseItem
@@ -991,9 +1050,9 @@ namespace Harmony.Core.FileIO.Queryable
 			data currentJoin, @Synergex.SynergyDE.Select.From, ^null
 			foreach fromItem in targetBuffers
 			begin
-				data memPtr, i4, fromItem.MemoryHandle.Value
-				data channel, i4, fromItem.IOChannel.Value
-                data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_NO_LOCK, 1, ^m(memPtr))
+				data memPtr = fromItem.MemoryHandle
+				data channel, int, fromItem.IOChannel.Value
+				data madeJoin = new Synergex.SynergyDE.Select.From(channel, Q_NO_LOCK | Q_NO_TLOCK, 1, memPtr.Handle)
 				if(currentJoin == ^null) then
 				begin
 					currentJoin = madeJoin

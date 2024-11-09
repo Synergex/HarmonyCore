@@ -1,0 +1,88 @@
+import System
+import System.Collections.Generic
+import System.Text
+
+
+namespace Harmony.Core.Utility
+
+    public class MemoryHandle
+        public Handle, @Synergex.SynergyDE.AlphaDesc
+
+        static MakeNew, @System.Reflection.ConstructorInvoker 
+        static method MemoryHandle
+        proc
+            data constructor, @System.Reflection.ConstructorInfo
+            data type, @System.Type
+            data constructors, [#]@System.Reflection.ConstructorInfo
+            type = ^typeof(Synergex.SynergyDE.PinAlphaDesc)
+            constructors = type.GetConstructors(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+            constructor = type.GetConstructor(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, new Type[#] { ^typeof(int) })
+            if(constructor == ^null)
+                throw new System.InvalidOperationException("Could not find constructor for PinAlphaDesc is this a Debug build of synrnt?")
+            MakeNew = System.Reflection.ConstructorInvoker.Create(constructor)
+        endmethod
+
+
+        public static method GetMemoryHandle, @MemoryHandle
+            size, int
+        proc
+            data result = new MemoryHandle() { Handle = (@Synergex.SynergyDE.AlphaDesc)MakeNew.Invoke(size) }
+            result.Handle.Clear()
+            mreturn result
+        endmethod
+
+        public method Range, @Synergex.SynergyDE.AlphaDesc
+            start, int
+            length, int
+        proc
+            if(Handle == ^null)
+                throw new System.InvalidOperationException("MemoryHandle is not initialized")
+
+            mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(start, (start -1) + length)
+        endmethod
+
+        public method Only, @Synergex.SynergyDE.AlphaDesc
+            length, int
+        proc
+            if(Handle == ^null)
+                throw new System.InvalidOperationException("MemoryHandle is not initialized")
+
+            mreturn (@Synergex.SynergyDE.AlphaDesc)Handle.AbsRange(1, length)
+        endmethod
+
+	endclass
+
+    public class MemoryHandleArena
+        private _arenaBlocks, @System.Collections.Generic.List<MemoryHandle>
+        private _blockPosition, int
+        private _blockSize, int
+        public method MemoryHandleArena
+        proc
+            _arenaBlocks = new System.Collections.Generic.List<MemoryHandle>()
+            _blockPosition = 0
+            _blockSize = 64 * 1024
+        endmethod
+
+        public method GetMemoryHandle, @MemoryHandle
+            size, int
+        proc
+            if(_arenaBlocks.Count == 0)
+            begin
+                _arenaBlocks.Add(MemoryHandle.GetMemoryHandle(_blockSize))
+            end
+
+            data block = _arenaBlocks[_arenaBlocks.Count - 1]
+            if(_blockPosition + size >= _blockSize)
+            begin
+                block = MemoryHandle.GetMemoryHandle(_blockSize)
+                _arenaBlocks.Add(block)
+            end
+
+            data result = block.Range(_blockPosition + 1, size)
+            _blockPosition += size
+            mreturn new MemoryHandle() { Handle = result }
+        endmethod
+    endclass
+
+
+endnamespace

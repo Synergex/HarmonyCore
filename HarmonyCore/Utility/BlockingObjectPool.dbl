@@ -5,6 +5,7 @@ import System.Diagnostics
 import System.Collections.Concurrent
 import System.Threading
 import System.Threading.Tasks
+import System.Threading.Channels
 
 
 namespace Harmony.Core.Utility
@@ -14,7 +15,21 @@ namespace Harmony.Core.Utility
 		public virtual method Dispose, void
 			endparams
 		proc
-			throw new System.NotImplementedException()
+			_channel.Writer.Complete()
+            
+            ;; Clear made items
+            try
+            begin
+                Monitor.Enter(_madeItems)
+                begin
+                    _madeItems.Clear()
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
 		endmethod
 
 		private _factory, @Func<IServiceProvider, T> 
@@ -23,7 +38,7 @@ namespace Harmony.Core.Utility
 		private _maxCreated, int
 		private _pruneAbove, int
 		protected _madeItems, @List<ItemPlaceHolder>
-		protected _availableItems, @BlockingCollection<T>
+		protected _channel, @Channel<T>
 		private _waitDuration, TimeSpan
 		protected readwrite property Init, @Action<T, IServiceProvider>  
 		protected readwrite property Recycle, @Func<T, Task>
@@ -48,84 +63,96 @@ namespace Harmony.Core.Utility
 			_maxCreated = maxCreated
 			_pruneAbove = pruneAbove
 			_waitDuration = waitDuration
-			_availableItems = new BlockingCollection<T>()
+			_channel = System.Threading.Channels.Channel.CreateUnbounded<T>()
 			_madeItems = new List<ItemPlaceHolder>()
 		endmethod
 
-		protected method Create, T
+        protected method CreateFast, T
+            serviceProvider, @IServiceProvider
+        proc
+            data result, @ItemPlaceHolder, ^null
+            data avilableResult, T
+            if (_channel.Reader.TryRead(avilableResult))
+            begin
+                if(this.Init != ^null)
+                    this.Init(avilableResult, serviceProvider)
+
+                mreturn avilableResult
+            end
+
+            try
+            begin
+                Monitor.Enter(_madeItems)
+                begin
+                    if (_madeItems.Count < _maxCreated || _maxCreated == -1)
+                    begin
+                        result = new ItemPlaceHolder()
+                        _madeItems.Add(result)
+                    end
+                end
+            end
+            finally
+            begin
+                Monitor.Exit(_madeItems)
+            end
+            endtry
+            if (result != ^null) then
+            begin
+                try
+                begin
+                    ;; make the item and initialize it if possible
+                    result.Item = _factory(serviceProvider)
+                    if (this.Init != ^null)
+                        this.Init(result.Item, serviceProvider)
+                end
+                catch (ex, @Exception)
+                begin
+                    try
+                    begin
+                        Monitor.Enter(_madeItems)
+                        begin
+                            _madeItems.Remove(result)
+                        end
+                    end
+                    finally
+                    begin
+                        Monitor.Exit(_madeItems)
+                    end
+                    endtry
+                    throw
+                end
+                endtry
+                if (_enableDebug)
+                begin
+                    result.AllocatedAt = new StackTrace()
+                end
+                mreturn result.Item
+            end
+            else
+            begin
+                mreturn ^null
+            end
+		endmethod
+
+
+		protected async method CreateAsync, @Task<T>
 			serviceProvider, @IServiceProvider
 			endparams
 		proc
-			data result, @ItemPlaceHolder, ^null
-			data avilableResult, T
-			if (_availableItems.TryTake(avilableResult))
+            data resultObj = CreateFast(serviceProvider)
+            if (resultObj != ^null) then
 			begin
-				if(this.Init != ^null)
-					this.Init(avilableResult, serviceProvider)
-
-				mreturn avilableResult
-			end
-
-			try
-			begin
-				Monitor.Enter(_madeItems)
-				begin
-					if (_madeItems.Count < _maxCreated || _maxCreated == -1)
-					begin
-						result = new ItemPlaceHolder()
-						_madeItems.Add(result)
-					end
-				end
-			end
-			finally
-			begin
-				Monitor.Exit(_madeItems)
-			end
-			endtry
-			if (result != ^null) then
-			begin
-				try
-				begin
-					;; make the item and initialize it if possible
-					result.Item = _factory(serviceProvider)
-					if (this.Init != ^null)
-						this.Init(result.Item, serviceProvider)
-				end
-				catch (ex, @Exception)
-				begin
-					try
-					begin
-						Monitor.Enter(_madeItems)
-						begin
-							_madeItems.Remove(result)
-						end
-					end
-					finally
-					begin
-						Monitor.Exit(_madeItems)
-					end
-					endtry
-					throw
-				end
-				endtry
-				if (_enableDebug)
-				begin
-					result.AllocatedAt = new StackTrace()
-				end
-				mreturn result.Item
-			end
+                mreturn resultObj
+            end
 			else
 			begin
-				data resultObj, T, ^null
-				if (_waitDuration.Ticks != 0) then
+				data token = CancellationToken.None
+				if (_waitDuration.Ticks != 0)
 				begin
-					data tokenSource = new CancellationTokenSource(_waitDuration)
-					resultObj = _availableItems.Take(tokenSource.Token)
-				end
-				else
-				begin
-					resultObj = _availableItems.Take()
-				end
+                    data tokenSource = new CancellationTokenSource(_waitDuration)
+                    token = tokenSource.Token
+                end
+                data resultObj = await _channel.Reader.ReadAsync(token)
 
 				if (this.Init != ^null)
 					this.Init(resultObj, serviceProvider)
@@ -148,48 +175,34 @@ namespace Harmony.Core.Utility
 				end
 				mreturn resultObj
 			end
-		endmethod
+        endmethod
+
+
 		
 		protected method Return, boolean
 			obj, T 
 			endparams
 		proc
-			if (_availableItems.Count >= _pruneAbove) then
+			try
 			begin
-				try
+				if(CanRecycle == ^null || CanRecycle(obj)) then
+				begin
+					RecycleItem(obj)
+				end
+				else
 				begin
 					RemoveFromMadeItems(obj)
 					FinalDestroyItem(obj)
 				end
-				catch (ex, @Exception)
-				begin
-					;; nothing left to try here
-					Trace.TraceError(ex.ToString())
-				end
-				endtry
 			end
-			else
+			catch (ex, @Exception)
 			begin
-				try
-				begin
-					if(CanRecycle == ^null || CanRecycle(obj)) then
-					begin
-						RecycleItem(obj)
-					end
-					else
-					begin
-						RemoveFromMadeItems(obj)
-						FinalDestroyItem(obj)
-					end
-				end
-				catch (ex, @Exception)
-				begin
-					RemoveFromMadeItems(obj)
-					FinalDestroyItem(obj)
-					Trace.TraceError(ex.ToString())
-				end
-				endtry
+				RemoveFromMadeItems(obj)
+				FinalDestroyItem(obj)
+				Trace.TraceError(ex.ToString())
 			end
+			endtry
+			
 			mreturn false
 		endmethod
 
@@ -203,7 +216,7 @@ namespace Harmony.Core.Utility
 				begin
 					await Recycle(obj)
 				end
-				_availableItems.Add(obj)
+				await _channel.Writer.WriteAsync(obj)
 			end
 			;;async void method - gotta catch em all
 			catch(ex, @Exception)
@@ -254,6 +267,6 @@ namespace Harmony.Core.Utility
 			endtry
 		endmethod
 
-	endclass
+    endclass
 
 endnamespace

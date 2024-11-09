@@ -8,6 +8,7 @@ import System.Linq
 import Harmony.Core.Converters
 import System.Threading
 import Harmony.Core.FileIO
+import Harmony.Core.Utility
 
 namespace Harmony.Core
 
@@ -48,21 +49,23 @@ namespace Harmony.Core
 			mreturn result
 		endmethod
 
-		private RecordBuffers, @ConcurrentBag<int>, new ConcurrentBag<int>()
+        private RecordBuffers, @ConcurrentBag<MemoryHandle>, new ConcurrentBag<MemoryHandle>()
 		public RPSStructureName	,String
 		public RPSStructureSize	,Int32
 		public RPSStructureHasBinaryData, boolean
-		public method GetBuffer, int
+		public method GetBuffer, @MemoryHandle
 		proc
-			data result, int
-			if(!RecordBuffers.TryTake(result))
-				result = mem_proc(DM_ALLOC | DM_STATIC, RPSStructureSize)
+			data result, @MemoryHandle
+            if(!RecordBuffers.TryTake(result))
+            begin
+                result = MemoryHandle.GetMemoryHandle(RPSStructureSize)
+            end
 
 			mreturn result
 		endmethod
 
 		public method ReturnBuffer, void
-			handle, int
+			handle, @MemoryHandle
 		proc
 			RecordBuffers.Add(handle)
 		endmethod
@@ -453,11 +456,11 @@ namespace Harmony.Core
 
 		public PrimaryKeyIndex, int
 
-        public virtual method GetPrimaryKeyBytes, [#]byte
+		public virtual method GetPrimaryKeyBytes, [#]byte
 			target, @DataObjectBase
-        proc
+		proc
 			throw new NotImplementedException()
-        endmethod
+		endmethod
 
 	endclass
 

@@ -1,6 +1,7 @@
 import System
 import System.Collections.Generic
 import System.Text
+import Harmony.Core.Utility
 
 
 namespace Harmony.Core.FileIO
@@ -10,7 +11,7 @@ namespace Harmony.Core.FileIO
     endstructure
 
     public abstract class DataObjectIOBase<T(DataObjectBase)> implements IDataObjectIO<T>, IDisposable
-        private mRecordBuffer, int ;D_HANDLE
+        private mRecordBuffer, @MemoryHandle
         protected mDataObjectMetadata, @DataObjectMetadataBase
         
         protected method DataObjectIOBase
@@ -40,10 +41,10 @@ namespace Harmony.Core.FileIO
             if(!isFinalizer)
                 GC.SuppressFinalize(this)
 
-            if (mRecordBuffer) 
+            if (mRecordBuffer != ^null) 
             begin
                 mDataObjectMetadata.ReturnBuffer(mRecordBuffer)
-                mRecordBuffer = 0
+                mRecordBuffer = ^null
             end
 
         endmethod
@@ -287,9 +288,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, "", FindOperation.FromBeginingOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -306,9 +307,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, "", FindOperation.FromCurrent, Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -341,9 +342,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.FromCurrentReverse, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, "", FindOperation.FromCurrentReverse, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -376,9 +377,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.ToEndOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, "", FindOperation.ToEndOfFile, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -412,9 +413,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, "", FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, "", FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -465,9 +466,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, 0, ^a(recordNumber), FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod
@@ -611,9 +612,9 @@ namespace Harmony.Core.FileIO
         proc
             data grfaBuffer, a10
             dataObject = ^null
-            data result = this.Read(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
+            data result = this.Read(mRecordBuffer.Handle, grfaBuffer, keyNumber, keyValue, FindOperation.AtCurrent, noLock ? Q_NO_LOCK : Q_AUTO_LOCK)
             if(result == FileAccessResults.Success)
-                dataObject = mDataObjectMetadata.MakeNew(^m(MemoryMapper.fld(1:mDataObjectMetadata.StructureSize), mRecordBuffer), grfaBuffer)
+                dataObject = mDataObjectMetadata.MakeNew(mRecordBuffer.Handle, grfaBuffer)
                 
             mreturn result
         endmethod

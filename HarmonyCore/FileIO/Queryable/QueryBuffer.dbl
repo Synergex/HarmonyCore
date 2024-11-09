@@ -5,12 +5,13 @@ import System.Linq
 import Harmony.Core.Context
 import System.Diagnostics
 import Newtonsoft.Json
+import Harmony.Core.Utility
 
 namespace Harmony.Core.FileIO.Queryable
 
     public class QueryBuffer implements IDisposable
         public class TypeBuffer
-            public MemoryHandle, int?
+            public MemoryHandle, @MemoryHandle
             public IOChannel, int?
             public RemoteIO, boolean?
             public Metadata, @DataObjectMetadataBase
@@ -54,7 +55,8 @@ namespace Harmony.Core.FileIO.Queryable
         public readwrite property Context, @object
         private DrivingBuffers, @List<QueryBuffer.TypeBuffer>
         public readwrite property FailedDueToNetwork, boolean, false
-
+        public readwrite property Disposed, boolean, false
+        internal readwrite property MemoryHandleArena, @MemoryHandleArena, new MemoryHandleArena()
         public method GetTop, long?
             targetBufferIndex, int
         proc
@@ -150,6 +152,7 @@ namespace Harmony.Core.FileIO.Queryable
             buf, @QueryBuffer.TypeBuffer
             dataObjectProvider, @IDataObjectProvider
             bufferMap, @Dictionary<QueryBuffer.TypeBuffer, QueryBuffer.TypeBuffer>
+            handleArena, @MemoryHandleArena
         proc
             data madeBuffer, @QueryBuffer.TypeBuffer
             if(bufferMap != ^null && bufferMap.TryGetValue(buf,madeBuffer)) then
@@ -163,7 +166,7 @@ namespace Harmony.Core.FileIO.Queryable
                 &    ParentFieldName = buf.ParentFieldName,
                 &    DataObjectType = buf.DataObjectType,
                 &    JoinOn = buf.JoinOn,
-                &    JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap) }).ToList(),
+                &    JoinedBuffers = buf.JoinedBuffers.Select(lambda(jBuf) { MakeTypeBuffer(jBuf, dataObjectProvider, bufferMap, handleArena) }).ToList(),
                 &    IsInnerJoin = buf.IsInnerJoin,
                 &    OrderBy = buf.OrderBy,
                 &    SelectResult = buf.SelectResult,
@@ -171,7 +174,7 @@ namespace Harmony.Core.FileIO.Queryable
                 &    Skip = buf.Skip
                 &    }
 
-                newTypeBuf.MemoryHandle = buf.Metadata.GetBuffer()
+                newTypeBuf.MemoryHandle = handleArena.GetMemoryHandle(buf.Metadata.RPSStructureSize)
                 data fileInfo = dataObjectProvider.GetFileInfo(buf.DataObjectType)
                 ;;this is read only, performance is significantly improved by using an input channel 
                 data fileOpenMode = fileInfo.Item2
@@ -208,7 +211,7 @@ namespace Harmony.Core.FileIO.Queryable
                 if(buf.MemoryHandle != ^null || buf.IOChannel != ^null )
                     throw new InvalidOperationException("TypeBuffer should not have its MemoryHandle member set during QueryBuffer construction")
 				
-                TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap))
+                TypeBuffers.Add(MakeTypeBuffer(buf, dataObjectProvider, protoBufferMap, this.MemoryHandleArena))
             end
         endmethod
 		
@@ -228,6 +231,9 @@ namespace Harmony.Core.FileIO.Queryable
             isFinalizer, boolean
             endparams
         proc
+            if(Disposed)
+                mreturn
+
             data buf, @QueryBuffer.TypeBuffer
             data allBuffers, @IEnumerable<QueryBuffer.TypeBuffer>, TypeBuffers
             if(DrivingBuffers != ^null)
@@ -242,13 +248,12 @@ namespace Harmony.Core.FileIO.Queryable
                     data ch, int
                     ch = tempbuf.IOChannel
                     DataObjectProvider.ChannelManager.AbandonOpenChannels(ch)
+                    tempbuf.IOChannel = ^null
                 end
             end
 
             foreach buf in allBuffers
             begin
-                if(buf.MemoryHandle != ^null)
-                    buf.Metadata.ReturnBuffer(buf.MemoryHandle.Value)
                 buf.MemoryHandle = ^null
                 if(DataObjectProvider != ^null && buf.IOChannel != ^null)
                 begin
@@ -264,6 +269,7 @@ namespace Harmony.Core.FileIO.Queryable
             TypeBuffers.Clear()
             DataObjectProvider = ^null
             DrivingBuffers = ^null
+            Disposed = true
         endmethod
 
     endclass

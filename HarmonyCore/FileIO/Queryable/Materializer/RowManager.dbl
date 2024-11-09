@@ -63,12 +63,22 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			data matState, @MaterializerState
 			foreach matState in allStates
 			begin
-				data memPnt, i4, matState.typeBuf.MemoryHandle.Value
-				data structureSize, i4, matState.typeBuf.Metadata.StructureSize
+				data memPnt = matState.typeBuf.MemoryHandle
+                data structureSize, int, matState.typeBuf.Metadata.StructureSize
 				if(string.IsNullOrWhiteSpace(matState.typeBuf.ParentFieldName)) then
 					result.Add(matState, DrivingRowIndex)
 				else
-					result.Add(matState, joinObj.GetRowArrayIndex(^m(memMapper.fld(1:structureSize), memPnt)))
+				begin
+					try
+					begin
+						result.Add(matState, joinObj.GetRowArrayIndex(memPnt.Handle))
+					end
+					catch(ex)
+					begin
+						throw new InvalidOperationException(string.Format("Failed to deduce join index from memory handle handle was {0} expected type was {1}", memPnt, matState.typeBuf.Metadata.RPSStructureName))
+					end
+					endtry
+				end
 			end
 			mreturn result
 		endmethod
@@ -88,12 +98,13 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			targetState, @MaterializerState
 		proc
 			data currentRow = Enumerator.Current
-			data memPnt, i4, targetState.typeBuf.MemoryHandle.Value
-			data structureSize, i4, targetState.typeBuf.Metadata.StructureSize
+			data memPnt = targetState.typeBuf.MemoryHandle
+			data structureSize, int, targetState.typeBuf.Metadata.StructureSize
 			if(currentRow.RowInfo(RowLookup[targetState], targetState.grfa)) then
 			begin
-				targetState.filled = currentRow.Fill(^m(memMapper.fld(1:structureSize), memPnt))
-				DebugLogSession.Logging.LogTrace("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
+				targetState.filled = currentRow.Fill(memPnt.Handle)
+				if(DebugLogSession.Logging.Level == Harmony.Core.Interface.LogLevel.Trace)
+					DebugLogSession.Logging.LogTrace("Materializer: filled record of type {0} with value {1}", targetState.typeBuf.DataObjectType, new MemoryHandleDebugLogHelper(memPnt, structureSize, true))
 			end
 			else
 				targetState.filled = false

@@ -88,9 +88,9 @@ namespace Services
 			data testDir = findRelativeFolderForAssembly("TestDir")
             data contextPool, @ExternalContextPool<ExternalCallContext>
             if(Environment.OSVersion.Platform == PlatformID.Unix) then
-                contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("DBLDIR") + "/bin/dbs", 'TraditionalBridge.Test.dbr', testDir, ^null, 4, true) 
+                contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("DBLDIR") + "/bin/dbs", (@string)"TraditionalBridge.Test.dbr", testDir, ^null, 4, 4, TimeSpan.FromSeconds(10), true) 
             else
-                contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", 'TraditionalBridge.Test.dbr', testDir, ^null, 4, true) 
+                contextPool = new ExternalContextPool<ExternalCallContext>(Environment.GetEnvironmentVariable("SYNERGYDE64") + "dbl\bin\dbs.exe", (@string)"TraditionalBridge.Test.dbr",  testDir, ^null, 4, 4, TimeSpan.FromSeconds(10), true) 
 
             services.AddSingleton<IContextFactory<ExternalCallContext>>(contextPool)
             services.AddContextPool<ExternalCallContext>()

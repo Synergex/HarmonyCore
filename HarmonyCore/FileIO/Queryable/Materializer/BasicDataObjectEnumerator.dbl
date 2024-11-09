@@ -3,6 +3,7 @@ import System.Collections.Generic
 import System.Text
 import Synergex.SynergyDE.Select
 import Newtonsoft.Json
+import Harmony.Core.Utility
 
 
 namespace Harmony.Core.FileIO.Queryable.Materializer
@@ -21,7 +22,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 		queryPlan, @PreparedQueryPlan
 		targetTop, long
 		structureSize, int
-		memPnt, int
+		memPnt, @MemoryHandle
 		currentCount, long
 		tracker, @Func<DataObjectBase, DataObjectBase>
 		metadataObject, @DataObjectMetadataBase
@@ -42,7 +43,7 @@ namespace Harmony.Core.FileIO.Queryable.Materializer
 			this.top = queryBuffer.GetTop(0)
 			this.skip = queryBuffer.GetSkip(0)
 			this.queryBuffer = queryBuffer
-			this.memPnt = queryBuffer.TypeBuffers[0].MemoryHandle.Value
+			this.memPnt = queryBuffer.TypeBuffers[0].MemoryHandle
 			this.structureSize = metadataObject.StructureSize
 			this.tracker = tracker
 			this.currentCount = 0

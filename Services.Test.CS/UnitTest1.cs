@@ -3,8 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Services.Models;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Services.Test.CS
 {
@@ -214,6 +217,41 @@ namespace Services.Test.CS
                     Assert.IsNotNull(customers.First().REL_CustomerFavoriteItem);
                 }
             }
+        }
+
+        [TestMethod]
+        public void IncludeDeep()
+        {
+            var tasks = new List<Task>();
+            for (int taskN = 0; taskN < 20; taskN++)
+            {
+                var task = Task.Run(() =>
+                {
+                    for (int i = 0; i < 10000; i++)
+                    {
+                        using (var sp = BaseServiceProvider.Services)
+                        {
+                            using (var context = sp.ServiceProvider.GetService<Services.Models.DbContext>())
+                            {
+                                var customersQuerable = context.Customers.AsNoTracking().Include(customer => customer.REL_CustomerFavoriteItem).ThenInclude(itm => itm.REL_OrderItems).ThenInclude(orderItem => orderItem.REL_Order);
+                                var customers = customersQuerable.ToList();
+
+                                Assert.AreEqual(customers.Count, 38);
+                            }
+                        }
+                    }
+                });
+                tasks.Add(task);
+            }
+
+
+            var allResult = Task.WhenAll(tasks.ToArray());
+            while(allResult.IsCompleted == false)
+            {
+                GC.Collect(1, GCCollectionMode.Forced, false, false);
+                GC.WaitForPendingFinalizers();
+            }
+
         }
 
         [TestMethod]
