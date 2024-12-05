@@ -622,18 +622,20 @@ namespace Harmony.Core.EF.Query.Internal
 
         private bool NeedsSplit(ConnectorPart part)
         {
-            if(part.Op == WhereClauseConnector.OrOperator)
+            if (part.Op == WhereClauseConnector.OrOperator)
             {
-                //we're in an OR but the left and right have different source id's
                 var leftSources = QuerySourceKeyForExpr(part.Left);
                 var rightSources = QuerySourceKeyForExpr(part.Right);
-                return leftSources != rightSources;
+
+                // Use set equality instead of a direct != comparison
+                if (!leftSources.SetEquals(rightSources))
+                {
+                    return true;
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
+
 
         private HashSet<int> QuerySourceKeyForExpr(object part)
         {
