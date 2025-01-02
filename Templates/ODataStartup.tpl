@@ -435,7 +435,7 @@ namespace <NAMESPACE>
           </IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
         </IF DEFINED_ENABLE_AUTHENTICATION>
 
-        <IF DEFINED_ENABLE_BLOCK_HTTPS>
+        <IF DEFINED_ENABLE_BLOCK_HTTP>
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
@@ -447,7 +447,7 @@ namespace <NAMESPACE>
 
             services.AddHttpsRedirection(httpsConfig)
 
-        </IF DEFINED_ENABLE_BLOCK_HTTPS>
+        </IF DEFINED_ENABLE_BLOCK_HTTP>
         <IF DEFINED_ENABLE_IIS_SUPPORT>
             ;;-------------------------------------------------------
             ;;Enable support for hosting in IIS
@@ -542,13 +542,13 @@ namespace <NAMESPACE>
                 ;app.UseHsts()
             ;end
 
-        <IF DEFINED_ENABLE_BLOCK_HTTPS>
+        <IF DEFINED_ENABLE_BLOCK_HTTP>
             ;;-------------------------------------------------------
             ;;Enable HTTP redirection to HTTPS
 
             app.UseHttpsRedirection()
 
-        </IF DEFINED_ENABLE_BLOCK_HTTPS>
+        </IF DEFINED_ENABLE_BLOCK_HTTP>
         <IF DEFINED_ENABLE_AUTHENTICATION>
             ;;-------------------------------------------------------
             ;;Enable the authentication middleware
