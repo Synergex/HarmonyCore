@@ -294,6 +294,7 @@ namespace <NAMESPACE>
 
                 ;;Add OData query fields to swagger documentation
                 c.OperationFilter<ODataParametersSwaggerDefinition>()
+<IF DEFINED_ENABLE_XMLDOC>
 
                 data xmlDocFolder = findRelativeFolderForAssembly("XmlDoc")
 
@@ -320,6 +321,7 @@ namespace <NAMESPACE>
                         c.IncludeXmlComments(filePath, true)
                     end
                 end
+</IF DEFINED_ENABLE_XMLDOC>
 <IF DEFINED_ENABLE_AUTHENTICATION>
   <IF DEFINED_ENABLE_CUSTOM_AUTHENTICATION>
 
