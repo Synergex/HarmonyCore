@@ -1,4 +1,7 @@
 <CODEGEN_FILENAME>AuthenticationTools.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_ISSUER</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_AUDIENCE</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_JWT_GETKEY</REQUIRES_USERTOKEN>
 ;;*****************************************************************************
 ;;
 ;; Title:       AuthenticationTools.dbl
@@ -35,8 +38,9 @@ namespace <NAMESPACE>
 
         public static method GetKey, [#]Byte
         proc
-            ;TODO: Obtain the private encryption key. PLEASE don't do it this way in production environments.
-            mreturn Encoding.UTF8.Getbytes("This is the secret value or password that is used as the encryption key. In production environments you should use something far more complex and random, and should not embed the value in source code like this. We recommend using some secure key storage mechanism such as Azure KeyVault. <GUID_NOBRACE>")
+            ;Obtain the private encryption key.
+            ;TODO: This is the secret value or password that is used as the encryption key. In production environments you should use something far more complex and random, and you SHOULD NOT embed the value in source code. We recommend using some secure key storage mechanism such as Azure KeyVault. 
+            mreturn <CUSTOM_JWT_GETKEY>
         endmethod
 
         private static ourKey, @SymmetricSecurityKey, new SymmetricSecurityKey(GetKey())
@@ -45,11 +49,6 @@ namespace <NAMESPACE>
             aUser,          string
             aTokenDuration, int
             ;;Cound add other parameters to pass in custom claims to be added to the JWT.
-
-            record
-                logical,    a40
-                loglen,     i4
-                tokdur,     d8
 
         proc
 
@@ -60,16 +59,19 @@ namespace <NAMESPACE>
                 tokenDuration = aTokenDuration
             else
             begin
+                data logical, a40
+                data loglen, i4
+                data tokdur, d8
                 xcall getlog('HARMONY_TOKEN_DURATION',logical,loglen)
-                if (loglen) then
+                if (loglen)
                 begin
                     tokdur = ^d(logical(1:loglen))
                     tokenDuration = tokdur
                     if (tokenDuration > 8767)
                         tokenDuration = 8767 ;max is 1 year
                 end
-                else
-                    tokenDuration = 0
+
+                ;; special cases for overriding default token duration
                 if(tokenDuration < 1)
                 begin
                     using aTokenDuration select
