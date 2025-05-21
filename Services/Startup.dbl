@@ -301,12 +301,6 @@ namespace Services
 
             services.AddHttpsRedirection(httpsConfig)
 
-            ;; -------------------------------------------------------------------------------
-            ;;Add SignalR support
-            services.AddSignalR().AddNewtonsoftJsonProtocol()
-            services.AddDistributedMemoryCache()
-            services.AddSession()
-
             ;;If there is a ConfigureServicesCustom method, call it
             ConfigureServicesCustom(services)
 
@@ -406,8 +400,14 @@ namespace Services
             app.UseSwaggerUI(swaggerUiOptions)
 
             ;;Enable serving static files
+
+            data staticFilesProvider, @FileExtensionContentTypeProvider
+            AddCustomMimeTypes(staticFilesProvider)
             app.UseDefaultFiles()
-            app.UseStaticFiles()
+            if (staticFilesProvider == ^null) then
+                app.UseStaticFiles()
+            else
+                app.UseStaticFiles(new StaticFileOptions() { ContentTypeProvider = staticFilesProvider })
 
             app.UsePathBase(new PathString("/odata/v1"))
 
@@ -488,6 +488,19 @@ namespace Services
         ;;; <param name="serviceProvider">Data object provider</param>
         partial method AddDataObjectMappingsCustom, void
             required in provider, @DataObjectProvider
+        endmethod
+
+        ;;; <summary>
+        ;;; Declare the AddCustomMimeTypes partial method.
+        ;;; Developers can use this to add support for custom mime types to the kestrel server
+        ;;; </summary>
+        ;;; <param name="provider">Returns an instance of FileExtensionContentTypeProvider</param>
+        partial method AddCustomMimeTypes, void
+            required out provider, @FileExtensionContentTypeProvider
+        ;An example of how to implement this partial method:
+        ;proc
+        ;    provider = new FileExtensionContentTypeProvider()
+        ;    provider.Mappings.Add(".apk","application/vnd.android.package-archive")
         endmethod
 
 .endregion
