@@ -279,6 +279,8 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         return newExpression;
                     }
+                    
+
 
                     var newArguments = new Expression[newExpression.Arguments.Count];
                     for (var i = 0; i < newArguments.Length; i++)
@@ -2313,6 +2315,11 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 var memberInfo = node?.Member;
                 var memberType = (memberInfo as FieldInfo)?.FieldType ?? (memberInfo as PropertyInfo)?.PropertyType;
+
+                if(node == null)
+                {
+                    return (memberInfo, memberType);
+                }
 
                 var parentPath = PathFromNode(node.Expression);
                 if(!ReferencedMembers.TryGetValue(parentPath, out var pathReferencedMembers))

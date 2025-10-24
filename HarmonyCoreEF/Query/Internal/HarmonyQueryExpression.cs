@@ -47,7 +47,7 @@ namespace Harmony.Core.EF.Query.Internal
                 ParentFieldName = table.Name,
                 Metadata = DataObjectMetadataBase.LookupType(table.ItemType)
             };
-            
+
             if (table.Top != null)
             {
                 var bakedFunction = Expression.Lambda<Func<QueryContext, long>>(Expression.Convert(table.Top, typeof(long)), QueryCompilationContext.QueryContextParameter).Compile();
@@ -236,7 +236,7 @@ namespace Harmony.Core.EF.Query.Internal
                 return result;
             }
             else
-            { 
+            {
                 var queryBuffer = MakeQueryBuffer(rootExpr, processedOns, flatList, whereBuilder, orderBys, fieldReferences, forcedUpOrderBy);
                 LiftSubOrderby(flatList, forcedUpOrderBy);
                 var queryPlan = new PreparedQueryPlan(true, processedWheres, fieldReferences, processedOns,
@@ -251,7 +251,7 @@ namespace Harmony.Core.EF.Query.Internal
 
             static void MarkJoinBuffer(Dictionary<int, object> splits, QueryBuffer queryBuffer)
             {
-                foreach(var split in splits)
+                foreach (var split in splits)
                     queryBuffer.TypeBuffers[split.Key].IsInnerJoin = true;
             }
 
@@ -351,7 +351,7 @@ namespace Harmony.Core.EF.Query.Internal
                 object resultWhere = null;
                 foreach (var expr in tempProcessedWheres)
                 {
-                    if(resultWhere == null)
+                    if (resultWhere == null)
                     {
                         resultWhere = expr;
                     }
@@ -365,7 +365,7 @@ namespace Harmony.Core.EF.Query.Internal
             }
             else
                 processedWheres = tempProcessedWheres;
-            
+
         }
 
         private static QueryBuffer MakeQueryBuffer(HarmonyTableExpression rootExpr, List<object> processedOns, List<Tuple<HarmonyTableExpression, QueryBuffer.TypeBuffer>> flatList, WhereExpressionBuilder whereBuilder, List<Tuple<FieldReference, bool>> orderBys, Dictionary<int, List<FieldDataDefinition>> fieldReferences, List<Tuple<QueryBuffer.TypeBuffer, FieldReference, bool>> forcedUpOrderBy)
@@ -424,13 +424,13 @@ namespace Harmony.Core.EF.Query.Internal
             }
 
             var queryBuffer = new QueryBuffer(flatList.Select(tpl => tpl.Item2).ToList());
-            
+
             foreach (var queryExpr in flatList)
             {
                 if (queryExpr.Item1.ReferencedFields.Count > 0)
                 {
                     var bufferIndex = queryBuffer.TypeBuffers.IndexOf(queryExpr.Item2);
-                    foreach(var refKvp in queryExpr.Item1.ReferencedFields)
+                    foreach (var refKvp in queryExpr.Item1.ReferencedFields)
                     {
                         var innerBufferIndex = bufferIndex;
                         if (refKvp.Item1 != "")
@@ -449,7 +449,7 @@ namespace Harmony.Core.EF.Query.Internal
 #if DEBUG
                         //ensure we dont accidentally point at a different type
                         Debug.Assert(refKvp.Item2 == queryBuffer.TypeBuffers[innerBufferIndex].Metadata.GetFieldByName(refKvp.Item2.LanguageName));
-                        
+
 #endif
 
                         fieldDefs.Add(refKvp.Item2);
@@ -528,7 +528,7 @@ namespace Harmony.Core.EF.Query.Internal
             else
             {
                 var targetQueryKeys = QuerySourceKeyForExpr(expr);
-                if(targetQueryKeys.Contains(0))
+                if (targetQueryKeys.Contains(0))
                 {
                     return new ExpressionSplitState { BaseWhere = expr, DrivingWhere = expr, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object>() };
                 }
@@ -537,7 +537,7 @@ namespace Harmony.Core.EF.Query.Internal
                     return new ExpressionSplitState { BaseWhere = null, DrivingWhere = null, LeafOns = new Dictionary<int, object>(), BasesOns = new Dictionary<int, object> { { targetQueryKeys.First(), expr } } };
                 }
             }
-            
+
 
             static void ConcatLeaves(ConnectorPart conPart, ExpressionSplitState leftState, ExpressionSplitState rightState, ExpressionSplitState result)
             {
@@ -582,11 +582,11 @@ namespace Harmony.Core.EF.Query.Internal
                     {
                         if (result.BasesOns.TryGetValue(baseOn.Key, out var existing))
                         {
-                            result.BasesOns[baseOn.Key] = new ConnectorPart 
-                            { 
-                                Left = existing, 
+                            result.BasesOns[baseOn.Key] = new ConnectorPart
+                            {
+                                Left = existing,
                                 Op = conPart.Op,
-                                Right = baseOn.Value 
+                                Right = baseOn.Value
                             };
                         }
                         else
@@ -594,7 +594,7 @@ namespace Harmony.Core.EF.Query.Internal
                             result.BasesOns.Add(baseOn.Key, baseOn.Value);
                         }
                     }
-                        
+
                 }
             }
 
@@ -644,7 +644,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 queryKeys.Add(QuerySourceKeyForExpr(expr));
             }
-            else if(part is ConnectorPart conPart)
+            else if (part is ConnectorPart conPart)
             {
                 QuerySourceKeyForExpr(conPart, queryKeys);
             }
@@ -657,7 +657,7 @@ namespace Harmony.Core.EF.Query.Internal
             if (part.Left is ExprPart leftRef)
             {
                 var leftKey = QuerySourceKeyForExpr(leftRef);
-                if(!queryKeys.Contains(leftKey))
+                if (!queryKeys.Contains(leftKey))
                 {
                     queryKeys.Add(leftKey);
                 }
@@ -670,7 +670,7 @@ namespace Harmony.Core.EF.Query.Internal
                     queryKeys.Add(rightKey);
                 }
             }
-            else if(part.Left is ConnectorPart leftCon)
+            else if (part.Left is ConnectorPart leftCon)
             {
                 QuerySourceKeyForExpr(leftCon, queryKeys);
             }
@@ -742,7 +742,7 @@ namespace Harmony.Core.EF.Query.Internal
 
                     var resultEnumerableType = typeof(ResultEnumerable<>).MakeGenericType(ServerQueryExpression.Type);
                     var funcType = typeof(Func<>).MakeGenericType(ServerQueryExpression.Type);
-                    
+
                     ServerQueryExpression = New(
                         resultEnumerableType.GetConstructors().Single(),
                         Lambda(funcType, ServerQueryExpression));
@@ -979,32 +979,152 @@ namespace Harmony.Core.EF.Query.Internal
         {
             PushdownIntoSubquery();
 
-            var selectMethod = (MethodCallExpression)ServerQueryExpression;
-            var groupBySource = selectMethod.Arguments[0];
-            var elementSelector = selectMethod.Arguments[1];
-            _groupingParameter = Parameter(typeof(IGrouping<DataObjectBase, DataObjectBase>), "grouping");
-            var groupingKeyAccessExpression = PropertyOrField(_groupingParameter, nameof(IGrouping<int, int>.Key));
-            var groupingKeyExpressions = new List<Expression>();
-            groupingKey = GetGroupingKey(groupingKey, groupingKeyExpressions, groupingKeyAccessExpression);
-            //var keySelector = Lambda(
-            //    New(
-            //        _valueBufferConstructor,
-            //        NewArrayInit(
-            //            typeof(object),
-            //            groupingKeyExpressions.Select(e => e.Type.IsValueType ? Convert(e, typeof(object)) : e))),
-            //    _valueBufferParameter);
+            // Get the actual entity type being queried (e.g., Item, not DataObjectBase)
+            var tableExpression = FindServerExpression();
+            var entityType = tableExpression.ItemType;
 
-            //ServerQueryExpression = Call(
-            //    EnumerableMethods.GroupByWithKeyElementSelector.MakeGenericMethod(
-            //        typeof(DataObjectBase), typeof(DataObjectBase), typeof(DataObjectBase)),
-            //    selectMethod.Arguments[0],
-            //    keySelector,
-            //    selectMethod.Arguments[1]);
+            // The element type for grouping is always the source entity type
+            // The shaper transformation (if any) is applied later when materializing results
+            // NOT within the GroupBy itself
+            var elementType = entityType;
 
-            throw new NotImplementedException();
+            Expression keySelectorBody;
+            Type keyType;
+            Expression shaperKeyExpression;
+
+            // Check if this is a complex object key (MemberInitExpression or NewExpression with arguments)
+            // These should be treated as atomic keys, not decomposed
+            var isComplexObjectKey = groupingKey is MemberInitExpression ||
+                                    (groupingKey is NewExpression newExpr && newExpr.Arguments.Count > 0);
+
+            if (isComplexObjectKey)
+            {
+                // Complex object key - use the expression as-is without decomposition
+                keyType = groupingKey.Type;
+                keySelectorBody = groupingKey;
+
+                // Create the grouping parameter with the complex key type and element type
+                _groupingParameter = Expression.Parameter(
+                    typeof(IGrouping<,>).MakeGenericType(keyType, elementType),
+                    "grouping");
+
+                // For the shaper, access grouping.Key and cast it to the key type
+                var groupingKeyAccessExpression = Expression.PropertyOrField(_groupingParameter, nameof(IGrouping<int, int>.Key));
+
+                // The shaper key expression just accesses and casts the key
+                shaperKeyExpression = Expression.Convert(groupingKeyAccessExpression, keyType);
+            }
+            else
+            {
+                // Simple key(s) - use field decomposition logic
+                // First, collect the grouping key expressions
+                var groupingKeyExpressions = new List<Expression>();
+                var tempGroupingParam = Expression.Parameter(typeof(IGrouping<object, object>), "grouping");
+                var tempKeyAccessExpression = Expression.PropertyOrField(tempGroupingParam, nameof(IGrouping<int, int>.Key));
+
+                // This will populate groupingKeyExpressions with the field access expressions
+                var tempGroupingKey = GetGroupingKey(groupingKey, groupingKeyExpressions, tempKeyAccessExpression);
+
+                // Now build the key selector based on the number of key expressions
+                if (groupingKeyExpressions.Count == 0)
+                {
+                    // Global aggregation with no grouping key - group everything into a single group
+                    // Use the groupingKey expression as-is (e.g., NoGroupByWrapper)
+                    // Don't decompose it - treat it like a complex object key
+                    keyType = groupingKey.Type;
+                    keySelectorBody = groupingKey;
+                }
+                else if (groupingKeyExpressions.Count == 1)
+                {
+                    // Simple single-field grouping
+                    keySelectorBody = groupingKeyExpressions[0];
+                    keyType = keySelectorBody.Type;
+                }
+                else if (groupingKeyExpressions.Count > 1)
+                {
+                    // Multi-field grouping - use ValueTuple
+                    var types = groupingKeyExpressions.Select(e => e.Type).ToArray();
+                    keyType = GetValueTupleType(types);
+                    var constructor = keyType.GetConstructors()[0];
+                    keySelectorBody = Expression.New(constructor, groupingKeyExpressions);
+                }
+                else
+                {
+                    throw new NotSupportedException();
+                }
+
+                // Now create the actual grouping parameter with the correct key type and element type
+                _groupingParameter = Expression.Parameter(
+                    typeof(IGrouping<,>).MakeGenericType(keyType, elementType),
+                    "grouping");
+                var groupingKeyAccessExpression = Expression.PropertyOrField(_groupingParameter, nameof(IGrouping<int, int>.Key));
+
+                // Re-process to get the grouping key with the correct parameter
+                groupingKeyExpressions.Clear();
+
+                // Recheck if we're dealing with a global aggregation (zero field keys)
+                var tempCheck = GetGroupingKey(groupingKey, groupingKeyExpressions, groupingKeyAccessExpression);
+
+                if (groupingKeyExpressions.Count == 0)
+                {
+                    // Global aggregation - just cast the grouping.Key to the key type
+                    // Similar to complex object keys
+                    shaperKeyExpression = Expression.Convert(groupingKeyAccessExpression, keyType);
+                }
+                else
+                {
+                    // Normal grouping - use the processed key expression
+                    shaperKeyExpression = tempCheck;
+                }
+            }
+
+            // Create a parameter for the source entity type to use in the selectors
+            // Note: _valueBufferParameter is typed as DataObjectBase, but we need entityType here
+            var sourceParameter = Expression.Parameter(entityType, "source");
+
+            // Convert the key selector body to use the source parameter instead of _valueBufferParameter
+            var parameterReplacer = new ParameterReplacingExpressionVisitor(_valueBufferParameter, sourceParameter);
+            var adjustedKeySelectorBody = parameterReplacer.Visit(keySelectorBody);
+
+            // Build the key selector lambda with the entity-typed parameter
+            var keySelector = Expression.Lambda(adjustedKeySelectorBody, sourceParameter);
+
+            // Build the element selector as identity (x => x)
+            // The shaper transformations are applied separately, not within GroupBy
+            var elementSelector = Expression.Lambda(sourceParameter, sourceParameter);
+
+            // Save the current ServerQueryExpression as the source
+            var sourceExpression = ServerQueryExpression;
+
+            // We need to ensure the source is properly typed as IEnumerable<entityType>
+            // Even if ServerQueryExpression appears to have the right type now, it might get
+            // converted to IEnumerable<DataObjectBase> when visited later
+            // So we always wrap table expressions with Cast to ensure type safety
+            if (sourceExpression is HarmonyTableExpression ||
+                sourceExpression.Type.TryGetSequenceType() != entityType)
+            {
+                // Wrap with Enumerable.Cast to ensure the type is IEnumerable<entityType>
+                var castMethod = typeof(Enumerable).GetMethods()
+                    .Single(m => m.Name == nameof(Enumerable.Cast) && m.IsGenericMethodDefinition)
+                    .MakeGenericMethod(entityType);
+
+                sourceExpression = Expression.Call(castMethod, sourceExpression);
+            }
+
+            // Build the GroupBy expression using the properly-typed source
+            // GroupBy<TSource, TKey, TElement>(source, keySelector, elementSelector)
+            // TSource: the source entity type (e.g., Item)
+            // TKey: the grouping key type (e.g., GroupByWrapper)
+            // TElement: the element type in groups (e.g., GroupByWrapper after transformation, or Item if no transformation)
+            ServerQueryExpression = Expression.Call(
+                EnumerableMethods.GroupByWithKeyElementSelector.MakeGenericMethod(
+                    entityType, keyType, elementType),
+                sourceExpression,
+                keySelector,
+                elementSelector);
 
             return new HarmonyGroupByShaperExpression(
-                groupingKey,
+                shaperKeyExpression,
                 shaperExpression,
                 _groupingParameter,
                 _valueBufferParameter);
@@ -1055,6 +1175,23 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
+        private static Type GetValueTupleType(Type[] types)
+        {
+            // ValueTuple supports up to 8 type parameters
+            // For simplicity, we'll handle common cases (2-7 parameters)
+            // If more than 7, we'd need nested tuples, but that's rare for GroupBy
+            return types.Length switch
+            {
+                2 => typeof(ValueTuple<,>).MakeGenericType(types),
+                3 => typeof(ValueTuple<,,>).MakeGenericType(types),
+                4 => typeof(ValueTuple<,,,>).MakeGenericType(types),
+                5 => typeof(ValueTuple<,,,,>).MakeGenericType(types),
+                6 => typeof(ValueTuple<,,,,,>).MakeGenericType(types),
+                7 => typeof(ValueTuple<,,,,,,>).MakeGenericType(types),
+                _ => throw new NotSupportedException($"GroupBy with {types.Length} key fields is not currently supported. Maximum is 7 fields.")
+            };
+        }
+
         private static Expression CreateReadValueExpression(
             Expression valueBufferParameter, Type type, int index, IPropertyBase property)
 
@@ -1064,11 +1201,11 @@ namespace Harmony.Core.EF.Query.Internal
             else
                 return valueBufferParameter;
         }
-            /*Call(
-                HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
-                valueBufferParameter,
-                Constant(index),
-                Constant(property, typeof(IPropertyBase)));*/
+        /*Call(
+            HarmonyEntityMaterializerSource.TryReadValueMethod.MakeGenericMethod(type),
+            valueBufferParameter,
+            Constant(index),
+            Constant(property, typeof(IPropertyBase)));*/
 
         private Expression CreateReadValueExpression(Type type, int index, IPropertyBase property)
             => CreateReadValueExpression(_valueBufferParameter, type, index, property);
@@ -1184,7 +1321,7 @@ namespace Harmony.Core.EF.Query.Internal
             var replacingVisitor = new ReplacingExpressionVisitor(
                 new List<Expression> { CurrentParameter, innerQueryExpression.CurrentParameter },
                 new List<Expression> { outerParameter, innerParameter });
-            
+
             var index = 0;
             var outerMemberInfo = transparentIdentifierType.GetTypeInfo().GetDeclaredField("Outer");
             foreach (var projection in _projectionMapping)
@@ -1471,6 +1608,23 @@ namespace Harmony.Core.EF.Query.Internal
                 }
 
                 return Condition(test, ifTrue, ifFalse);
+            }
+        }
+
+        private sealed class ParameterReplacingExpressionVisitor : ExpressionVisitor
+        {
+            private readonly ParameterExpression _oldParameter;
+            private readonly ParameterExpression _newParameter;
+
+            public ParameterReplacingExpressionVisitor(ParameterExpression oldParameter, ParameterExpression newParameter)
+            {
+                _oldParameter = oldParameter;
+                _newParameter = newParameter;
+            }
+
+            protected override Expression VisitParameter(ParameterExpression node)
+            {
+                return node == _oldParameter ? _newParameter : base.VisitParameter(node);
             }
         }
     }
