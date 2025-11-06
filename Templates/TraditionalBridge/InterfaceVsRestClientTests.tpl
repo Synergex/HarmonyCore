@@ -31,7 +31,7 @@
 ###
 
   <IF IN_OR_INOUT>
-POST {{baseuri}}
+POST {{baseuri}}/<METHOD_NAME>
 Content-Type:application/json
 Accept:application/json
 x-tenant-id: {{tenantid}}
