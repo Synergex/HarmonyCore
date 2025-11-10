@@ -26,34 +26,31 @@ parameters:
 
 stages:
 - stage: build
-
   displayName: 'Main Build'
   jobs: 
-  - job: BuildJob
+
+  # -----------------------------
+  # Build (Windows)
+  # -----------------------------
+  - job: Build_Windows
+    displayName: Build (Windows)
     workspace:
       clean: all
     pool:
       name: HarmonyCore
       demands:
-        - Agent.OS -equals $(AgentOS)
-    strategy:
-      maxParallel: 4
-      matrix:
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-          RID: win-x64
-          AgentOS: Windows_NT
-        Release_linux:
-          Configuration: Release
-          Platform: linux64
-          RID: linux-x64
-          AgentOS: Linux
+        - Agent.OS -equals Windows_NT
+        - msbuild
+    variables:
+      Configuration: Release
+      Platform: x64
+      RID: win-x64
     steps:
     - checkout: self
       submodules: true
       fetchDepth: 1
       fetchTags: false
+
     - task: ArchiveFiles@2
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       displayName: "Archive sources"
@@ -63,34 +60,32 @@ stages:
         archiveType: 'zip'
         archiveFile: '$(Build.ArtifactStagingDirectory)/net6-release.zip'
         replaceExistingArchive: true
+
     - task: PublishPipelineArtifact@1
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       displayName: "Publish HCarchive"
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)' 
         artifactName: 'HCarchive'
+
     - task: DeleteFiles@1
       displayName: 'Clean ArtifactStagingDirectory'
       inputs:
         SourceFolder: '$(Build.ArtifactStagingDirectory)'
         Contents: '**/*'
+
     - task: UseDotNet@2
       displayName: 'Get .NET SDK 8.0.x'
       inputs:
         packageType: 'sdk'
         version: '8.0.x'
+
     - task: NuGetToolInstaller@1
       displayName: 'Get NuGet 6.x'
       inputs:
         versionSpec: 6.x
         checkLatest: true
-    #- task: NuGetCommand@2
-    #  displayName: 'NuGet restore'
-    #  inputs:
-    #    command: 'restore'
-    #    restoreSolution: '**/*.sln'
-        #feedsToUse: 'select'
-        #vstsFeed: '632eef26-b5e5-49d5-83f0-091dbb16477c'
+
     - task: MSBuild@1
       displayName: 'restore solution'
       inputs:
@@ -101,6 +96,7 @@ stages:
         msbuildArguments: '-t:restore'
         logFileVerbosity: diagnostic
         clean: false
+
     - task: MSBuild@1
       displayName: 'Build solution'
       inputs:
@@ -157,18 +153,6 @@ stages:
           zipAfterPublish: True
           projects: |
             ${{ project }}
-
-    # for linux only build TraditionalBridge.Test in x86 
-    - task: MSBuild@1
-      displayName: "Build 32 bit TraditionalBridge.Test.dbr"
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        solution: 'TraditionalBridge.Test'
-        msbuildArchitecture: 'x64'
-        platform: 'x86'
-        configuration: 'Release'
-      env: 
-        TestDirX86: '\x86\'
 
     # for windows only copy TraditionalBridge.UnitTest/TBTest
     - task: CopyFiles@2
@@ -233,14 +217,120 @@ stages:
       displayName: 'Publish nuget packages'
       artifact: 'NugetPackages$(Configuration)$(Platform)'
 
-  - job: TestJob
-    dependsOn: BuildJob
+  # -----------------------------
+  # Build (Linux) — no MSBuild tasks in this job
+  # -----------------------------
+  - job: Build_Linux
+    displayName: Build (Linux)
     workspace:
       clean: all
     pool:
-      name: $(AgentPool)
+      name: HarmonyCore
       demands:
-        - Agent.OS -equals $(AgentOS)
+        - Agent.OS -equals Linux
+    variables:
+      Configuration: Release
+      Platform: linux64
+      RID: linux-x64
+    steps:
+    - checkout: self
+      submodules: true
+      fetchDepth: 1
+      fetchTags: false
+
+    - task: UseDotNet@2
+      displayName: 'Get .NET SDK 8.0.x'
+      inputs:
+        packageType: 'sdk'
+        version: '8.0.x'
+
+    # Replace MSBuild restore/build with dotnet
+    - task: DotNetCoreCLI@2
+      displayName: 'restore (dotnet)'
+      inputs:
+        command: 'restore'
+        projects: '$(HarmonyCoreSln)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'build (dotnet)'
+      inputs:
+        command: 'build'
+        projects: '$(HarmonyCoreSln)'
+        arguments: '-c $(Configuration) -p:Platform=$(Platform)'
+
+    # publish test binaries
+    - ${{ each project in parameters.PublishProjects }}:
+      - task: DotNetCoreCLI@2
+        displayName: 'Publish ${{ project }} Binaries'
+        inputs:
+          command: publish
+          publishWebProjects: false
+          arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
+          verbosityPack: Diagnostic
+          zipAfterPublish: True
+          projects: |
+            ${{ project }}
+
+    # (Do not include the MSBuild-based "Build 32 bit TraditionalBridge.Test.dbr" step here)
+
+    - task: CopyFiles@2
+      displayName: "Copy TestDir"
+      inputs:
+        SourceFolder: '$(SolutionDir)TestDir'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
+
+    - task: CopyFiles@2
+      displayName: "Copy SampleData"
+      inputs:
+        SourceFolder: '$(SolutionDir)SampleData'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Test Binaries as Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+
+    - task: DeleteFiles@1
+      displayName: 'Clean ArtifactStagingDirectory'
+      inputs:
+        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+        Contents: '**/*'
+          
+    - task: DotNetCoreCLI@2
+      displayName: 'Pack CLI Tool'
+      inputs:
+        command: 'pack'
+        arguments: '-c $(Configuration)'
+        projects: |
+            **/HarmonyCore.CLITool.csproj
+
+    - task: NuGetCommand@2
+      name: 'HarmonyCoreNuget'
+      displayName: 'Pack HarmonyCore'
+      inputs:
+        command: 'pack'
+        packagesToPack: '*.nuspec'
+        versioningScheme: 'byBuildNumber'
+
+    # Push remains Windows-only (in Build_Windows) due to condition there
+
+    - publish: '$(Build.ArtifactStagingDirectory)/'
+      displayName: 'Publish nuget packages'
+      artifact: 'NugetPackages$(Configuration)$(Platform)'
+
+  # -----------------------------
+  # Test matrix — runs after both builds, pinned by OS
+  # -----------------------------
+  - job: TestJob
+    displayName: Tests
+    dependsOn:
+      - Build_Windows
+      - Build_Linux
+    workspace:
+      clean: all
     strategy:
       maxParallel: 4
       matrix:
@@ -254,6 +344,10 @@ stages:
           Platform: linux64
           AgentPool: HarmonyCore
           AgentOS: Linux
+    pool:
+      name: $(AgentPool)
+      demands:
+        - Agent.OS -equals $(AgentOS)
     steps:
     - checkout: none
 
@@ -266,18 +360,6 @@ stages:
     - download: current
       displayName: "Download Artifacts"
       artifact: 'TestArtifacts$(Configuration)$(Platform)'
-
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 15541
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
-    #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
 
     - task: Bash@3
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
@@ -337,8 +419,11 @@ stages:
         testRunTitle: "TraditionalBridge.UnitTest $(Platform)"
         arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
 
+  # -----------------------------
+  # (Disabled) BuildHarmonyCoreProjects — unchanged
+  # -----------------------------
   - job: BuildHarmonyCoreProjects
-    dependsOn: BuildJob
+    dependsOn: Build_Windows
     condition: false
     workspace:
       clean: all
@@ -408,18 +493,6 @@ stages:
       displayName: "Download Artifacts"
       artifact: 'HarmonyCore.CliTool'
 
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 16359
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'HarmonyCore.CliTool'
-    #     targetPath: '$(Pipeline.Workspace)/HarmonyCore.CliTool'
-
     - task: ExtractFiles@1
       displayName: "Extract HarmonyCore.CliTool"
       inputs:
@@ -476,18 +549,6 @@ stages:
           # Write the content to the nuget.config file
           $nugetConfigContent | Out-File -FilePath $nugetConfigPath -Encoding utf8
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 16359
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'HCarchive'
-    #     targetPath: '$(Pipeline.Workspace)/HCarchive'
 
     - task: CmdLine@2
       displayName: "Run harmonycore upgrade-latest"
