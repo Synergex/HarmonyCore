@@ -34,26 +34,21 @@ stages:
       clean: all
     pool:
       name: HarmonyCore
+      demands:
+        - Agent.OS -equals $(AgentOS)
     strategy:
       maxParallel: 4
       matrix:
-#        Debug_x64:
-#          Configuration: Debug
-#          Platform: x64
         Release_x64:
           Configuration: Release
           Platform: x64
           RID: win-x64
-#        Debug_x86:
-#          Configuration: Debug
-#          Platform: x86
-#        Release_x86:
-#          Configuration: Release
-#          Platform: x86
+          AgentOS: Windows_NT
         Release_linux:
           Configuration: Release
           Platform: linux64
           RID: linux-x64
+          AgentOS: Linux
     steps:
     - checkout: self
       submodules: true
@@ -244,8 +239,8 @@ stages:
       clean: all
     pool:
       name: $(AgentPool)
-      #demands: 
-      #  - agent.name -equals $(AgentName)
+      demands:
+        - Agent.OS -equals $(AgentOS)
     strategy:
       maxParallel: 4
       matrix:
@@ -253,10 +248,12 @@ stages:
           Configuration: Release
           Platform: x64
           AgentPool: HarmonyCore
+          AgentOS: Windows_NT
         Release_linux:
-         Configuration: Release
-         Platform: linux64
-         AgentPool: HarmonyCore
+          Configuration: Release
+          Platform: linux64
+          AgentPool: HarmonyCore
+          AgentOS: Linux
     steps:
     - checkout: none
 
