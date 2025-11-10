@@ -4,10 +4,15 @@ import System.Text.Json.Serialization
 import System.IO
 import Harmony.Core.FileIO
 import Services.Test
+import System.Reflection
 
 main GenerateTestValues
 proc
-    Services.Test.UnitTestEnvironment.AssemblyInitialize(^null)
+    data servicesAssembly, @Assembly, Assembly.Load("Services.Test")
+    data ute = servicesAssembly.GetType("Services.Test.UnitTestEnvironment")
+    ute.GetMethod("AssemblyInitialize").Invoke(^null, new Object[#] { ^null } )
+
+    ;;Services.Test.UnitTestEnvironment.AssemblyInitialize(^null)
     new GenerateTestValues().SerializeValues()
 endmain
 
