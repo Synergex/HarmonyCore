@@ -1,4 +1,7 @@
 <CODEGEN_FILENAME>AuthenticationController.dbl</CODEGEN_FILENAME>
+<REQUIRES_USERTOKEN>CUSTOM_AUTH_CONTROLLER_PATH</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_AUTH_USERNAME</REQUIRES_USERTOKEN>
+<REQUIRES_USERTOKEN>CUSTOM_AUTH_PASSWORD</REQUIRES_USERTOKEN>
 ;;*****************************************************************************
 ;;
 ;; Title:       AuthenticationController.dbl
