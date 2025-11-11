@@ -77,6 +77,7 @@ import Microsoft.AspNetCore.OData
 import Microsoft.AspNetCore.OData.Extensions
 import Microsoft.AspNetCore.OData.Routing
 import Microsoft.AspNetCore.OData.Formatter
+import Microsoft.AspNetCore.OData.NewtonsoftJson
 import Microsoft.AspNetCore.Routing
 import Microsoft.EntityFrameworkCore
 import Microsoft.Extensions.Configuration
@@ -269,7 +270,7 @@ namespace <NAMESPACE>
 
             data mvcBuilder = services.AddMvcCore(MvcCoreConfig)
             &    .AddDataAnnotations()      ;;Enable data annotations
-            &    .AddNewtonsoftJson(<IF DEFINED_ENABLE_NEWTONSOFT>lambda (opts) { opts.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver()}</IF>)
+            &    .AddODataNewtonsoftJson()
             &    .AddApplicationPart(^typeof(IsolatedMethodsBase).Assembly)
             &    .AddApplicationPart(^typeof(Microsoft.AspNetCore.OData.Routing.Controllers.MetadataController).Assembly)
             &    .AddApiExplorer()

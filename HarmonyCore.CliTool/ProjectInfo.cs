@@ -205,6 +205,20 @@ namespace HarmonyCore.CliTool
                     fRef.Attributes.Append(fRefVersion);
                     firstItemGroup.AppendChild(fRef);
                 }
+
+                var hasODataNewtonsoft = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>()
+                .Any(node => node.Attributes["Include"]?.Value == "Microsoft.AspNetCore.OData.NewtonsoftJson");
+                if (!hasODataNewtonsoft && versionInfo.NugetReferences.ContainsKey("Microsoft.AspNetCore.OData.NewtonsoftJson"))
+                {
+                    var fRef = ProjectDoc.CreateElement("PackageReference");
+                    var fRefName = ProjectDoc.CreateAttribute("Include");
+                    fRefName.Value = "Microsoft.AspNetCore.OData.NewtonsoftJson";
+                    var fRefVersion = ProjectDoc.CreateAttribute("Version");
+                    fRefVersion.Value = versionInfo.NugetReferences["Microsoft.AspNetCore.OData.NewtonsoftJson"];
+                    fRef.Attributes.Append(fRefName);
+                    fRef.Attributes.Append(fRefVersion);
+                    firstItemGroup.AppendChild(fRef);
+                }
             }
 
             if (string.Compare(cleanFileName, "Services.Test", true) == 0 || string.Compare(cleanFileName, "Services.Host", true) == 0)

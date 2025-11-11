@@ -29,11 +29,16 @@ stages:
 
   displayName: 'Main Build'
   jobs: 
+  # Build both Windows and "Linux" targets ON WINDOWS AGENTS (cross-RID publish).
+  # This avoids msbuild capability issues and preserves your original behavior.
   - job: BuildJob
     workspace:
       clean: all
     pool:
       name: HarmonyCore
+      demands:
+        - Agent.OS -equals Windows_NT   # force Windows agents for all build legs
+        - msbuild                       # MSBuild@1 injects this demand
     strategy:
       maxParallel: 4
       matrix:
@@ -150,7 +155,7 @@ stages:
         SourceFolder: '$(Build.ArtifactStagingDirectory)'
         Contents: '**/*'
 
-    # publish test binaries
+    # publish test binaries (for both matrix legs, using RID from matrix)
     - ${{ each project in parameters.PublishProjects }}:
       - task: DotNetCoreCLI@2
         displayName: 'Publish ${{ project }} Binaries'
@@ -163,7 +168,7 @@ stages:
           projects: |
             ${{ project }}
 
-    # for linux only build TraditionalBridge.Test in x86 
+    # for linux only build TraditionalBridge.Test in x86 (still runs on Windows agents)
     - task: MSBuild@1
       displayName: "Build 32 bit TraditionalBridge.Test.dbr"
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
@@ -242,10 +247,6 @@ stages:
     dependsOn: BuildJob
     workspace:
       clean: all
-    pool:
-      name: $(AgentPool)
-      #demands: 
-      #  - agent.name -equals $(AgentName)
     strategy:
       maxParallel: 4
       matrix:
@@ -253,10 +254,16 @@ stages:
           Configuration: Release
           Platform: x64
           AgentPool: HarmonyCore
+          AgentOS: Windows_NT
         Release_linux:
          Configuration: Release
          Platform: linux64
          AgentPool: HarmonyCore
+         AgentOS: Linux
+    pool:
+      name: $(AgentPool)
+      demands:
+        - Agent.OS -equals $(AgentOS)
     steps:
     - checkout: none
 
@@ -269,18 +276,6 @@ stages:
     - download: current
       displayName: "Download Artifacts"
       artifact: 'TestArtifacts$(Configuration)$(Platform)'
-
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 15541
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'TestArtifacts$(Configuration)$(Platform)'
-    #     targetPath: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)'
 
     - task: Bash@3
       condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
@@ -411,18 +406,6 @@ stages:
       displayName: "Download Artifacts"
       artifact: 'HarmonyCore.CliTool'
 
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 16359
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'HarmonyCore.CliTool'
-    #     targetPath: '$(Pipeline.Workspace)/HarmonyCore.CliTool'
-
     - task: ExtractFiles@1
       displayName: "Extract HarmonyCore.CliTool"
       inputs:
@@ -479,18 +462,6 @@ stages:
           # Write the content to the nuget.config file
           $nugetConfigContent | Out-File -FilePath $nugetConfigPath -Encoding utf8
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
-
-    # # for testing purposes reuse already published sde artifacts
-    # - task: DownloadPipelineArtifact@2
-    #   inputs:
-    #     buildType: specific
-    #     project: HarmonyWebServices
-    #     definition: 31
-    #     pipelineId: 16359
-    #     runVersion: specific
-    #     allowPartiallySucceededBuilds: true
-    #     artifactName: 'HCarchive'
-    #     targetPath: '$(Pipeline.Workspace)/HCarchive'
 
     - task: CmdLine@2
       displayName: "Run harmonycore upgrade-latest"
