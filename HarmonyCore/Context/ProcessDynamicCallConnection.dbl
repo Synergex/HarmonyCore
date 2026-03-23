@@ -66,23 +66,45 @@ namespace Harmony.Core.Context
 		public virtual async method Disconnect, @Task
 			endparams
 		proc
-			try
+			if(mProcessStarted && !mTargetProcess.HasExited)
 			begin
-				if(mProcessStarted && !mTargetProcess.HasExited)
+				try
 				begin
 					await this.Notify("rpc.shutdown", new ArgumentDataDefinition[0])
-					mDisconnectToken.Cancel()
-					await Task.Delay(100)
-					if(!mTargetProcess.HasExited)
-						mTargetProcess.Kill()
+				end
+				catch(ex, @Exception)
+				begin
+					DebugLogSession.Logging.LogException(ex, "ProcessDynamicCallConnection-Disconnect-Notify")
+				end
+				endtry
+
+				mDisconnectToken.Cancel()
+
+				;;give the process time to shut down gracefully
+				data shutdownTimeout, int, 2000
+				data shutdownTimeoutVar = Environment.GetEnvironmentVariable("HARMONYCORE_SHUTDOWN_TIMEOUT")
+				if(!string.IsNullOrWhiteSpace(shutdownTimeoutVar))
+				begin
+					if(!Int32.TryParse(shutdownTimeoutVar, shutdownTimeout))
+						shutdownTimeout = 2000
 				end
 
+				await Task.Delay(shutdownTimeout)
+
+				if(!mTargetProcess.HasExited)
+				begin
+					try
+					begin
+						mTargetProcess.Kill()
+						mTargetProcess.WaitForExit(5000)
+					end
+					catch(ex, @Exception)
+					begin
+						DebugLogSession.Logging.LogException(ex, "ProcessDynamicCallConnection-Disconnect-Kill")
+					end
+					endtry
+				end
 			end
-			catch(ex, @Exception)
-			begin
-				DebugLogSession.Logging.LogException(ex, "ProcessDynamicCallConnection-Disconnect")
-			end
-			endtry
 		endmethod
 		
 		class ProtocolMessage

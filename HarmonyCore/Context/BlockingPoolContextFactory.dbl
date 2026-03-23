@@ -101,8 +101,21 @@ namespace Harmony.Core.Context
                 while(_madeItems.Count > 0)
                 begin
                     data target, T
-                    if(!_channel.Reader.TryRead(target))
+                    if(!_channel.Reader.TryRead(target)) then
                         exitloop ;;no more left to remove
+                    else
+                    begin
+                        try
+                        begin
+                            if(Destroy != ^null)
+                                Destroy(target)
+                        end
+                        catch(ex, @Exception)
+                        begin
+                            Trace.TraceError(ex.ToString())
+                        end
+                        endtry
+                    end
                 end
             end
             finally
