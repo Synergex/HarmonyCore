@@ -98,7 +98,7 @@ namespace Harmony.Core.EF.Query.Internal
             typeof(int)
         }));
 
-        internal static readonly MethodInfo LeftJoinMethodInfo = typeof(QueryableExtensions).GetTypeInfo().GetDeclaredMethods("LeftJoin").Single((MethodInfo mi) => mi.GetParameters().Length == 5);
+        internal static readonly MethodInfo LeftJoinMethodInfo = typeof(Queryable).GetTypeInfo().GetDeclaredMethods("LeftJoin").Single((MethodInfo mi) => mi.GetParameters().Length == 5);
 
 
         private readonly QueryTranslationPreprocessor _queryTranslationPreprocessor;
@@ -110,7 +110,7 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly EntityReferenceOptionalMarkingExpressionVisitor _entityReferenceOptionalMarkingExpressionVisitor;
         private readonly RemoveRedundantNavigationComparisonExpressionVisitor _removeRedundantNavigationComparisonExpressionVisitor;
         private readonly HashSet<string> _parameterNames = new();
-        private readonly ParameterExtractingExpressionVisitor _parameterExtractingExpressionVisitor;
+        private readonly ExpressionTreeFuncletizer _funcletizer;
         private readonly INavigationExpansionExtensibilityHelper _extensibilityHelper;
         private readonly HashSet<IEntityType> _nonCyclicAutoIncludeEntityTypes;
         internal HarmonyQueryCompilationContext CompilationContext => _queryCompilationContext as HarmonyQueryCompilationContext;
@@ -118,7 +118,7 @@ namespace Harmony.Core.EF.Query.Internal
         private readonly Dictionary<IEntityType, LambdaExpression> _parameterizedQueryFilterPredicateCache
             = new();
 
-        private readonly Parameters _parameters = new();
+        private readonly Dictionary<string, object?> _parameters = new();
 
         /// <summary>
         ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
@@ -142,14 +142,12 @@ namespace Harmony.Core.EF.Query.Internal
             _entityReferenceOptionalMarkingExpressionVisitor = new EntityReferenceOptionalMarkingExpressionVisitor();
             _removeRedundantNavigationComparisonExpressionVisitor = new RemoveRedundantNavigationComparisonExpressionVisitor(
                 queryCompilationContext.Logger);
-            _parameterExtractingExpressionVisitor = new ParameterExtractingExpressionVisitor(
-                evaluatableExpressionFilter,
-                _parameters,
-                _queryCompilationContext.ContextType,
+            _funcletizer = new ExpressionTreeFuncletizer(
                 _queryCompilationContext.Model,
-                _queryCompilationContext.Logger,
-                parameterize: false,
-                generateContextAccessors: true);
+                evaluatableExpressionFilter,
+                _queryCompilationContext.ContextType,
+                generateContextAccessors: true,
+                _queryCompilationContext.Logger);
 
             // TODO: Use MemberNotNullWhen
             // Value won't be accessed when condition is not met.
@@ -182,7 +180,7 @@ namespace Harmony.Core.EF.Query.Internal
                         _queryContextContextPropertyInfo),
                     _queryCompilationContext.ContextType);
 
-            foreach (var parameterValue in _parameters.ParameterValues)
+            foreach (var parameterValue in _parameters)
             {
                 var lambda = (LambdaExpression)parameterValue.Value!;
                 var remappedLambdaBody = ReplacingExpressionVisitor.Replace(
@@ -216,27 +214,7 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 case EntityQueryRootExpression queryRootExpression:
                     var entityType = queryRootExpression.EntityType;
-#pragma warning disable CS0618 // Type or member is obsolete
-                    var definingQuery = entityType.GetDefiningQuery();
-#pragma warning restore CS0618 // Type or member is obsolete
                     NavigationExpansionExpression navigationExpansionExpression;
-                    if (definingQuery != null
-                        // Apply defining query only when it is not custom query root
-                        && queryRootExpression.GetType() == typeof(QueryRootExpression))
-                    {
-                        var processedDefiningQueryBody = _parameterExtractingExpressionVisitor.ExtractParameters(definingQuery.Body);
-                        processedDefiningQueryBody = _queryTranslationPreprocessor.NormalizeQueryableMethod(processedDefiningQueryBody);
-                        processedDefiningQueryBody = _nullCheckRemovingExpressionVisitor.Visit(processedDefiningQueryBody);
-                        processedDefiningQueryBody =
-                            new SelfReferenceEntityQueryableRewritingExpressionVisitor(this, entityType).Visit(processedDefiningQueryBody);
-
-                        processedDefiningQueryBody = Visit(processedDefiningQueryBody);
-                        processedDefiningQueryBody = _pendingSelectorExpandingExpressionVisitor.Visit(processedDefiningQueryBody);
-                        processedDefiningQueryBody = Reduce(processedDefiningQueryBody);
-
-                        navigationExpansionExpression = CreateNavigationExpansionExpression(processedDefiningQueryBody, entityType);
-                    }
-                    else
                     {
                         navigationExpansionExpression = CreateNavigationExpansionExpression(queryRootExpression, entityType);
                     }
@@ -313,7 +291,6 @@ namespace Harmony.Core.EF.Query.Internal
 
             var method = methodCallExpression.Method;
             if (method.DeclaringType == typeof(Queryable)
-                || method.DeclaringType == typeof(QueryableExtensions)
                 || method.DeclaringType == typeof(EntityFrameworkQueryableExtensions))
             {
                 var genericMethod = method.IsGenericMethod ? method.GetGenericMethodDefinition() : null;
@@ -457,7 +434,7 @@ namespace Harmony.Core.EF.Query.Internal
                                 goto default;
                             }
 
-                        case nameof(QueryableExtensions.LeftJoin)
+                        case nameof(Queryable.LeftJoin)
                             when genericMethod == NavigationExpandingExpressionVisitor.LeftJoinMethodInfo:
                             {
                                 var secondArgument = Visit(methodCallExpression.Arguments[1]);
@@ -1067,16 +1044,6 @@ namespace Harmony.Core.EF.Query.Internal
             if (source.PendingSelector is NavigationTreeExpression navigationTree
                 && navigationTree.Value is EntityReference entityReference)
             {
-#pragma warning disable CS0618 // Type or member is obsolete
-                if (entityReference.EntityType.GetDefiningQuery() != null)
-                {
-                    throw new InvalidOperationException(
-#pragma warning disable CS0612 // Type or member is obsolete
-                        CoreStrings.IncludeOnEntityWithDefiningQueryNotSupported(expression, entityReference.EntityType.DisplayName()));
-#pragma warning restore CS0612 // Type or member is obsolete
-                }
-#pragma warning restore CS0618 // Type or member is obsolete
-
                 if (expression is ConstantExpression includeConstant
                     && includeConstant.Value is string navigationChain)
                 {
@@ -1710,7 +1677,7 @@ namespace Harmony.Core.EF.Query.Internal
                     if (!_parameterizedQueryFilterPredicateCache.TryGetValue(rootEntityType, out var filterPredicate))
                     {
                         filterPredicate = queryFilter;
-                        filterPredicate = (LambdaExpression)_parameterExtractingExpressionVisitor.ExtractParameters(filterPredicate);
+                        filterPredicate = (LambdaExpression)_funcletizer.ExtractParameters(filterPredicate, _parameters, parameterize: false, clearParameterizedValues: false);
                         filterPredicate = (LambdaExpression)_queryTranslationPreprocessor.NormalizeQueryableMethod(filterPredicate);
 
                         // We need to do entity equality, but that requires a full method call on a query root to properly flow the
@@ -2130,7 +2097,7 @@ namespace Harmony.Core.EF.Query.Internal
                         if (entityType == null)
                         {
                             throw new InvalidOperationException(
-                                CoreStrings.InvalidTypeConversationWithInclude(expression, convertedType.ShortDisplayName()));
+                                CoreStrings.InvalidTypeConversionWithInclude(expression, convertedType.ShortDisplayName()));
                         }
                     }
 
@@ -2220,17 +2187,5 @@ namespace Harmony.Core.EF.Query.Internal
             }
         }
 
-        private sealed class Parameters : IParameterValues
-        {
-            private readonly IDictionary<string, object?> _parameterValues = new Dictionary<string, object?>();
-
-            public IReadOnlyDictionary<string, object?> ParameterValues
-                => (IReadOnlyDictionary<string, object?>)_parameterValues;
-
-            public void AddParameter(string name, object? value)
-            {
-                _parameterValues.Add(name, value);
-            }
-        }
     }
 }

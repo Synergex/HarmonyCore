@@ -2,7 +2,7 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: 8.0.$(Rev:r)
+name: 10.0.$(Rev:r)
 
 resources: 
   repositories:
@@ -71,7 +71,7 @@ stages:
         rootFolderOrFile: '$(Build.SourcesDirectory)'
         includeRootFolder: false
         archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/net6-release.zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/net10-release.zip'
         replaceExistingArchive: true
     - task: PublishPipelineArtifact@1
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
@@ -85,10 +85,10 @@ stages:
         SourceFolder: '$(Build.ArtifactStagingDirectory)'
         Contents: '**/*'
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+      displayName: 'Get .NET SDK 10.0.x'
       inputs:
         packageType: 'sdk'
-        version: '8.0.x'
+        version: '10.0.x'
     - task: NuGetToolInstaller@1
       displayName: 'Get NuGet 6.x'
       inputs:
@@ -268,10 +268,10 @@ stages:
     - checkout: none
 
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+      displayName: 'Get .NET SDK 10.0.x'
       inputs:
         packageType: 'sdk'
-        version: '8.0.x'
+        version: '10.0.x'
 
     - download: current
       displayName: "Download Artifacts"
@@ -380,10 +380,10 @@ stages:
         TargetFolder: '$(Pipeline.Workspace)\CICD'
 
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+      displayName: 'Get .NET SDK 10.0.x'
       inputs:
         packageType: 'sdk'
-        version: '8.0.x'
+        version: '10.0.x'
   
     - task: CmdLine@2
       displayName: "Install Harmony Core templates"
@@ -467,7 +467,7 @@ stages:
       displayName: "Run harmonycore upgrade-latest"
       inputs:
         script: |
-          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
       
     - task: CmdLine@2
@@ -529,7 +529,7 @@ stages:
         script: |
           %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
           echo run upgrade-latest
-          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
@@ -589,7 +589,7 @@ stages:
       displayName: "Add unit tests"
       inputs:
         script: |
-          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
       env: 
         LOCAL_HC_TEMPLATES: 1
@@ -599,7 +599,7 @@ stages:
       inputs:
         script: |
           %clitool% regen -p
-          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: DotNetCoreCLI@2

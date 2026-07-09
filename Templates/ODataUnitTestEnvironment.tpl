@@ -62,9 +62,9 @@
 import IdentityModel.Client
   </IF>
 </IF>
-import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
+import Microsoft.Extensions.Hosting
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
@@ -82,6 +82,7 @@ namespace <NAMESPACE>
     public partial class UnitTestEnvironment
 
         public static Server, @TestServer
+        private static _host, @IHost
 <IF DEFINED_ENABLE_AUTHENTICATION>
         public static AccessToken, string
 </IF DEFINED_ENABLE_AUTHENTICATION>
@@ -110,14 +111,30 @@ namespace <NAMESPACE>
 
             if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
             begin
-                ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseStartup<Startup>())
+                ;;Create a test host for the Web API services
+                _host = Host.CreateDefaultBuilder()
+                &    .ConfigureWebHostDefaults(lambda(webBuilder)
+                &    begin
+                &        webBuilder.UseTestServer()
+                &        webBuilder.UseStartup<Startup>()
+                &    end)
+                &    .Start()
             end
             else
             begin
-                ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>())
+                ;;Create a test host for the Web API services
+                _host = Host.CreateDefaultBuilder()
+                &    .ConfigureWebHostDefaults(lambda(webBuilder)
+                &    begin
+                &        webBuilder.UseTestServer()
+                &        webBuilder.UseContentRoot(AppContext.BaseDirectory)
+                &        webBuilder.UseWebRoot(wwwroot)
+                &        webBuilder.UseStartup<Startup>()
+                &    end)
+                &    .Start()
             end
+
+            Server = _host.GetTestServer()
 
             ;;Fake out HTTPS
             Server.BaseAddress = new Uri("<SERVER_PROTOCOL>://<SERVER_NAME>")
@@ -182,6 +199,8 @@ namespace <NAMESPACE>
             ;;Clean up the test host
             Server.Dispose()
             Server = ^null
+            _host.Dispose()
+            _host = ^null
 
             ;;Delete the data files
             UnitTestEnvironment.Cleanup()

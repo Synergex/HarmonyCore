@@ -642,7 +642,7 @@ namespace Harmony.Core.EF.Query.Internal
 #pragma warning disable IDE0052 // Remove unread private members
         private static T GetParameterValue<T>(QueryContext queryContext, string parameterName)
 #pragma warning restore IDE0052 // Remove unread private members
-            => (T)queryContext.ParameterValues[parameterName];
+            => (T)queryContext.Parameters[parameterName];
 
         protected override Expression VisitUnary(UnaryExpression unaryExpression)
         {

@@ -14,7 +14,7 @@ namespace Harmony.Core.EF.Query.Internal
     class HarmonyEntityMaterializerSource
     {
         public static readonly MethodInfo TryReadValueMethod
-            = typeof(EntityMaterializerSource).GetTypeInfo()
+            = typeof(HarmonyEntityMaterializerSource).GetTypeInfo()
                 .GetDeclaredMethod(nameof(TryReadValue));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

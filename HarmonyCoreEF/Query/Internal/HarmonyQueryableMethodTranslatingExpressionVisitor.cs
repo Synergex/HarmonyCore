@@ -430,6 +430,13 @@ namespace Harmony.Core.EF.Query.Internal
                     : EnumerableMethods.LastWithoutPredicate);
         }
 
+        protected override ShapedQueryExpression TranslateRightJoin(
+            ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
+            LambdaExpression resultSelector)
+        {
+            return null;
+        }
+
         protected override ShapedQueryExpression TranslateLeftJoin(
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
@@ -2460,7 +2467,7 @@ namespace Harmony.Core.EF.Query.Internal
             //    return base.VisitMethodCall(node);
             //}
 
-            private static T GetParameterValue<T>(QueryContext queryContext, string parameterName) => (T)queryContext.ParameterValues[parameterName];
+            private static T GetParameterValue<T>(QueryContext queryContext, string parameterName) => (T)queryContext.Parameters[parameterName];
 
             protected override Expression VisitParameter(ParameterExpression node)
             {

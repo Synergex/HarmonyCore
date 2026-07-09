@@ -16,6 +16,7 @@ using Harmony.Core.EF.Extensions.Internal;
 using Harmony.Core.Utility;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 namespace Harmony.Core.EF.Query.Internal
 {
@@ -73,7 +74,7 @@ namespace Harmony.Core.EF.Query.Internal
             //        inMemoryQueryExpression, inMemoryQueryExpression.CurrentParameter)
             //    .Inject(shapedQueryExpression.ShaperExpression);
 
-            var shaper = InjectEntityMaterializers(shapedQueryExpression.ShaperExpression);
+            var shaper = InjectStructuralTypeMaterializers(shapedQueryExpression.ShaperExpression);
 
             var innerEnumerable = Visit(inMemoryQueryExpression);
 
@@ -143,7 +144,7 @@ namespace Harmony.Core.EF.Query.Internal
                     if (foundEntry != null && !isNullKey && foundEntry.EntityState != EntityState.Detached)
                         return foundEntry.Entity as DataObjectBase;
                     else
-                        queryContext.StartTracking(localType, obj, default(Microsoft.EntityFrameworkCore.Storage.ValueBuffer));
+                        queryContext.StartTracking(localType, obj, Snapshot.Empty);
                 }
 
                 return obj;
@@ -154,14 +155,14 @@ namespace Harmony.Core.EF.Query.Internal
                 return typeof(PreparedQueryPlan)
                     .GetMethod("ExecuteCollectionPlan")
                     .MakeGenericMethod(new Type[] { entityType.ClrType })
-                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store, queryContext }) as IEnumerable<DataObjectBase>;
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).Parameters, ((HarmonyQueryContext)queryContext).Store, queryContext }) as IEnumerable<DataObjectBase>;
             }
             else
             {
                 var singleResult = typeof(PreparedQueryPlan)
                     .GetMethod("ExecutePlan")
                     .MakeGenericMethod(new Type[] { entityType.ClrType })
-                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).ParameterValues, ((HarmonyQueryContext)queryContext).Store, queryContext }) as DataObjectBase;
+                    .Invoke(queryPlan, new object[] { track, ((HarmonyQueryContext)queryContext).Parameters, ((HarmonyQueryContext)queryContext).Store, queryContext }) as DataObjectBase;
                 var arrayResult = Array.CreateInstance(entityType.ClrType, 1);
                 arrayResult.SetValue(singleResult, 0);
                 return arrayResult as IEnumerable<DataObjectBase>;
