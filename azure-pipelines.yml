@@ -4,7 +4,11 @@
 # https://aka.ms/yaml
 name: 10.0.$(Rev:r)
 
-resources: 
+# Temporary test-pipeline branch: manual runs only.
+trigger: none
+pr: none
+
+resources:
   repositories:
   - repository: HarmonyCoreSamples
     type: github
@@ -35,10 +39,9 @@ stages:
     workspace:
       clean: all
     pool:
-      name: HarmonyCore
+      name: $(BuildPool)
       demands:
-        - Agent.OS -equals Windows_NT   # force Windows agents for all build legs
-        - msbuild                       # MSBuild@1 injects this demand
+        - agent.name -equals $(WinAgentName)  # Windows build machine (Docker host for the Linux agent container)
     strategy:
       maxParallel: 4
       matrix:
@@ -232,7 +235,8 @@ stages:
         versioningScheme: 'byBuildNumber'
     
     - task: NuGetCommand@2
-      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      # temporarily disabled on the test branch - do not publish packages from test runs
+      condition: false
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
@@ -243,8 +247,125 @@ stages:
       displayName: 'Publish nuget packages'
       artifact: 'NugetPackages$(Configuration)$(Platform)'
 
-  - job: TestJob
+  # Recreate the Linux build agent container on the Windows Docker host.
+  - job: RemoveContainer
     dependsOn: BuildJob
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
+    steps:
+    - checkout: none
+
+    - task: PowerShell@2
+      displayName: "Remove old hcimage container/image"
+      inputs:
+        targetType: inline
+        script: |
+          $containers = docker ps -a -q --filter ancestor=hcimage
+          if ($containers) {
+            $containers | ForEach-Object { docker stop $_ }
+            $containers | ForEach-Object { docker rm $_ }
+          }
+
+          $images = docker images -a -q --filter "reference=hcimage"
+          if ($images) {
+            docker image rm hcimage
+          }
+
+          docker image prune -f | Out-Null
+          docker images
+          docker ps -a
+
+  - job: CreateContainer
+    dependsOn: RemoveContainer
+    condition: succeeded('RemoveContainer')
+    variables:
+    - group: "PAT for agent pool"
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
+    steps:
+    - checkout: self
+      sparseCheckoutDirectories: 'buildDefinitions'
+      clean: true
+      path: docker
+
+    - task: DownloadSecureFile@1
+      name: autoInstall
+      displayName: "Get install support files"
+      inputs:
+        secureFile: 'linux.auto.install'
+
+    - task: PowerShell@2
+      displayName: "Stage build context"
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        SDE_ARTIFACTS_TOKEN: $(SdeArtifactsToken)
+      inputs:
+        targetType: inline
+        script: |
+          Copy-Item "$(autoInstall.secureFilePath)" linux.auto.install -Force
+
+          $token = $env:SDE_ARTIFACTS_TOKEN
+          if (-not $token -or $token.StartsWith('$(')) {
+            $token = $env:SYSTEM_ACCESSTOKEN
+          }
+          $headers = @{ Authorization = "Bearer $token" }
+          Invoke-WebRequest -Uri "$(SdeArchiveUrl)" -Headers $headers -OutFile sde-archive.a
+          $size = (Get-Item sde-archive.a).Length
+          Write-Host "Downloaded archive ($size bytes)"
+          if ($size -lt 10MB) {
+            Write-Error "Download suspiciously small."
+            exit 1
+          }
+        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+
+    - task: PowerShell@2
+      displayName: "Build hcimage"
+      inputs:
+        targetType: inline
+        script: |
+          # change line endings for Dockerfile and shell scripts
+          (Get-Content -Raw Dockerfile) -replace "`r" | Set-Content -NoNewline -Encoding utf8 Dockerfile
+          (Get-Content -Raw startagent.sh) -replace "`r" | Set-Content -NoNewline -Encoding utf8 startagent.sh
+          (Get-Content -Raw linux.auto.install) -replace "`r" | Set-Content -NoNewline -Encoding utf8 linux.auto.install
+          docker build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
+        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+
+    - task: PowerShell@2
+      displayName: "Create hccontainer"
+      inputs:
+        targetType: inline
+        script: |
+          docker run -dit `
+            -e AZP_URL="$(System.CollectionUri)" `
+            -e AZP_TOKEN="$(PAT_AGENT_POOL)" `
+            -e AZP_POOL="$(BuildPool)" `
+            -e AZP_AGENT_NAME="$(LinuxAgentName)" `
+            --name "hccontainer" hcimage
+
+          $containerStatus = docker inspect --format='{{.State.Status}}' hccontainer
+          if ($containerStatus -eq "running") {
+            Write-Host "Container is running."
+          } else {
+            Write-Error "Container is not running. Current status: $containerStatus."
+            exit 1
+          }
+        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+
+    - task: PowerShell@2
+      displayName: "Wait for agent initialization"
+      inputs:
+        targetType: inline
+        script: |
+          Start-Sleep -Seconds 60
+
+  - job: TestJob
+    dependsOn:
+    - BuildJob
+    - CreateContainer
     workspace:
       clean: all
     strategy:
@@ -253,17 +374,15 @@ stages:
         Release_x64:
           Configuration: Release
           Platform: x64
-          AgentPool: HarmonyCore
-          AgentOS: Windows_NT
+          AgentName: $(WinAgentName)
         Release_linux:
-         Configuration: Release
-         Platform: linux64
-         AgentPool: HarmonyCore
-         AgentOS: Linux
+          Configuration: Release
+          Platform: linux64
+          AgentName: $(LinuxAgentName)
     pool:
-      name: $(AgentPool)
+      name: $(BuildPool)
       demands:
-        - Agent.OS -equals $(AgentOS)
+        - agent.name -equals $(AgentName)
     steps:
     - checkout: none
 
@@ -341,7 +460,9 @@ stages:
     workspace:
       clean: all
     pool:
-      name: HarmonyCore
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
     strategy:
       maxParallel: 4
       matrix:
