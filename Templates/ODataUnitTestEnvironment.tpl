@@ -112,26 +112,12 @@ namespace <NAMESPACE>
             if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
             begin
                 ;;Create a test host for the Web API services
-                _host = Host.CreateDefaultBuilder()
-                &    .ConfigureWebHostDefaults(lambda(webBuilder)
-                &    begin
-                &        webBuilder.UseTestServer()
-                &        webBuilder.UseStartup<Startup>()
-                &    end)
-                &    .Start()
+                _host = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(lambda(webBuilder) { webBuilder.UseTestServer().UseStartup<Startup>() }).Start()
             end
             else
             begin
                 ;;Create a test host for the Web API services
-                _host = Host.CreateDefaultBuilder()
-                &    .ConfigureWebHostDefaults(lambda(webBuilder)
-                &    begin
-                &        webBuilder.UseTestServer()
-                &        webBuilder.UseContentRoot(AppContext.BaseDirectory)
-                &        webBuilder.UseWebRoot(wwwroot)
-                &        webBuilder.UseStartup<Startup>()
-                &    end)
-                &    .Start()
+                _host = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(lambda(webBuilder) { webBuilder.UseTestServer().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>() }).Start()
             end
 
             Server = _host.GetTestServer()
