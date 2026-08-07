@@ -41,7 +41,7 @@ namespace <NAMESPACE>
     </STRUCTURE_LOOP>
 
         partial method GetCustomFileSpec, void
-            required inout aFileSpec, string
+            required in aFileSpec, string
         endmethod
 
         public method SerializeValues, void
