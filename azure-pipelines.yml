@@ -222,7 +222,10 @@ stages:
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack'
-        arguments: '-c $(Configuration)'
+        # --no-build: the solution was already built above; repacking must not rebuild the
+        # CodeGen synproj ProjectReferences (that rebuild trips NETSDK1032 on the injected
+        # win-x86 RID and DBL-E-ASMLOAD on the netstandard2.0 package toolchain).
+        arguments: '-c $(Configuration) --no-build'
         projects: |
             **/HarmonyCore.CLITool.csproj
 
