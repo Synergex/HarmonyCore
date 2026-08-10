@@ -222,10 +222,17 @@ stages:
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack'
-        # --no-build: the solution was already built above; repacking must not rebuild the
-        # CodeGen synproj ProjectReferences (that rebuild trips NETSDK1032 on the injected
-        # win-x86 RID and DBL-E-ASMLOAD on the netstandard2.0 package toolchain).
-        arguments: '-c $(Configuration) --no-build'
+        # The solution build already compiled everything; pack must not stumble on the CodeGen
+        # synproj ProjectReferences it pulls in. Two flags, two distinct causes:
+        #  --no-build              : skips the recompile that hits DBL-E-ASMLOAD (netstandard2.0
+        #                            under the package asm2dbp).
+        #  -p:PlatformTarget=AnyCPU: pack builds the refs DIRECTLY, so the .sln's x64->AnyCPU
+        #                            platform remap doesn't apply; they'd inherit x64 and trip
+        #                            NETSDK1032 against the pack-injected win-x86 host RID. Forcing
+        #                            AnyCPU skips that check (which --no-build does NOT — it runs
+        #                            during project evaluation, not CoreCompile). Redundant once
+        #                            HarmonyCoreCodeGen.Core carries PlatformTarget=AnyCPU itself.
+        arguments: '-c $(Configuration) --no-build -p:PlatformTarget=AnyCPU'
         projects: |
             **/HarmonyCore.CLITool.csproj
 
