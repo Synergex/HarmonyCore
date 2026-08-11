@@ -93,7 +93,7 @@ stages:
         packageType: 'sdk'
         version: '10.0.x'
     - task: NuGetToolInstaller@1
-      displayName: 'Get NuGet 6.x'
+      displayName: 'Get NuGet 7.x'
       inputs:
         versionSpec: 7.x
         checkLatest: true
@@ -222,9 +222,12 @@ stages:
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack'
-        arguments: '-c $(Configuration) -m:1 -p:BuildInParallel=false'
-        projects: |
-            **/HarmonyCore.CLITool.csproj
+        # DotNetCoreCLI@2 with command=pack IGNORES the generic 'arguments' and 'projects'
+        # inputs (it only reads packagesToPack/configuration/outputDir/nobuild/buildProperties).
+        # With the old 'projects' input this step silently packed **/*.csproj (the
+        # packagesToPack default) and dropped every flag we tried to pass.
+        packagesToPack: 'HarmonyCore.CliTool/HarmonyCore.CliTool.csproj'
+        configuration: '$(Configuration)'
 
     - task: NuGetCommand@2
       name: 'HarmonyCoreNuget'

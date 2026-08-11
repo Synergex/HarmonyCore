@@ -8,8 +8,13 @@
     <PackageId>Harmony.Core.CliTool</PackageId>
     <PackageVersion>6.0.148</PackageVersion>
     <Version>6.0.148</Version>
-    <!-- .NET tool packs RID-agnostic; pin AnyCPU so an injected RID (e.g. win-x86 from the
-         build agent's Synergy/VS environment) doesn't trip NETSDK1032 vs PlatformTarget during pack -->
+    <!-- .NET global tools are framework-dependent and RID-agnostic. Clear the repo-wide
+         RuntimeIdentifiers (win-x64;win-x86;linux-x64 from Directory.Build.Props): otherwise
+         `dotnet pack` fans out a per-RID build of the CodeGen ProjectReferences, and each RID
+         rebuilds the SAME CodeGenEngine.dll into the SAME (non-RID-keyed) %LOCALAPPDATA%\Synergex\dbp
+         cache dir, so the builds collide (DBL-E-ASMLOAD "Could not find a part of the path").
+         AnyCPU avoids NETSDK1032. The x64 'publish' task passes -r explicitly, so it is unaffected. -->
+    <RuntimeIdentifiers></RuntimeIdentifiers>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
