@@ -1,0 +1,79 @@
+# Shared steps for the test jobs (TestJobWin / TestJobLinux in azure-pipelines.yml).
+# The jobs differ only in agent (pool demand) and Platform; platform-specific steps are
+# selected at compile time via the Platform parameter.
+parameters:
+  - name: PublishProjects
+    type: object
+  - name: Platform
+    type: string
+
+steps:
+- checkout: none
+
+- task: UseDotNet@2
+  displayName: 'Get .NET SDK 10.0.x'
+  inputs:
+    packageType: 'sdk'
+    version: '10.0.x'
+
+- download: current
+  displayName: "Download Artifacts"
+  artifact: 'TestArtifacts$(Configuration)$(Platform)'
+
+# for linux only: source the Synergy environment
+- ${{ if eq(parameters.Platform, 'linux64') }}:
+  - task: Bash@3
+    displayName: "Run setsde"
+    inputs:
+      targetType: 'inline'
+      script: |
+        . setsde
+        echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
+      workingDirectory: $(Agent.HomeDirectory)
+
+# unzip each project and run test
+- ${{ each project in parameters.PublishProjects }}:
+  - task: ExtractFiles@1
+    displayName: "Extract ${{ project }}"
+    inputs:
+      archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
+      destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
+      cleanDestinationFolder: false
+      overwriteExistingFiles: false
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run HarmonyCore.Test'
+  inputs:
+    command: 'test'
+    testRunTitle: "HarmonyCore.Test $(Platform)"
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run Services.Test.CS'
+  inputs:
+    command: 'test'
+    testRunTitle: "Services.Test.CS $(Platform)"
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Run Services.Test'
+  inputs:
+    command: 'test'
+    testRunTitle: "Services.Test $(Platform)"
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+
+# for Windows only: copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
+- ${{ if ne(parameters.Platform, 'linux64') }}:
+  - task: CopyFiles@2
+    displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+    inputs:
+      SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
+      Contents: '**'
+      TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run TraditionalBridge.UnitTest'
+    inputs:
+      command: 'test'
+      testRunTitle: "TraditionalBridge.UnitTest $(Platform)"
+      arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'

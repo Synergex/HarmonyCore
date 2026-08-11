@@ -365,97 +365,50 @@ stages:
         script: |
           Start-Sleep -Seconds 60
 
-  - job: TestJob
+  # Test jobs consume the agent names from the pipeline UI variables the same way BuildJob
+  # does: a direct $(WinAgentName)/$(LinuxAgentName) in the pool demand. That direct reference
+  # only works job-wide (demands are expanded once, server-side), and the two test legs target
+  # DIFFERENT agents — so they are two jobs rather than one matrixed job. The steps live once
+  # in buildDefinitions/test-steps.yml.
+  - job: TestJobWin
+    displayName: 'TestJob x64'
     dependsOn:
     - BuildJob
     - CreateContainer
     workspace:
       clean: all
-    strategy:
-      maxParallel: 4
-      matrix:
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-          AgentName: $(WinAgentName)
-        Release_linux:
-          Configuration: Release
-          Platform: linux64
-          AgentName: $(LinuxAgentName)
     pool:
       name: $(BuildPool)
       demands:
-        - agent.name -equals $(AgentName)
+        - agent.name -equals $(WinAgentName)
+    variables:
+      Configuration: Release
+      Platform: x64
     steps:
-    - checkout: none
+    - template: buildDefinitions/test-steps.yml
+      parameters:
+        PublishProjects: ${{ parameters.PublishProjects }}
+        Platform: x64
 
-    - task: UseDotNet@2
-      displayName: 'Get .NET SDK 10.0.x'
-      inputs:
-        packageType: 'sdk'
-        version: '10.0.x'
-
-    - download: current
-      displayName: "Download Artifacts"
-      artifact: 'TestArtifacts$(Configuration)$(Platform)'
-
-    - task: Bash@3
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      displayName: "Run setsde"
-      inputs:
-        targetType: 'inline'
-        script: |
-          . setsde
-          echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
-        workingDirectory: $(Agent.HomeDirectory)
-
-    # unzip each project and run test
-    - ${{ each project in parameters.PublishProjects }}:
-      - task: ExtractFiles@1
-        displayName: "Extract ${{ project }}"
-        inputs:
-          archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
-          destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
-          cleanDestinationFolder: false
-          overwriteExistingFiles: false
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Run HarmonyCore.Test'
-      inputs:
-        command: 'test'
-        testRunTitle: "HarmonyCore.Test $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test.CS'
-      inputs:
-        command: 'test'
-        testRunTitle: "Services.Test.CS $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test'
-      inputs:
-        command: 'test'
-        testRunTitle: "Services.Test $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
-
-    # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
-    - task: CopyFiles@2
-      condition: ne(variables['Platform'], 'linux64')
-      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
-      inputs:
-        SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
-        Contents: '**'
-        TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
-
-    - task: DotNetCoreCLI@2
-      condition: ne(variables['Platform'], 'linux64')
-      displayName: 'Run TraditionalBridge.UnitTest'
-      inputs:
-        command: 'test'
-        testRunTitle: "TraditionalBridge.UnitTest $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
+  - job: TestJobLinux
+    displayName: 'TestJob linux64'
+    dependsOn:
+    - BuildJob
+    - CreateContainer
+    workspace:
+      clean: all
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(LinuxAgentName)
+    variables:
+      Configuration: Release
+      Platform: linux64
+    steps:
+    - template: buildDefinitions/test-steps.yml
+      parameters:
+        PublishProjects: ${{ parameters.PublishProjects }}
+        Platform: linux64
 
   - job: BuildHarmonyCoreProjects
     dependsOn: BuildJob
