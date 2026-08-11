@@ -41,7 +41,7 @@ stages:
     pool:
       name: $(BuildPool)
       demands:
-        - agent.name -equals $(WinAgentName)  # Windows build machine (Docker host for the Linux agent container)
+        - agent.name -equals $(WinAgentName)  # Windows build machine (Podman host for the Linux agent container)
     strategy:
       maxParallel: 4
       matrix:
@@ -95,7 +95,7 @@ stages:
     - task: NuGetToolInstaller@1
       displayName: 'Get NuGet 6.x'
       inputs:
-        versionSpec: 6.x
+        versionSpec: 7.x
         checkLatest: true
     #- task: NuGetCommand@2
     #  displayName: 'NuGet restore'
@@ -222,11 +222,7 @@ stages:
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack'
-        # --no-build: the solution build above already compiled the CliTool and its CodeGen
-        # ProjectReferences; without it, pack recompiles the netstandard2.0 refs under the package
-        # asm2dbp and hits DBL-E-ASMLOAD. (The NETSDK1032 platform check is now handled in-project
-        # by HarmonyCoreCodeGen.Core's PlatformTarget=AnyCPU, so no pack flag is needed for that.)
-        arguments: '-c $(Configuration) --no-build'
+        arguments: '-c $(Configuration) -m:1 -p:BuildInParallel=false'
         projects: |
             **/HarmonyCore.CLITool.csproj
 
@@ -251,7 +247,7 @@ stages:
       displayName: 'Publish nuget packages'
       artifact: 'NugetPackages$(Configuration)$(Platform)'
 
-  # Recreate the Linux build agent container on the Windows Docker host.
+  # Recreate the Linux build agent container on the Windows Podman host.
   - job: RemoveContainer
     dependsOn: BuildJob
     pool:
@@ -266,20 +262,20 @@ stages:
       inputs:
         targetType: inline
         script: |
-          $containers = docker ps -a -q --filter ancestor=hcimage
+          $containers = podman ps -a -q --filter ancestor=hcimage
           if ($containers) {
-            $containers | ForEach-Object { docker stop $_ }
-            $containers | ForEach-Object { docker rm $_ }
+            $containers | ForEach-Object { podman stop $_ }
+            $containers | ForEach-Object { podman rm $_ }
           }
 
-          $images = docker images -a -q --filter "reference=hcimage"
+          $images = podman images -a -q --filter "reference=hcimage"
           if ($images) {
-            docker image rm hcimage
+            podman image rm hcimage
           }
 
-          docker image prune -f | Out-Null
-          docker images
-          docker ps -a
+          podman image prune -f | Out-Null
+          podman images
+          podman ps -a
 
   - job: CreateContainer
     dependsOn: RemoveContainer
@@ -294,7 +290,7 @@ stages:
     - checkout: self
       sparseCheckoutDirectories: 'buildDefinitions'
       clean: true
-      path: docker
+      path: podman
 
     - task: DownloadSecureFile@1
       name: autoInstall
@@ -324,7 +320,7 @@ stages:
             Write-Error "Download suspiciously small."
             exit 1
           }
-        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
     - task: PowerShell@2
       displayName: "Build hcimage"
@@ -335,29 +331,29 @@ stages:
           (Get-Content -Raw Dockerfile) -replace "`r" | Set-Content -NoNewline -Encoding utf8 Dockerfile
           (Get-Content -Raw startagent.sh) -replace "`r" | Set-Content -NoNewline -Encoding utf8 startagent.sh
           (Get-Content -Raw linux.auto.install) -replace "`r" | Set-Content -NoNewline -Encoding utf8 linux.auto.install
-          docker build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
-        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+          podman build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
     - task: PowerShell@2
       displayName: "Create hccontainer"
       inputs:
         targetType: inline
         script: |
-          docker run -dit `
+          podman run -dit `
             -e AZP_URL="$(System.CollectionUri)" `
             -e AZP_TOKEN="$(PAT_AGENT_POOL)" `
             -e AZP_POOL="$(BuildPool)" `
             -e AZP_AGENT_NAME="$(LinuxAgentName)" `
             --name "hccontainer" hcimage
 
-          $containerStatus = docker inspect --format='{{.State.Status}}' hccontainer
+          $containerStatus = podman inspect --format='{{.State.Status}}' hccontainer
           if ($containerStatus -eq "running") {
             Write-Host "Container is running."
           } else {
             Write-Error "Container is not running. Current status: $containerStatus."
             exit 1
           }
-        workingDirectory: $(Agent.BuildDirectory)/docker/buildDefinitions
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
     - task: PowerShell@2
       displayName: "Wait for agent initialization"
