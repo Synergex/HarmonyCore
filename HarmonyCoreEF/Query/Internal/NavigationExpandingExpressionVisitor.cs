@@ -75,7 +75,8 @@ namespace Harmony.Core.EF.Query.Internal
 
         internal static readonly MethodInfo IgnoreAutoIncludesMethodInfo = typeof(EntityFrameworkQueryableExtensions).GetRequiredDeclaredMethod("IgnoreAutoIncludes");
 
-        internal static readonly MethodInfo IgnoreQueryFiltersMethodInfo = typeof(EntityFrameworkQueryableExtensions).GetRequiredDeclaredMethod("IgnoreQueryFilters");
+        // EF Core 10 added IgnoreQueryFilters(source, filterKeys); require the parameterless-filter overload
+        internal static readonly MethodInfo IgnoreQueryFiltersMethodInfo = typeof(EntityFrameworkQueryableExtensions).GetRequiredDeclaredMethod("IgnoreQueryFilters", (MethodInfo mi) => mi.GetParameters().Length == 1);
 
         internal static readonly MethodInfo AsNoTrackingMethodInfo = typeof(EntityFrameworkQueryableExtensions).GetRequiredDeclaredMethod("AsNoTracking");
 

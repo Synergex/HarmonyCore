@@ -238,8 +238,12 @@ namespace Harmony.Core.EF.Query.Internal
 
             Distinct = enumerableMethods.Single(
                 mi => mi.Name == nameof(Enumerable.Distinct) && mi.GetParameters().Length == 1);
+            // .NET 10 added an array-specific Reverse overload; require the IEnumerable<> one
             Reverse = enumerableMethods.Single(
-                mi => mi.Name == nameof(Enumerable.Reverse) && mi.GetParameters().Length == 1);
+                mi => mi.Name == nameof(Enumerable.Reverse)
+                    && mi.GetParameters().Length == 1
+                    && mi.GetParameters()[0].ParameterType.IsGenericType
+                    && mi.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>));
             Where = enumerableMethods.Single(
                 mi => mi.Name == nameof(Enumerable.Where)
                     && mi.GetParameters().Length == 2

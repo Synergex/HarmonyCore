@@ -22,6 +22,13 @@ if [ -n "${AZP_WORK}" ]; then
   mkdir -p "${AZP_WORK}"
 fi
 
+# Start the Synergy license manager: 'lmu' with no arguments starts the license
+# server (the server name was configured at image build via 'lmu -nf'). This must
+# happen at container entry — a daemon started during the image build does not
+# survive into the running container — and without it every dbs launch fails with
+# %DBR-F-LMFAIL / "LM communications error (msgsnd/msgrsv)".
+( . /opt/synergex/synergyde/setsde && lmu )
+
 cleanup() {
   trap "" EXIT
 
