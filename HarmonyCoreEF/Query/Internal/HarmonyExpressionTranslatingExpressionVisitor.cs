@@ -473,6 +473,15 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return new InExpression { CollectionParameter = new FileIO.Queryable.ParameterReference() { Name = ((ParameterExpression)methodCallExpression.Arguments[0]).Name }, Predicate = methodCallExpression.Arguments[1] };
             }
+            // EF Core 10 represents the parameterized collection as a QueryParameterExpression
+            // (see VisitExtension); recognize it here too so Contains still becomes an ISAM In
+            // filter instead of falling through to a method call the where-builder ignores.
+            else if (methodCallExpression.Method.DeclaringType == typeof(Enumerable) && methodCallExpression.Method.Name == "Contains" &&
+                methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[0] is QueryParameterExpression collectionParameter &&
+                typeof(System.Collections.IEnumerable).IsAssignableFrom(collectionParameter.Type))
+            {
+                return new InExpression { CollectionParameter = new FileIO.Queryable.ParameterReference() { Name = collectionParameter.Name }, Predicate = methodCallExpression.Arguments[1] };
+            }
 
             // if object is nullable, add null safeguard before calling the function
             // we special-case Nullable<>.GetValueOrDefault, which doesn't need the safeguard
