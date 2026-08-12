@@ -2239,6 +2239,13 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 switch (node)
                 {
+                    // EF Core 10 represents query parameters as QueryParameterExpression nodes
+                    case QueryParameterExpression queryParameter:
+                        return Expression.Call(
+                            _getParameterValueMethodInfo.MakeGenericMethod(queryParameter.Type),
+                            QueryCompilationContext.QueryContextParameter,
+                            Expression.Constant(queryParameter.Name));
+
                     case MaterializeCollectionNavigationExpression matColExpr:
                         return ProcessNav(matColExpr, ReplacementSource.QueryExpression as HarmonyQueryExpression);
                     case IncludeExpression includeExpression:

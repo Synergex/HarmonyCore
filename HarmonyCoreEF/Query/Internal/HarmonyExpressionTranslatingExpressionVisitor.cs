@@ -602,6 +602,15 @@ namespace Harmony.Core.EF.Query.Internal
                 case EntityProjectionExpression _:
                     return extensionExpression;
 
+                // EF Core 10's funcletizer emits QueryParameterExpression nodes instead of
+                // "__"-prefixed ParameterExpressions; translate them to runtime parameter lookups
+                // (mirrors InMemoryExpressionTranslatingExpressionVisitor).
+                case QueryParameterExpression queryParameter:
+                    return Expression.Call(
+                        _getParameterValueMethodInfo.MakeGenericMethod(queryParameter.Type),
+                        QueryCompilationContext.QueryContextParameter,
+                        Expression.Constant(queryParameter.Name));
+
                 case StructuralTypeShaperExpression entityShaperExpression:
                     return Visit(entityShaperExpression.ValueBufferExpression);
 
