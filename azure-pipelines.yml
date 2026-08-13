@@ -531,11 +531,14 @@ stages:
           $nugetConfigPath = "$(Pipeline.Workspace)\$(project)\nuget.config"
           $localFeedPath = "$(Pipeline.Workspace)\NugetPackagesReleasex64"
 
-          # Create the nuget.config content
+          # Create the nuget.config content. <clear /> drops machine/user-level sources
+          # inherited on the agent (e.g. stale local feeds registered by other pipelines),
+          # so the generated project restores deterministically from just these two.
           $nugetConfigContent = @"
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
+              <clear />
               <add key="local" value="$localFeedPath" />
               <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
             </packageSources>
