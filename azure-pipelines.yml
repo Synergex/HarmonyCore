@@ -705,13 +705,25 @@ stages:
         testRunTitle: "Services.Test Basic Solution"
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
+    # VSBuild's restoreNugetPackages is deprecated: it runs the agent-bundled (ancient)
+    # NuGet.exe, which can't load MSBuild 18's assemblies ("Could not load Microsoft.Build
+    # .Framework, Version=15.1.0.0"). Restore the same way the main BuildJob does instead.
+    - task: MSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Restore the project Tb"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        msbuildArchitecture: 'x64'
+        configuration: 'Release'
+        msbuildArguments: '-t:restore'
+        clean: false
+
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
-        restoreNugetPackages: true
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
@@ -748,13 +760,24 @@ stages:
           %clitool% regen -p
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
+    # regen can touch project files; re-restore with MSBuild before the rebuild
+    # (VSBuild restoreNugetPackages stays off — see the note on the first build).
+    - task: MSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Restore the project Tb (post-regen)"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        msbuildArchitecture: 'x64'
+        configuration: 'Release'
+        msbuildArguments: '-t:restore'
+        clean: false
+
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
-        restoreNugetPackages: true
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
