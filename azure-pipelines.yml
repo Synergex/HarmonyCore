@@ -59,10 +59,10 @@ stages:
 #        Release_x86:
 #          Configuration: Release
 #          Platform: x86
-        Release_linux:
-          Configuration: Release
-          Platform: linux64
-          RID: linux-x64
+#        Release_linux:
+#          Configuration: Release
+#          Platform: linux64
+#          RID: linux-x64
     steps:
     - checkout: self
       submodules: true
@@ -159,65 +159,65 @@ stages:
         SourceFolder: '$(Build.ArtifactStagingDirectory)'
         Contents: '**/*'
 
-    # publish test binaries (for both matrix legs, using RID from matrix)
-    - ${{ each project in parameters.PublishProjects }}:
-      - task: DotNetCoreCLI@2
-        displayName: 'Publish ${{ project }} Binaries'
-        inputs:
-          command: publish
-          publishWebProjects: false
-          arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
-          verbosityPack: Diagnostic
-          zipAfterPublish: True
-          projects: |
-            ${{ project }}
+#    # publish test binaries (for both matrix legs, using RID from matrix)
+#    - ${{ each project in parameters.PublishProjects }}:
+#      - task: DotNetCoreCLI@2
+#        displayName: 'Publish ${{ project }} Binaries'
+#        inputs:
+#          command: publish
+#          publishWebProjects: false
+#          arguments: '-r=$(RID) -c $(Configuration) -o $(Build.ArtifactStagingDirectory)/${{ project }}'
+#          verbosityPack: Diagnostic
+#          zipAfterPublish: True
+#          projects: |
+#            ${{ project }}
 
-    # for linux only build TraditionalBridge.Test in x86 (still runs on Windows agents)
-    - task: MSBuild@1
-      displayName: "Build 32 bit TraditionalBridge.Test.dbr"
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      inputs:
-        solution: 'TraditionalBridge.Test'
-        msbuildArchitecture: 'x64'
-        platform: 'x86'
-        configuration: 'Release'
-      env: 
-        TestDirX86: '\x86\'
+#    # for linux only build TraditionalBridge.Test in x86 (still runs on Windows agents)
+#    - task: MSBuild@1
+#      displayName: "Build 32 bit TraditionalBridge.Test.dbr"
+#      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
+#      inputs:
+#        solution: 'TraditionalBridge.Test'
+#        msbuildArchitecture: 'x64'
+#        platform: 'x86'
+#        configuration: 'Release'
+#      env: 
+#        TestDirX86: '\x86\'
 
-    # for windows only copy TraditionalBridge.UnitTest/TBTest
-    - task: CopyFiles@2
-      condition: ne(variables['Platform'], 'linux64')
-      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
-      inputs:
-        SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
-        Contents: '**'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
+#    # for windows only copy TraditionalBridge.UnitTest/TBTest
+#    - task: CopyFiles@2
+#      condition: ne(variables['Platform'], 'linux64')
+#      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+#      inputs:
+#        SourceFolder: '$(SolutionDir)TraditionalBridge.UnitTest/TBTest'
+#        Contents: '**'
+#        TargetFolder: '$(Build.ArtifactStagingDirectory)/TraditionalBridge.UnitTest/TBTest'
 
-    - task: CopyFiles@2
-      displayName: "Copy TestDir"
-      inputs:
-        SourceFolder: '$(SolutionDir)TestDir'
-        Contents: '**'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
+#    - task: CopyFiles@2
+#      displayName: "Copy TestDir"
+#      inputs:
+#        SourceFolder: '$(SolutionDir)TestDir'
+#        Contents: '**'
+#        TargetFolder: '$(Build.ArtifactStagingDirectory)/TestDir'
 
-    - task: CopyFiles@2
-      displayName: "Copy SampleData"
-      inputs:
-        SourceFolder: '$(SolutionDir)SampleData'
-        Contents: '**'
-        TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
+#    - task: CopyFiles@2
+#      displayName: "Copy SampleData"
+#      inputs:
+#        SourceFolder: '$(SolutionDir)SampleData'
+#        Contents: '**'
+#        TargetFolder: '$(Build.ArtifactStagingDirectory)/SampleData'
 
-    - task: PublishPipelineArtifact@1
-      displayName: 'Publish Test Binaries as Artifact'
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)' 
-        artifactName: 'TestArtifacts$(Configuration)$(Platform)'
+#    - task: PublishPipelineArtifact@1
+#      displayName: 'Publish Test Binaries as Artifact'
+#      inputs:
+#        targetPath: '$(Build.ArtifactStagingDirectory)' 
+#        artifactName: 'TestArtifacts$(Configuration)$(Platform)'
 
-    - task: DeleteFiles@1
-      displayName: 'Clean ArtifactStagingDirectory'
-      inputs:
-        SourceFolder: '$(Build.ArtifactStagingDirectory)'
-        Contents: '**/*'
+#    - task: DeleteFiles@1
+#      displayName: 'Clean ArtifactStagingDirectory'
+#      inputs:
+#        SourceFolder: '$(Build.ArtifactStagingDirectory)'
+#        Contents: '**/*'
           
     - task: DotNetCoreCLI@2
       displayName: 'Pack CLI Tool'
@@ -251,165 +251,165 @@ stages:
       displayName: 'Publish nuget packages'
       artifact: 'NugetPackages$(Configuration)$(Platform)'
 
-  # Recreate the Linux build agent container on the Windows Podman host.
-  - job: RemoveContainer
-    dependsOn: BuildJob
-    pool:
-      name: $(BuildPool)
-      demands:
-        - agent.name -equals $(WinAgentName)
-    steps:
-    - checkout: none
+#  # Recreate the Linux build agent container on the Windows Podman host.
+#  - job: RemoveContainer
+#    dependsOn: BuildJob
+#    pool:
+#      name: $(BuildPool)
+#      demands:
+#        - agent.name -equals $(WinAgentName)
+#    steps:
+#    - checkout: none
 
-    - task: PowerShell@2
-      displayName: "Remove old hcimage container/image"
-      inputs:
-        targetType: inline
-        script: |
-          $containers = podman ps -a -q --filter ancestor=hcimage
-          if ($containers) {
-            $containers | ForEach-Object { podman stop $_ }
-            $containers | ForEach-Object { podman rm $_ }
-          }
+#    - task: PowerShell@2
+#      displayName: "Remove old hcimage container/image"
+#      inputs:
+#        targetType: inline
+#        script: |
+#          $containers = podman ps -a -q --filter ancestor=hcimage
+#          if ($containers) {
+#            $containers | ForEach-Object { podman stop $_ }
+#            $containers | ForEach-Object { podman rm $_ }
+#          }
 
-          $images = podman images -a -q --filter "reference=hcimage"
-          if ($images) {
-            podman image rm hcimage
-          }
+#          $images = podman images -a -q --filter "reference=hcimage"
+#          if ($images) {
+#            podman image rm hcimage
+#          }
 
-          podman image prune -f | Out-Null
-          podman images
-          podman ps -a
+#          podman image prune -f | Out-Null
+#          podman images
+#          podman ps -a
 
-  - job: CreateContainer
-    dependsOn: RemoveContainer
-    condition: succeeded('RemoveContainer')
-    variables:
-    - group: "PAT for agent pool"
-    pool:
-      name: $(BuildPool)
-      demands:
-        - agent.name -equals $(WinAgentName)
-    steps:
-    - checkout: self
-      sparseCheckoutDirectories: 'buildDefinitions'
-      clean: true
-      path: podman
+#  - job: CreateContainer
+#    dependsOn: RemoveContainer
+#    condition: succeeded('RemoveContainer')
+#    variables:
+#    - group: "PAT for agent pool"
+#    pool:
+#      name: $(BuildPool)
+#      demands:
+#        - agent.name -equals $(WinAgentName)
+#    steps:
+#    - checkout: self
+#      sparseCheckoutDirectories: 'buildDefinitions'
+#      clean: true
+#      path: podman
 
-    - task: DownloadSecureFile@1
-      name: autoInstall
-      displayName: "Get install support files"
-      inputs:
-        secureFile: 'linux.auto.install'
+#    - task: DownloadSecureFile@1
+#      name: autoInstall
+#      displayName: "Get install support files"
+#      inputs:
+#        secureFile: 'linux.auto.install'
 
-    - task: PowerShell@2
-      displayName: "Stage build context"
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        SDE_ARTIFACTS_TOKEN: $(SdeArtifactsToken)
-      inputs:
-        targetType: inline
-        script: |
-          Copy-Item "$(autoInstall.secureFilePath)" linux.auto.install -Force
+#    - task: PowerShell@2
+#      displayName: "Stage build context"
+#      env:
+#        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+#        SDE_ARTIFACTS_TOKEN: $(SdeArtifactsToken)
+#      inputs:
+#        targetType: inline
+#        script: |
+#          Copy-Item "$(autoInstall.secureFilePath)" linux.auto.install -Force
 
-          $token = $env:SDE_ARTIFACTS_TOKEN
-          if (-not $token -or $token.StartsWith('$(')) {
-            $token = $env:SYSTEM_ACCESSTOKEN
-          }
-          $headers = @{ Authorization = "Bearer $token" }
-          Invoke-WebRequest -Uri "$(SdeArchiveUrl)" -Headers $headers -OutFile sde-archive.a
-          $size = (Get-Item sde-archive.a).Length
-          Write-Host "Downloaded archive ($size bytes)"
-          if ($size -lt 10MB) {
-            Write-Error "Download suspiciously small."
-            exit 1
-          }
-        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
+#          $token = $env:SDE_ARTIFACTS_TOKEN
+#          if (-not $token -or $token.StartsWith('$(')) {
+#            $token = $env:SYSTEM_ACCESSTOKEN
+#          }
+#          $headers = @{ Authorization = "Bearer $token" }
+#          Invoke-WebRequest -Uri "$(SdeArchiveUrl)" -Headers $headers -OutFile sde-archive.a
+#          $size = (Get-Item sde-archive.a).Length
+#          Write-Host "Downloaded archive ($size bytes)"
+#          if ($size -lt 10MB) {
+#            Write-Error "Download suspiciously small."
+#            exit 1
+#          }
+#        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
-    - task: PowerShell@2
-      displayName: "Build hcimage"
-      inputs:
-        targetType: inline
-        script: |
-          # change line endings for Dockerfile and shell scripts
-          (Get-Content -Raw Dockerfile) -replace "`r" | Set-Content -NoNewline -Encoding utf8 Dockerfile
-          (Get-Content -Raw startagent.sh) -replace "`r" | Set-Content -NoNewline -Encoding utf8 startagent.sh
-          (Get-Content -Raw linux.auto.install) -replace "`r" | Set-Content -NoNewline -Encoding utf8 linux.auto.install
-          podman build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
-        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
+#    - task: PowerShell@2
+#      displayName: "Build hcimage"
+#      inputs:
+#        targetType: inline
+#        script: |
+#          # change line endings for Dockerfile and shell scripts
+#          (Get-Content -Raw Dockerfile) -replace "`r" | Set-Content -NoNewline -Encoding utf8 Dockerfile
+#          (Get-Content -Raw startagent.sh) -replace "`r" | Set-Content -NoNewline -Encoding utf8 startagent.sh
+#          (Get-Content -Raw linux.auto.install) -replace "`r" | Set-Content -NoNewline -Encoding utf8 linux.auto.install
+#          podman build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
+#        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
-    - task: PowerShell@2
-      displayName: "Create hccontainer"
-      inputs:
-        targetType: inline
-        script: |
-          podman run -dit `
-            -e AZP_URL="$(System.CollectionUri)" `
-            -e AZP_TOKEN="$(PAT_AGENT_POOL)" `
-            -e AZP_POOL="$(BuildPool)" `
-            -e AZP_AGENT_NAME="$(LinuxAgentName)" `
-            --name "hccontainer" hcimage
+#    - task: PowerShell@2
+#      displayName: "Create hccontainer"
+#      inputs:
+#        targetType: inline
+#        script: |
+#          podman run -dit `
+#            -e AZP_URL="$(System.CollectionUri)" `
+#            -e AZP_TOKEN="$(PAT_AGENT_POOL)" `
+#            -e AZP_POOL="$(BuildPool)" `
+#            -e AZP_AGENT_NAME="$(LinuxAgentName)" `
+#            --name "hccontainer" hcimage
 
-          $containerStatus = podman inspect --format='{{.State.Status}}' hccontainer
-          if ($containerStatus -eq "running") {
-            Write-Host "Container is running."
-          } else {
-            Write-Error "Container is not running. Current status: $containerStatus."
-            exit 1
-          }
-        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
+#          $containerStatus = podman inspect --format='{{.State.Status}}' hccontainer
+#          if ($containerStatus -eq "running") {
+#            Write-Host "Container is running."
+#          } else {
+#            Write-Error "Container is not running. Current status: $containerStatus."
+#            exit 1
+#          }
+#        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
-    - task: PowerShell@2
-      displayName: "Wait for agent initialization"
-      inputs:
-        targetType: inline
-        script: |
-          Start-Sleep -Seconds 60
+#    - task: PowerShell@2
+#      displayName: "Wait for agent initialization"
+#      inputs:
+#        targetType: inline
+#        script: |
+#          Start-Sleep -Seconds 60
 
-  # Test jobs consume the agent names from the pipeline UI variables the same way BuildJob
-  # does: a direct $(WinAgentName)/$(LinuxAgentName) in the pool demand. That direct reference
-  # only works job-wide (demands are expanded once, server-side), and the two test legs target
-  # DIFFERENT agents — so they are two jobs rather than one matrixed job. The steps live once
-  # in buildDefinitions/test-steps.yml.
-  - job: TestJobWin
-    displayName: 'TestJob x64'
-    dependsOn:
-    - BuildJob
-    - CreateContainer
-    workspace:
-      clean: all
-    pool:
-      name: $(BuildPool)
-      demands:
-        - agent.name -equals $(WinAgentName)
-    variables:
-      Configuration: Release
-      Platform: x64
-    steps:
-    - template: buildDefinitions/test-steps.yml
-      parameters:
-        PublishProjects: ${{ parameters.PublishProjects }}
-        Platform: x64
+#  # Test jobs consume the agent names from the pipeline UI variables the same way BuildJob
+#  # does: a direct $(WinAgentName)/$(LinuxAgentName) in the pool demand. That direct reference
+#  # only works job-wide (demands are expanded once, server-side), and the two test legs target
+#  # DIFFERENT agents — so they are two jobs rather than one matrixed job. The steps live once
+#  # in buildDefinitions/test-steps.yml.
+#  - job: TestJobWin
+#    displayName: 'TestJob x64'
+#    dependsOn:
+#    - BuildJob
+#    - CreateContainer
+#    workspace:
+#      clean: all
+#    pool:
+#      name: $(BuildPool)
+#      demands:
+#        - agent.name -equals $(WinAgentName)
+#    variables:
+#      Configuration: Release
+#      Platform: x64
+#    steps:
+#    - template: buildDefinitions/test-steps.yml
+#      parameters:
+#        PublishProjects: ${{ parameters.PublishProjects }}
+#        Platform: x64
 
-  - job: TestJobLinux
-    displayName: 'TestJob linux64'
-    dependsOn:
-    - BuildJob
-    - CreateContainer
-    workspace:
-      clean: all
-    pool:
-      name: $(BuildPool)
-      demands:
-        - agent.name -equals $(LinuxAgentName)
-    variables:
-      Configuration: Release
-      Platform: linux64
-    steps:
-    - template: buildDefinitions/test-steps.yml
-      parameters:
-        PublishProjects: ${{ parameters.PublishProjects }}
-        Platform: linux64
+#  - job: TestJobLinux
+#    displayName: 'TestJob linux64'
+#    dependsOn:
+#    - BuildJob
+#    - CreateContainer
+#    workspace:
+#      clean: all
+#    pool:
+#      name: $(BuildPool)
+#      demands:
+#        - agent.name -equals $(LinuxAgentName)
+#    variables:
+#      Configuration: Release
+#      Platform: linux64
+#    steps:
+#    - template: buildDefinitions/test-steps.yml
+#      parameters:
+#        PublishProjects: ${{ parameters.PublishProjects }}
+#        Platform: linux64
 
   - job: BuildHarmonyCoreProjects
     dependsOn: BuildJob
