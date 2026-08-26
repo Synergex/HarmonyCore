@@ -124,6 +124,30 @@ stages:
         logFileVerbosity: diagnostic
         clean: false
 
+    # The sample jobs must test THIS run's packages. The repo copy of cli-tool-versions.json
+    # carries the released lane versions (e.g. 10.0.1) for customers, and upgrade-latest
+    # stamps those as minimum-version references — which NuGet resolves to the LOWEST
+    # satisfying candidate it can find (the agent's global package cache, or nuget.org once
+    # 10.x is published there), not necessarily the packages this run just packed. Stamp the
+    # net10 lane's Harmony.* entries with this run's build number (the byBuildNumber pack
+    # version) so the samples restore exactly this run's artifacts. Only the published
+    # artifact is affected; the checked-in file is not touched.
+    - task: PowerShell@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Stamp build number into cli-tool-versions artifact'
+      inputs:
+        targetType: 'inline'
+        script: |
+          $path = "$(Build.SourcesDirectory)\cli-tool-versions.json"
+          $doc = Get-Content -Path $path -Raw | ConvertFrom-Json
+          $lane = $doc.KnownVersions | Where-Object { $_.TargetFramework -eq 'net10.0' } | Select-Object -First 1
+          if (-not $lane) { Write-Error "No net10.0 lane found in cli-tool-versions.json"; exit 1 }
+          foreach ($id in @('Harmony.Core', 'Harmony.Core.EF', 'Harmony.Core.OData', 'Harmony.Core.AspNetCore')) {
+            $lane.NugetVersions.$id = "$(Build.BuildNumber)"
+          }
+          $doc | ConvertTo-Json -Depth 10 | Out-File -FilePath $path -Encoding utf8
+          Write-Host "Stamped net10.0 lane Harmony.* versions to $(Build.BuildNumber)"
+
     # publish cli-tool-versions
     - task: PublishPipelineArtifact@1
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
