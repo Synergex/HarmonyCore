@@ -344,6 +344,17 @@ namespace HarmonyCore.CliTool
 
         public static bool _hasAlerted = false;
 
+        // HCRegenRequiredVersions mark releases whose upgrade requires a codegen regen; the
+        // alert applies only when the project's current version predates one of them. Ordinal
+        // string comparison mis-ranks multi-digit parts ("10.0.1" < "3.1.156", "8.0.118" <
+        // "8.0.74"), so compare numerically whenever both sides parse as versions.
+        private static bool IsAtLeastVersion(string current, string required)
+        {
+            if (Version.TryParse(current, out var currentVersion) && Version.TryParse(required, out var requiredVersion))
+                return currentVersion >= requiredVersion;
+            return string.Compare(current, required) >= 0;
+        }
+
         public void PatchNugetVersions(VersionTargetingInfo versionInfo)
         {
             var packageReferences = ProjectDoc.GetElementsByTagName("PackageReference").OfType<XmlNode>().ToList();
@@ -359,10 +370,10 @@ namespace HarmonyCore.CliTool
                     {
                         if (includeValue.Contains("Harmony.Core"))
                         {
-                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !versionInfo.HCRegenRequiredVersions.All((ver) => string.Compare(versionValue, ver) >= 0))
+                            if (!_hasAlerted && !string.IsNullOrWhiteSpace(versionValue) && !versionInfo.HCRegenRequiredVersions.All((ver) => IsAtLeastVersion(versionValue, ver)))
                             {
                                 _hasAlerted = true;
-                                Console.WriteLine("Upgrading Harmony Core to version {0} from version {1} of packages requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, versionInfo.HCBuildVersion);
+                                Console.WriteLine("Upgrading Harmony Core packages from version {0} to version {1} requires you to regenerate from codegen template. \r\n\r\nPlease type YES to acknowledge and continue package upgrade", versionValue, targetVersion);
                                 if (string.Compare(Console.ReadLine(), "yes", true) != 0)
                                 {
                                     Console.WriteLine("exiting");

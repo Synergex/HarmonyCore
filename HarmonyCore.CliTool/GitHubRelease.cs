@@ -55,6 +55,14 @@ namespace HarmonyCore.CliTool
         public static async Task<string> GetCliToolVersions(bool skipCache, string overrideVersionName = null,
             string overrideTargetUrl = null)
         {
+            // A cli-tool-versions.json next to the solution is an explicit local override
+            // (CI drops the current run's stamped copy there); it must always win over the
+            // cached download below, and must never be written into that cache.
+            if (File.Exists("cli-tool-versions.json"))
+            {
+                return File.ReadAllText("cli-tool-versions.json");
+            }
+
             if (skipCache ||
                 !Program.AppSettings.TryGetValue("LastReleaseCheck", out var lastChecked) || 
                 !Program.AppSettings.TryGetValue("LastReleaseVersions", out var lastReleaseVersions) ||
