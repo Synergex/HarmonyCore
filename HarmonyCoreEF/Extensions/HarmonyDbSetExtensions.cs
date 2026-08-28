@@ -97,7 +97,9 @@ namespace Harmony.Core.EF.Extensions
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
+                        // EF Core 10 compiled queries require NAMED lambda parameters: the name becomes
+                        // QueryParameterExpression.Name and the queryContext.Parameters dictionary key.
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object), "p" + (i - 1)), parameters[i - 1].GetType());
                     }
 
                     var querySet = SetExpr<T>(contextParameter);
@@ -231,7 +233,9 @@ namespace Harmony.Core.EF.Extensions
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
+                        // EF Core 10 compiled queries require NAMED lambda parameters: the name becomes
+                        // QueryParameterExpression.Name and the queryContext.Parameters dictionary key.
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object), "p" + (i - 1)), parameters[i - 1].GetType());
                     }
 
                     var querySet = SetExpr<T>(contextParameter);
@@ -312,7 +316,9 @@ namespace Harmony.Core.EF.Extensions
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
+                        // EF Core 10 compiled queries require NAMED lambda parameters: the name becomes
+                        // QueryParameterExpression.Name and the queryContext.Parameters dictionary key.
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object), "p" + (i - 1)), parameters[i - 1].GetType());
                     }
 
                     var querySet = SetExpr<T>(contextParameter);
@@ -401,7 +407,9 @@ namespace Harmony.Core.EF.Extensions
                     linqParameters[0] = contextParameter;
                     for (int i = 1; i < linqParameters.Length; i++)
                     {
-                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object)), parameters[i - 1].GetType());
+                        // EF Core 10 compiled queries require NAMED lambda parameters: the name becomes
+                        // QueryParameterExpression.Name and the queryContext.Parameters dictionary key.
+                        exprLinqParameters[i - 1] = Expression.Convert(linqParameters[i] = Expression.Parameter(typeof(object), "p" + (i - 1)), parameters[i - 1].GetType());
                     }
 
                     var querySet = SetExpr<T>(contextParameter);

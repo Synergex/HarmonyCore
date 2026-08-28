@@ -473,6 +473,15 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 return new InExpression { CollectionParameter = new FileIO.Queryable.ParameterReference() { Name = ((ParameterExpression)methodCallExpression.Arguments[0]).Name }, Predicate = methodCallExpression.Arguments[1] };
             }
+            // EF Core 10 represents the parameterized collection as a QueryParameterExpression
+            // (see VisitExtension); recognize it here too so Contains still becomes an ISAM In
+            // filter instead of falling through to a method call the where-builder ignores.
+            else if (methodCallExpression.Method.DeclaringType == typeof(Enumerable) && methodCallExpression.Method.Name == "Contains" &&
+                methodCallExpression.Arguments.Count == 2 && methodCallExpression.Arguments[0] is QueryParameterExpression collectionParameter &&
+                typeof(System.Collections.IEnumerable).IsAssignableFrom(collectionParameter.Type))
+            {
+                return new InExpression { CollectionParameter = new FileIO.Queryable.ParameterReference() { Name = collectionParameter.Name }, Predicate = methodCallExpression.Arguments[1] };
+            }
 
             // if object is nullable, add null safeguard before calling the function
             // we special-case Nullable<>.GetValueOrDefault, which doesn't need the safeguard
@@ -602,6 +611,15 @@ namespace Harmony.Core.EF.Query.Internal
                 case EntityProjectionExpression _:
                     return extensionExpression;
 
+                // EF Core 10's funcletizer emits QueryParameterExpression nodes instead of
+                // "__"-prefixed ParameterExpressions; translate them to runtime parameter lookups
+                // (mirrors InMemoryExpressionTranslatingExpressionVisitor).
+                case QueryParameterExpression queryParameter:
+                    return Expression.Call(
+                        _getParameterValueMethodInfo.MakeGenericMethod(queryParameter.Type),
+                        QueryCompilationContext.QueryContextParameter,
+                        Expression.Constant(queryParameter.Name));
+
                 case StructuralTypeShaperExpression entityShaperExpression:
                     return Visit(entityShaperExpression.ValueBufferExpression);
 
@@ -642,7 +660,7 @@ namespace Harmony.Core.EF.Query.Internal
 #pragma warning disable IDE0052 // Remove unread private members
         private static T GetParameterValue<T>(QueryContext queryContext, string parameterName)
 #pragma warning restore IDE0052 // Remove unread private members
-            => (T)queryContext.ParameterValues[parameterName];
+            => (T)queryContext.Parameters[parameterName];
 
         protected override Expression VisitUnary(UnaryExpression unaryExpression)
         {

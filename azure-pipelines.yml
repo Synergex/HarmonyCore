@@ -2,9 +2,13 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-name: 8.0.$(Rev:r)
+name: 10.0.$(Rev:r)
 
-resources: 
+# Temporary test-pipeline branch: manual runs only.
+trigger: none
+pr: none
+
+resources:
   repositories:
   - repository: HarmonyCoreSamples
     type: github
@@ -35,10 +39,9 @@ stages:
     workspace:
       clean: all
     pool:
-      name: HarmonyCore
+      name: $(BuildPool)
       demands:
-        - Agent.OS -equals Windows_NT   # force Windows agents for all build legs
-        - msbuild                       # MSBuild@1 injects this demand
+        - agent.name -equals $(WinAgentName)  # Windows build machine (Podman host for the Linux agent container)
     strategy:
       maxParallel: 4
       matrix:
@@ -71,7 +74,7 @@ stages:
         rootFolderOrFile: '$(Build.SourcesDirectory)'
         includeRootFolder: false
         archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/net6-release.zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/net10-release.zip'
         replaceExistingArchive: true
     - task: PublishPipelineArtifact@1
       condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
@@ -85,14 +88,14 @@ stages:
         SourceFolder: '$(Build.ArtifactStagingDirectory)'
         Contents: '**/*'
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+      displayName: 'Get .NET SDK 10.0.x'
       inputs:
         packageType: 'sdk'
-        version: '8.0.x'
+        version: '10.0.x'
     - task: NuGetToolInstaller@1
-      displayName: 'Get NuGet 6.x'
+      displayName: 'Get NuGet 7.x'
       inputs:
-        versionSpec: 6.x
+        versionSpec: 7.x
         checkLatest: true
     #- task: NuGetCommand@2
     #  displayName: 'NuGet restore'
@@ -120,6 +123,30 @@ stages:
         configuration: $(Configuration)
         logFileVerbosity: diagnostic
         clean: false
+
+    # The sample jobs must test THIS run's packages. The repo copy of cli-tool-versions.json
+    # carries the released lane versions (e.g. 10.0.1) for customers, and upgrade-latest
+    # stamps those as minimum-version references — which NuGet resolves to the LOWEST
+    # satisfying candidate it can find (the agent's global package cache, or nuget.org once
+    # 10.x is published there), not necessarily the packages this run just packed. Stamp the
+    # net10 lane's Harmony.* entries with this run's build number (the byBuildNumber pack
+    # version) so the samples restore exactly this run's artifacts. Only the published
+    # artifact is affected; the checked-in file is not touched.
+    - task: PowerShell@2
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      displayName: 'Stamp build number into cli-tool-versions artifact'
+      inputs:
+        targetType: 'inline'
+        script: |
+          $path = "$(Build.SourcesDirectory)\cli-tool-versions.json"
+          $doc = Get-Content -Path $path -Raw | ConvertFrom-Json
+          $lane = $doc.KnownVersions | Where-Object { $_.TargetFramework -eq 'net10.0' } | Select-Object -First 1
+          if (-not $lane) { Write-Error "No net10.0 lane found in cli-tool-versions.json"; exit 1 }
+          foreach ($id in @('Harmony.Core', 'Harmony.Core.EF', 'Harmony.Core.OData', 'Harmony.Core.AspNetCore')) {
+            $lane.NugetVersions.$id = "$(Build.BuildNumber)"
+          }
+          $doc | ConvertTo-Json -Depth 10 | Out-File -FilePath $path -Encoding utf8
+          Write-Host "Stamped net10.0 lane Harmony.* versions to $(Build.BuildNumber)"
 
     # publish cli-tool-versions
     - task: PublishPipelineArtifact@1
@@ -219,9 +246,12 @@ stages:
       displayName: 'Pack CLI Tool'
       inputs:
         command: 'pack'
-        arguments: '-c $(Configuration)'
-        projects: |
-            **/HarmonyCore.CLITool.csproj
+        # DotNetCoreCLI@2 with command=pack IGNORES the generic 'arguments' and 'projects'
+        # inputs (it only reads packagesToPack/configuration/outputDir/nobuild/buildProperties).
+        # With the old 'projects' input this step silently packed **/*.csproj (the
+        # packagesToPack default) and dropped every flag we tried to pass.
+        packagesToPack: 'HarmonyCore.CliTool/HarmonyCore.CliTool.csproj'
+        configuration: '$(Configuration)'
 
     - task: NuGetCommand@2
       name: 'HarmonyCoreNuget'
@@ -232,7 +262,8 @@ stages:
         versioningScheme: 'byBuildNumber'
     
     - task: NuGetCommand@2
-      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
+      # temporarily disabled on the test branch - do not publish packages from test runs
+      condition: false
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
@@ -243,105 +274,174 @@ stages:
       displayName: 'Publish nuget packages'
       artifact: 'NugetPackages$(Configuration)$(Platform)'
 
-  - job: TestJob
+  # Recreate the Linux build agent container on the Windows Podman host.
+  - job: RemoveContainer
     dependsOn: BuildJob
-    workspace:
-      clean: all
-    strategy:
-      maxParallel: 4
-      matrix:
-        Release_x64:
-          Configuration: Release
-          Platform: x64
-          AgentPool: HarmonyCore
-          AgentOS: Windows_NT
-        Release_linux:
-         Configuration: Release
-         Platform: linux64
-         AgentPool: HarmonyCore
-         AgentOS: Linux
     pool:
-      name: $(AgentPool)
+      name: $(BuildPool)
       demands:
-        - Agent.OS -equals $(AgentOS)
+        - agent.name -equals $(WinAgentName)
     steps:
     - checkout: none
 
-    - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+    - task: PowerShell@2
+      displayName: "Remove old hcimage container/image"
       inputs:
-        packageType: 'sdk'
-        version: '8.0.x'
-
-    - download: current
-      displayName: "Download Artifacts"
-      artifact: 'TestArtifacts$(Configuration)$(Platform)'
-
-    - task: Bash@3
-      condition: and(eq(variables['Platform'], 'linux64'), eq(variables['Configuration'], 'Release'))
-      displayName: "Run setsde"
-      inputs:
-        targetType: 'inline'
+        targetType: inline
         script: |
-          . setsde
-          echo "##vso[task.setvariable variable=DBLDIR]$DBLDIR"
-        workingDirectory: $(Agent.HomeDirectory)
+          $containers = podman ps -a -q --filter ancestor=hcimage
+          if ($containers) {
+            $containers | ForEach-Object { podman stop $_ }
+            $containers | ForEach-Object { podman rm $_ }
+          }
 
-    # unzip each project and run test
-    - ${{ each project in parameters.PublishProjects }}:
-      - task: ExtractFiles@1
-        displayName: "Extract ${{ project }}"
-        inputs:
-          archiveFilePatterns: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}/*.zip'
-          destinationFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/${{ project }}'
-          cleanDestinationFolder: false
-          overwriteExistingFiles: false
+          $images = podman images -a -q --filter "reference=hcimage"
+          if ($images) {
+            podman image rm hcimage
+          }
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Run HarmonyCore.Test'
+          podman image prune -f | Out-Null
+          podman images
+          podman ps -a
+
+  - job: CreateContainer
+    dependsOn: RemoveContainer
+    condition: succeeded('RemoveContainer')
+    variables:
+    - group: "PAT for agent pool"
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
+    steps:
+    - checkout: self
+      sparseCheckoutDirectories: 'buildDefinitions'
+      clean: true
+      path: podman
+
+    - task: DownloadSecureFile@1
+      name: autoInstall
+      displayName: "Get install support files"
       inputs:
-        command: 'test'
-        testRunTitle: "HarmonyCore.Test $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
+        secureFile: 'linux.auto.install'
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test.CS'
+    - task: PowerShell@2
+      displayName: "Stage build context"
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        SDE_ARTIFACTS_TOKEN: $(SdeArtifactsToken)
       inputs:
-        command: 'test'
-        testRunTitle: "Services.Test.CS $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
+        targetType: inline
+        script: |
+          Copy-Item "$(autoInstall.secureFilePath)" linux.auto.install -Force
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Run Services.Test'
+          $token = $env:SDE_ARTIFACTS_TOKEN
+          if (-not $token -or $token.StartsWith('$(')) {
+            $token = $env:SYSTEM_ACCESSTOKEN
+          }
+          $headers = @{ Authorization = "Bearer $token" }
+          Invoke-WebRequest -Uri "$(SdeArchiveUrl)" -Headers $headers -OutFile sde-archive.a
+          $size = (Get-Item sde-archive.a).Length
+          Write-Host "Downloaded archive ($size bytes)"
+          if ($size -lt 10MB) {
+            Write-Error "Download suspiciously small."
+            exit 1
+          }
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
+
+    - task: PowerShell@2
+      displayName: "Build hcimage"
       inputs:
-        command: 'test'
-        testRunTitle: "Services.Test $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+        targetType: inline
+        script: |
+          # change line endings for Dockerfile and shell scripts
+          (Get-Content -Raw Dockerfile) -replace "`r" | Set-Content -NoNewline -Encoding utf8 Dockerfile
+          (Get-Content -Raw startagent.sh) -replace "`r" | Set-Content -NoNewline -Encoding utf8 startagent.sh
+          (Get-Content -Raw linux.auto.install) -replace "`r" | Set-Content -NoNewline -Encoding utf8 linux.auto.install
+          podman build --progress=plain --build-arg LICENSE_SERVER="$(SdeLicenseServer)" -t hcimage .
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
 
-    # for Windows only copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
-    - task: CopyFiles@2
-      condition: ne(variables['Platform'], 'linux64')
-      displayName: "Copy TraditionalBridge.UnitTest/TBTest"
+    - task: PowerShell@2
+      displayName: "Create hccontainer"
       inputs:
-        SourceFolder: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TraditionalBridge.UnitTest'
-        Contents: '**'
-        TargetFolder: '$(Build.SourcesDirectory)/TraditionalBridge.UnitTest'
+        targetType: inline
+        script: |
+          podman run -dit `
+            -e AZP_URL="$(System.CollectionUri)" `
+            -e AZP_TOKEN="$(PAT_AGENT_POOL)" `
+            -e AZP_POOL="$(BuildPool)" `
+            -e AZP_AGENT_NAME="$(LinuxAgentName)" `
+            --name "hccontainer" hcimage
 
-    - task: DotNetCoreCLI@2
-      condition: ne(variables['Platform'], 'linux64')
-      displayName: 'Run TraditionalBridge.UnitTest'
+          $containerStatus = podman inspect --format='{{.State.Status}}' hccontainer
+          if ($containerStatus -eq "running") {
+            Write-Host "Container is running."
+          } else {
+            Write-Error "Container is not running. Current status: $containerStatus."
+            exit 1
+          }
+        workingDirectory: $(Agent.BuildDirectory)/podman/buildDefinitions
+
+    - task: PowerShell@2
+      displayName: "Wait for agent initialization"
       inputs:
-        command: 'test'
-        testRunTitle: "TraditionalBridge.UnitTest $(Platform)"
-        arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/TraditionalBridge.UnitTest.elb --test-adapter-path $(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/TestDir/SynergyTraditionalUnitTest.TestAdapter.dll'
+        targetType: inline
+        script: |
+          Start-Sleep -Seconds 60
 
-  - job: BuildHarmonyCoreProjects
-    dependsOn: BuildJob
-    condition: false
+  # Test jobs consume the agent names from the pipeline UI variables the same way BuildJob
+  # does: a direct $(WinAgentName)/$(LinuxAgentName) in the pool demand. That direct reference
+  # only works job-wide (demands are expanded once, server-side), and the two test legs target
+  # DIFFERENT agents — so they are two jobs rather than one matrixed job. The steps live once
+  # in buildDefinitions/test-steps.yml.
+  - job: TestJobWin
+    displayName: 'TestJob x64'
+    dependsOn:
+    - BuildJob
+    - CreateContainer
     workspace:
       clean: all
     pool:
-      name: HarmonyCore
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
+    variables:
+      Configuration: Release
+      Platform: x64
+    steps:
+    - template: buildDefinitions/test-steps.yml
+      parameters:
+        PublishProjects: ${{ parameters.PublishProjects }}
+        Platform: x64
+
+  - job: TestJobLinux
+    displayName: 'TestJob linux64'
+    dependsOn:
+    - BuildJob
+    - CreateContainer
+    workspace:
+      clean: all
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(LinuxAgentName)
+    variables:
+      Configuration: Release
+      Platform: linux64
+    steps:
+    - template: buildDefinitions/test-steps.yml
+      parameters:
+        PublishProjects: ${{ parameters.PublishProjects }}
+        Platform: linux64
+
+  - job: BuildHarmonyCoreProjects
+    dependsOn: BuildJob
+    workspace:
+      clean: all
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
     strategy:
       maxParallel: 4
       matrix:
@@ -380,11 +480,17 @@ stages:
         TargetFolder: '$(Pipeline.Workspace)\CICD'
 
     - task: UseDotNet@2
-      displayName: 'Get .NET SDK 8.0.x'
+      displayName: 'Get .NET SDK 10.0.x'
       inputs:
         packageType: 'sdk'
-        version: '8.0.x'
-  
+        version: '10.0.x'
+
+    - task: NuGetToolInstaller@1
+      displayName: 'Get NuGet 7.x'
+      inputs:
+        versionSpec: 7.x
+        checkLatest: true
+
     - task: CmdLine@2
       displayName: "Install Harmony Core templates"
       inputs:
@@ -448,11 +554,14 @@ stages:
           $nugetConfigPath = "$(Pipeline.Workspace)\$(project)\nuget.config"
           $localFeedPath = "$(Pipeline.Workspace)\NugetPackagesReleasex64"
 
-          # Create the nuget.config content
+          # Create the nuget.config content. <clear /> drops machine/user-level sources
+          # inherited on the agent (e.g. stale local feeds registered by other pipelines),
+          # so the generated project restores deterministically from just these two.
           $nugetConfigContent = @"
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
             <packageSources>
+              <clear />
               <add key="local" value="$localFeedPath" />
               <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
             </packageSources>
@@ -467,7 +576,7 @@ stages:
       displayName: "Run harmonycore upgrade-latest"
       inputs:
         script: |
-          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| ${{ variables.clitool }} upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
       
     - task: CmdLine@2
@@ -529,7 +638,7 @@ stages:
         script: |
           %clitool% features --smc $(Pipeline.Workspace)\$(project)\TraditionalBridge\MethodCatalog\MethodDefinitions.xml
           echo run upgrade-latest
-          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: PowerShell@2
@@ -589,7 +698,7 @@ stages:
       displayName: "Add unit tests"
       inputs:
         script: |
-          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% features --add-unit-tests -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
       env: 
         LOCAL_HC_TEMPLATES: 1
@@ -599,7 +708,7 @@ stages:
       inputs:
         script: |
           %clitool% regen -p
-          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net6-release.zip
+          echo YES| %clitool% upgrade-latest -z $(Pipeline.Workspace)\HCarchive\net10-release.zip
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
     - task: DotNetCoreCLI@2
@@ -619,13 +728,25 @@ stages:
         testRunTitle: "Services.Test Basic Solution"
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
+    # VSBuild's restoreNugetPackages is deprecated: it runs the agent-bundled (ancient)
+    # NuGet.exe, which can't load MSBuild 18's assemblies ("Could not load Microsoft.Build
+    # .Framework, Version=15.1.0.0"). Restore the same way the main BuildJob does instead.
+    - task: MSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Restore the project Tb"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        msbuildArchitecture: 'x64'
+        configuration: 'Release'
+        msbuildArguments: '-t:restore'
+        clean: false
+
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
-        restoreNugetPackages: true
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')
@@ -662,13 +783,24 @@ stages:
           %clitool% regen -p
         workingDirectory: '$(Pipeline.Workspace)\$(project)'
 
+    # regen can touch project files; re-restore with MSBuild before the rebuild
+    # (VSBuild restoreNugetPackages stays off — see the note on the first build).
+    - task: MSBuild@1
+      condition: ne(variables.project, 'basic')
+      displayName: "Restore the project Tb (post-regen)"
+      inputs:
+        solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
+        msbuildArchitecture: 'x64'
+        configuration: 'Release'
+        msbuildArguments: '-t:restore'
+        clean: false
+
     - task: VSBuild@1
       condition: ne(variables.project, 'basic')
       displayName: "Build the project Tb"
       inputs:
         solution: '$(Pipeline.Workspace)\$(project)\$(project).sln'
         configuration: 'Release'
-        restoreNugetPackages: true
 
     - task: PowerShell@2
       condition: eq(variables.project, 'tb')

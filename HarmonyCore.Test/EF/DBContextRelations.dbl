@@ -42,14 +42,17 @@ namespace HarmonyCore.Test.EF
             Assert.IsTrue(e1Navs.Count == 4)
             Assert.IsTrue(e2Navs.Count == 2)
 
-            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToMany (no field, Entity2) ToDependent Entity2") }))
-            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOne (no field, Entity2) ToPrincipal Entity2") }))
+            ;;EF Core 10 inserts a Required/Optional token before ToPrincipal/ToDependent (and the
+            ;;debug-string format is documented as unstable), so pin the navigation identity with a
+            ;;prefix and the direction/target/inverse with Contains instead of one exact prefix.
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToMany (no field, Entity2)") .and. ((@Object)itm).ToString().Contains(" ToDependent Entity2") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOne (no field, Entity2)") .and. ((@Object)itm).ToString().Contains(" ToPrincipal Entity2") }))
 
-            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOneToOne (no field, Entity2) ToPrincipal Entity2 Inverse: REL_Entity1_OneToOneToOne") }))
-            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_OneToOneToOne (no field, Entity1) ToDependent Entity1 Inverse: REL_Entity2_OneToOneToOne") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2_OneToOneToOne (no field, Entity2)") .and. ((@Object)itm).ToString().Contains(" ToPrincipal Entity2 Inverse: REL_Entity1_OneToOneToOne") }))
+            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_OneToOneToOne (no field, Entity1)") .and. ((@Object)itm).ToString().Contains(" ToDependent Entity1 Inverse: REL_Entity2_OneToOneToOne") }))
 
-            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2Plural_OneToManyToOne (no field, ICollection<Entity2>) Collection ToDependent Entity2 Inverse: REL_Entity1_ManyToOneToMany") }))
-            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_ManyToOneToMany (no field, Entity1) ToPrincipal Entity1 Inverse: REL_Entity2Plural_OneToManyToOne") }))
+            Assert.IsTrue(e1Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity1.REL_Entity2Plural_OneToManyToOne (no field, ICollection<Entity2>)") .and. ((@Object)itm).ToString().Contains(" Collection ToDependent Entity2 Inverse: REL_Entity1_ManyToOneToMany") }))
+            Assert.IsTrue(e2Navs.Any(lambda(itm) { ((@Object)itm).ToString().StartsWith("Navigation: Entity2.REL_Entity1_ManyToOneToMany (no field, Entity1)") .and. ((@Object)itm).ToString().Contains(" ToPrincipal Entity1 Inverse: REL_Entity2Plural_OneToManyToOne") }))
 		
             data e1Keys = madeE1.GetKeys()
             data e1FKeys = madeE1.GetForeignKeys()

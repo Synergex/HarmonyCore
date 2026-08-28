@@ -228,8 +228,10 @@ Known structure properties:
                 case 6:
                     return new VersionTargetingInfo(await LoadKnownVersion("net6.0", skipCache));
                 case 8:
-                default:
                     return new VersionTargetingInfo(await LoadKnownVersion("net8.0", skipCache));
+                case 10:
+                default:
+                    return new VersionTargetingInfo(await LoadKnownVersion("net10.0", skipCache));
             }
         }
 
@@ -243,7 +245,7 @@ Known structure properties:
         public Dictionary<string, string> NugetReferences => _knownVersion.NugetVersions;
         public string BuildPackageVersion => _knownVersion.BuildPackageVersion;
         public string HCBuildVersion => _knownVersion.HCVersion;
-        public string TargetFramework => _knownVersion.TargetFramework ?? "net8";
+        public string TargetFramework => _knownVersion.TargetFramework ?? "net10";
         public List<string> HCRegenRequiredVersions => _knownVersion.HCRegenRequiredVersions ?? new List<string>();
         public List<string> RemoveNugetReferences => _knownVersion.RemoveReferences ?? new List<string>();
     }
@@ -474,7 +476,7 @@ Known structure properties:
                 if (int.TryParse(versionOverride, out var version))
                     return await VersionTargetingInfo.GetVersionTargetingInfo(version, skipCache);
                 else
-                    return await VersionTargetingInfo.GetVersionTargetingInfo(8, skipCache);
+                    return await VersionTargetingInfo.GetVersionTargetingInfo(10, skipCache);
             }).Result;
         }
 

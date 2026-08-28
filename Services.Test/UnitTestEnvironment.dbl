@@ -11,9 +11,9 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
 import Microsoft.AspNetCore.TestHost
+import Microsoft.Extensions.Hosting
 import Microsoft.VisualStudio.TestTools.UnitTesting
 import System.Collections.Generic
 import System.IO
@@ -29,6 +29,7 @@ namespace Services.Test
     public partial class UnitTestEnvironment
 
         public static Server, @TestServer
+        private static _host, @IHost
 
         {AssemblyInitialize}
         public static method AssemblyInitialize, void
@@ -49,14 +50,16 @@ namespace Services.Test
 
             if(string.IsNullOrEmpty(wwwroot) && Directory.Exists(wwwroot)) then
             begin
-                ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseStartup<Startup>())
+                ;;Create a test host for the Web API services
+                _host = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(lambda(webBuilder) { webBuilder.UseTestServer().UseStartup<Startup>() }).Start()
             end
             else
             begin
-                ;;Create a TestServer to host the Web API services
-                Server = new TestServer(WebHost.CreateDefaultBuilder().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>())
+                ;;Create a test host for the Web API services
+                _host = Host.CreateDefaultBuilder().ConfigureWebHostDefaults(lambda(webBuilder) { webBuilder.UseTestServer().UseContentRoot(AppContext.BaseDirectory).UseWebRoot(wwwroot).UseStartup<Startup>() }).Start()
             end
+
+            Server = _host.GetTestServer()
 
             ;;Fake out HTTPS
             Server.BaseAddress = new Uri("https://localhost")
@@ -69,6 +72,8 @@ namespace Services.Test
             ;;Clean up the test host
             Server.Dispose()
             Server = ^null
+            _host.Dispose()
+            _host = ^null
 
             ;;Delete the data files
             UnitTestEnvironment.Cleanup()

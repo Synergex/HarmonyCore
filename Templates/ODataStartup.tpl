@@ -125,7 +125,7 @@ namespace <NAMESPACE>
         public static readwrite property LogicalNames, @List<string>
 
         ;; Items provided by dependency injection
-        public _env, @IHostingEnvironment
+        public _env, @IWebHostEnvironment
         public _config, @IConfiguration
 
         ;;; <summary>
@@ -134,7 +134,7 @@ namespace <NAMESPACE>
         ;;; <param name="env">HTTP hosting environment</param>
         ;;; <param name="config">Configuration data</param>
         public method Startup
-            env, @IHostingEnvironment
+            env, @IWebHostEnvironment
             config, @IConfiguration
         proc
             _env = env
@@ -485,10 +485,10 @@ namespace <NAMESPACE>
         ;;; This method is used to configure the ASP.NET WebApi request pipeline.
         ;;; </summary>
         ;;; <param name="app">IApplicationBuilder component that configures the request pipeline by having middleware added to it.</param>
-        ;;; <param name="env">IHostingEnvironment that exposes information about the environment that is hosting the application.</param>
+        ;;; <param name="env">IWebHostEnvironment that exposes information about the environment that is hosting the application.</param>
         public method Configure, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
         proc
             ;;-------------------------------------------------------
             ;;Configure the AppSettings environment
@@ -597,13 +597,10 @@ namespace <NAMESPACE>
 
             ;;Enable serving static files
 
-            data staticFilesProvider, @FileExtensionContentTypeProvider
+            data staticFilesProvider, @FileExtensionContentTypeProvider, new FileExtensionContentTypeProvider()
             AddCustomMimeTypes(staticFilesProvider)
             app.UseDefaultFiles()
-            if (staticFilesProvider == ^null) then
-                app.UseStaticFiles()
-            else
-                app.UseStaticFiles(new StaticFileOptions() { ContentTypeProvider = staticFilesProvider })
+            app.UseStaticFiles(new StaticFileOptions() { ContentTypeProvider = staticFilesProvider })
 
             app.UsePathBase(new PathString("/<SERVER_BASE_PATH>/v1"))
 
@@ -658,7 +655,7 @@ namespace <NAMESPACE>
         ;;; <param name="env"></param>
         partial method ConfigureCustom, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
         endmethod
 
         ;;; <summary>
@@ -669,7 +666,7 @@ namespace <NAMESPACE>
         ;;; <param name="env"></param>
         partial method ConfigureCustomBeforeMvc, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
         endmethod
 
         ;;; <summary>
@@ -694,12 +691,11 @@ namespace <NAMESPACE>
         ;;; Declare the AddCustomMimeTypes partial method.
         ;;; Developers can use this to add support for custom mime types to the kestrel server
         ;;; </summary>
-        ;;; <param name="provider">Returns an instance of FileExtensionContentTypeProvider</param>
+        ;;; <param name="provider">Provider to add custom mime type mappings to</param>
         partial method AddCustomMimeTypes, void
-            required out provider, @FileExtensionContentTypeProvider
+            required in provider, @FileExtensionContentTypeProvider
         ;An example of how to implement this partial method:
         ;proc
-        ;    provider = new FileExtensionContentTypeProvider()
         ;    provider.Mappings.Add(".apk","application/vnd.android.package-archive")
         endmethod
 

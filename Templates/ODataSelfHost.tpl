@@ -49,8 +49,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
+import Microsoft.Extensions.Hosting
 import System.Collections.Generic
 import System.IO
 import System.Text
@@ -99,16 +99,21 @@ proc
     ;;-------------------------------------------------------------------------
     ;;Start the self-hosting environment (Kestrel)
 
-    WebHost.CreateDefaultBuilder(Environment.GetCommandLineArgs())
-    &    .UseContentRoot(AppContext.BaseDirectory)
-    &    .UseWebRoot(wwwroot)
+    lambda configureWebHost(webBuilder)
+    begin
+        webBuilder.UseContentRoot(AppContext.BaseDirectory)
+        webBuilder.UseWebRoot(wwwroot)
 <IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseIISIntegration()
+        webBuilder.UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseStartup<Startup>()
+        webBuilder.UseStartup<Startup>()
 <IF NOT DEFINED_DISABLE_USEURLS>
-    &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+        webBuilder.UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
 </IF>
+    end
+
+    Host.CreateDefaultBuilder(Environment.GetCommandLineArgs())
+    &    .ConfigureWebHostDefaults(configureWebHost)
     &    .Build()
     &    .Run()
 

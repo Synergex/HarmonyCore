@@ -123,7 +123,7 @@ namespace <NAMESPACE>
         public static readwrite property LogicalNames, @List<string>
 
         ;; Items provided by dependency injection
-        public _env, @IHostingEnvironment
+        public _env, @IWebHostEnvironment
         public _config, @IConfiguration
 
         ;;; <summary>
@@ -132,7 +132,7 @@ namespace <NAMESPACE>
         ;;; <param name="env">HTTP hosting environment</param>
         ;;; <param name="config">Configuration data</param>
         public method Startup
-            env, @IHostingEnvironment
+            env, @IWebHostEnvironment
             config, @IConfiguration
         proc
             _env = env
@@ -470,10 +470,10 @@ namespace <NAMESPACE>
         ;;; This method is used to configure the ASP.NET WebApi request pipeline.
         ;;; </summary>
         ;;; <param name="app">IApplicationBuilder component that configures the request pipeline by having middleware added to it.</param>
-        ;;; <param name="env">IHostingEnvironment that exposes information about the environment that is hosting the application.</param>
+        ;;; <param name="env">IWebHostEnvironment that exposes information about the environment that is hosting the application.</param>
         public method Configure, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
             required in versionProvider, @IApiVersionDescriptionProvider
         proc
             ;;-------------------------------------------------------
@@ -701,7 +701,7 @@ namespace <NAMESPACE>
         ;;; <param name="env"></param>
         partial method ConfigureCustom, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
         endmethod
 
         ;;; <summary>
@@ -712,7 +712,7 @@ namespace <NAMESPACE>
         ;;; <param name="env"></param>
         partial method ConfigureCustomBeforeMvc, void
             required in app, @IApplicationBuilder
-            required in env, @IHostingEnvironment
+            required in env, @IWebHostEnvironment
         endmethod
 
         ;;; <summary>

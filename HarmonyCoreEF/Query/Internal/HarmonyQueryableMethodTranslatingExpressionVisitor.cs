@@ -430,6 +430,13 @@ namespace Harmony.Core.EF.Query.Internal
                     : EnumerableMethods.LastWithoutPredicate);
         }
 
+        protected override ShapedQueryExpression TranslateRightJoin(
+            ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
+            LambdaExpression resultSelector)
+        {
+            return null;
+        }
+
         protected override ShapedQueryExpression TranslateLeftJoin(
             ShapedQueryExpression outer, ShapedQueryExpression inner, LambdaExpression outerKeySelector, LambdaExpression innerKeySelector,
             LambdaExpression resultSelector)
@@ -2232,6 +2239,13 @@ namespace Harmony.Core.EF.Query.Internal
             {
                 switch (node)
                 {
+                    // EF Core 10 represents query parameters as QueryParameterExpression nodes
+                    case QueryParameterExpression queryParameter:
+                        return Expression.Call(
+                            _getParameterValueMethodInfo.MakeGenericMethod(queryParameter.Type),
+                            QueryCompilationContext.QueryContextParameter,
+                            Expression.Constant(queryParameter.Name));
+
                     case MaterializeCollectionNavigationExpression matColExpr:
                         return ProcessNav(matColExpr, ReplacementSource.QueryExpression as HarmonyQueryExpression);
                     case IncludeExpression includeExpression:
@@ -2460,7 +2474,7 @@ namespace Harmony.Core.EF.Query.Internal
             //    return base.VisitMethodCall(node);
             //}
 
-            private static T GetParameterValue<T>(QueryContext queryContext, string parameterName) => (T)queryContext.ParameterValues[parameterName];
+            private static T GetParameterValue<T>(QueryContext queryContext, string parameterName) => (T)queryContext.Parameters[parameterName];
 
             protected override Expression VisitParameter(ParameterExpression node)
             {

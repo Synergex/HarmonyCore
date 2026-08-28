@@ -51,9 +51,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
+import Microsoft.Extensions.Hosting
 import System.IO
 import <SERVICES_NAMESPACE>
 import <UNIT_TESTS_NAMESPACE>
@@ -82,12 +81,17 @@ proc
     ;tester.GetCustomer()      
 
     ;;Start self-hosting (Kestrel)
-    WebHost.CreateDefaultBuilder(new string[0])
+    lambda configureWebHost(webBuilder)
+    begin
 <IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseIISIntegration()
+        webBuilder.UseIISIntegration()
 </IF DEFINED_ENABLE_IIS_SUPPORT>
-    &    .UseStartup<Startup>()
-    &    .UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+        webBuilder.UseStartup<Startup>()
+        webBuilder.UseUrls("http://<SERVER_NAME>:<SERVER_HTTP_PORT>", "https://<SERVER_NAME>:<SERVER_HTTPS_PORT>")
+    end
+
+    Host.CreateDefaultBuilder(new string[0])
+    &    .ConfigureWebHostDefaults(configureWebHost)
     &    .Build()
     &    .Run()
 

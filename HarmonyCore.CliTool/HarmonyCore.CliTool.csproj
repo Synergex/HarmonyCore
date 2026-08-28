@@ -1,13 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <AssemblyName>Harmony.Core.CliTool</AssemblyName>
     <ToolCommandName>harmonycore</ToolCommandName>
     <PackageId>Harmony.Core.CliTool</PackageId>
     <PackageVersion>6.0.148</PackageVersion>
     <Version>6.0.148</Version>
+    <!-- .NET global tools are framework-dependent and RID-agnostic. Clear the repo-wide
+         RuntimeIdentifiers (win-x64;win-x86;linux-x64 from Directory.Build.Props): otherwise
+         `dotnet pack` fans out a per-RID build of the CodeGen ProjectReferences, and each RID
+         rebuilds the SAME CodeGenEngine.dll into the SAME (non-RID-keyed) %LOCALAPPDATA%\Synergex\dbp
+         cache dir, so the builds collide (DBL-E-ASMLOAD "Could not find a part of the path").
+         AnyCPU avoids NETSDK1032. The x64 'publish' task passes -r explicitly, so it is unaffected. -->
+    <RuntimeIdentifiers></RuntimeIdentifiers>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(BUILD_BUILDNUMBER) ' != ' '">
@@ -30,7 +38,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.11.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Octokit" Version="13.0.1" />
-    <PackageReference Include="Synergex.SynergyDE.synrnt" Version="12.4.1.1003" />
+    <PackageReference Include="Synergex.SynergyDE.synrnt" Version="12.4.1.1005" />
     <PackageReference Include="System.CodeDom" Version="9.0.0" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="Terminal.Gui" Version="1.17.1" />

@@ -10,9 +10,8 @@
 ;; Any changes you make will be lost of the file is re-generated.
 ;;*****************************************************************************
 
-import Microsoft.AspNetCore
 import Microsoft.AspNetCore.Hosting
-import Microsoft.AspNetCore.TestHost
+import Microsoft.Extensions.Hosting
 import System.IO
 import Services
 import Services.Test.UnitTests
@@ -39,9 +38,14 @@ proc
     ;tester.GetCustomer()      
 
     ;;Start self-hosting (Kestrel)
-    WebHost.CreateDefaultBuilder(new string[0])
-    &    .UseStartup<Startup>()
-    &    .UseUrls("http://localhost:8085", "https://localhost:8086")
+    lambda configureWebHost(webBuilder)
+    begin
+        webBuilder.UseStartup<Startup>()
+        webBuilder.UseUrls("http://localhost:8085", "https://localhost:8086")
+    end
+
+    Host.CreateDefaultBuilder(new string[0])
+    &    .ConfigureWebHostDefaults(configureWebHost)
     &    .Build()
     &    .Run()
 
