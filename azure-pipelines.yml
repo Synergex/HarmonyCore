@@ -1,12 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
 name: 10.0.$(Rev:r)
-
-# Temporary test-pipeline branch: manual runs only.
-trigger: none
-pr: none
 
 resources:
   repositories:
@@ -262,8 +254,7 @@ stages:
         versioningScheme: 'byBuildNumber'
     
     - task: NuGetCommand@2
-      # temporarily disabled on the test branch - do not publish packages from test runs
-      condition: false
+      condition: and(eq(variables['Platform'], 'x64'), eq(variables['Configuration'], 'Release'))
       inputs:
         command: 'push'
         packagesToPush: '$(Build.ArtifactStagingDirectory)/Harmony.*.nupkg'
