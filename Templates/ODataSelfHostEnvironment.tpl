@@ -179,7 +179,7 @@ namespace <NAMESPACE>
             dataFile = "<FILE_NAME>"
             xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
     <IF STRUCTURE_ISAM>
-            xdlFile = "@" + dataFile.ToLower().Replace(%atrim(fileExtension),".xdl")
+            xdlFile = "@" + dataFile.Replace(%atrim(fileExtension),".xdl", StringComparison.CurrentCultureIgnoreCase)
 
             data <structureNoplural>, @<StructureNoplural>
             open(chout=0,o:i,dataFile,FDL:xdlFile)
@@ -189,7 +189,7 @@ namespace <NAMESPACE>
 
     </IF>
     <IF STRUCTURE_RELATIVE>
-            data sourceFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
+            data sourceFile = dataFile.Replace(%atrim(fileExtension),".txt", StringComparison.CurrentCultureIgnoreCase)
             xcall copy(sourceFile,dataFile,1)
 
     </IF>
@@ -220,7 +220,7 @@ namespace <NAMESPACE>
             data dataFile = "<FILE_NAME>"
             data fileExtension, a10
             xcall parse(dataFile.ToLower(),1,,,,,fileExtension)
-            data textFile = dataFile.ToLower().Replace(%atrim(fileExtension),".txt")
+            data textFile = dataFile.Replace(%atrim(fileExtension),".txt", StringComparison.CurrentCultureIgnoreCase)
 			EnsurePlatformSpecificLineEndings(textFile.Replace(":", System.IO.Path.DirectorySeparatorChar).Replace("dat", Environment.GetEnvironmentVariable("DAT"), StringComparison.CurrentCultureIgnoreCase), <STRUCTURE_SIZE>)
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>

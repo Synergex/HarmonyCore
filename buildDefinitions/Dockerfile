@@ -10,7 +10,7 @@ ENV TZ=America/Los_Angeles \
 
 RUN set -eux; \
     dnf -y --refresh update; \
-    dnf -y install dnf-plugins-core ca-certificates tar gzip git jq unzip procps-ng dos2unix; \
+    dnf -y install dnf-plugins-core ca-certificates tar gzip git jq unzip procps-ng dos2unix strace; \
     dnf -y config-manager --set-enabled crb || true; \
     # .NET SDK 10 (Rocky 9 AppStream)
     dnf -y install dotnet-sdk-10.0; \

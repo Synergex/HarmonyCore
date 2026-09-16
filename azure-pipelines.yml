@@ -619,6 +619,15 @@ stages:
           fail() {
             echo "##vso[task.logissue type=error]$1"
             echo "--- server log ---"; tail -n 200 $SERVER-*.log 2> /dev/null
+            echo "--- deployment ---"; ls -la . SampleData 2> /dev/null | head -n 80
+            echo "--- environment ---"; env | grep -E '^(DAT|DBLDIR|SDE|ASPNETCORE_)' | sort
+            if ! pidof $SERVER > /dev/null && command -v strace > /dev/null; then
+              # The host prints only the exception message (e.g. "File not found"); show which path it was.
+              echo "--- files the service could not open (strace ENOENT) ---"
+              ( . ./startserver.LinuxDemo.config; export ASPNETCORE_ENVIRONMENT=LinuxDemo
+                timeout 60 strace -f -qq -e trace=openat,open,stat,newfstatat,access -o strace.log ./$SERVER > /dev/null 2>&1 || true )
+              grep -h ENOENT strace.log 2> /dev/null | grep -o -E '"[^"]+"' | grep -v -E '^"/(proc|sys|usr|etc|lib|lib64|dev|tmp)/|\.so' | sort -u | tail -n 40
+            fi
             pkill -f "$SERVER" 2> /dev/null; pkill -f 'host\.dbr' 2> /dev/null
             exit 1
           }
@@ -643,7 +652,7 @@ stages:
 
           echo "== 4. wait for Kestrel on https://localhost:8086 =="
           code=000
-          for i in $(seq 1 60); do
+          for i in {1..60}; do
             code=$(curl -sk -o /dev/null -w '%{http_code}' 'https://localhost:8086/$metadata' || true)
             [ "$code" = "200" ] && break
             pidof $SERVER > /dev/null || fail "$SERVER exited during startup"
