@@ -547,6 +547,19 @@ stages:
         solution: '$(DemoDir)\*.sln'
         configuration: 'Release'
 
+    # publish.bat LINUX builds the bridge with Platform=linux64 before shipping host.dbr. The
+    # solution build above maps TraditionalBridge to Release|x86, which yields a 32-bit Windows
+    # host program that the container's 64-bit Synergy runtime cannot run.
+    - task: MSBuild@1
+      displayName: "Build TraditionalBridge for linux64"
+      inputs:
+        solution: '$(DemoDir)\TraditionalBridge\TraditionalBridge.synproj'
+        msbuildArchitecture: 'x64'
+        platform: 'linux64'
+        configuration: 'Release'
+        msbuildArguments: '-target:Rebuild'
+        clean: false
+
     - task: CmdLine@2
       displayName: "Publish Services.Host for linux-x64"
       inputs:
@@ -562,11 +575,18 @@ stages:
         script: |
           $ErrorActionPreference = 'Stop'
           $deploy = "$(DeployDir)"
-          foreach ($f in 'TraditionalBridge\EXE\host.dbr', 'TraditionalBridge\launch.sh') {
-            if (-not (Test-Path $f)) { throw "missing $f" }
-            Copy-Item $f $deploy -Force
-          }
-          if (Test-Path 'TraditionalBridge\EXE\host.dbp') { Copy-Item 'TraditionalBridge\EXE\host.dbp' $deploy -Force }
+          # The linux64 build lands in TraditionalBridge\EXE via the EXE: logical, or under
+          # bin\linux64 when that logical is not set. Take the most recently written one.
+          $dbr = Get-ChildItem -Path 'TraditionalBridge' -Recurse -Filter 'host.dbr' -ErrorAction SilentlyContinue |
+                 Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $dbr) { throw 'host.dbr not found; the linux64 bridge build produced nothing' }
+          Write-Host "bridge host program: $($dbr.FullName) written $($dbr.LastWriteTime)"
+          Copy-Item $dbr.FullName $deploy -Force
+          $dbp = Join-Path $dbr.DirectoryName 'host.dbp'
+          if (-not (Test-Path $dbp)) { throw "missing $dbp" }
+          Copy-Item $dbp $deploy -Force
+          if (-not (Test-Path 'TraditionalBridge\launch.sh')) { throw 'missing TraditionalBridge\launch.sh' }
+          Copy-Item 'TraditionalBridge\launch.sh' $deploy -Force
           Copy-Item 'Linux\*.sh' $deploy -Force
           Copy-Item 'Linux\startserver.*.config' $deploy -Force
           New-Item -ItemType Directory -Force "$deploy\SampleData" | Out-Null
@@ -619,6 +639,9 @@ stages:
           fail() {
             echo "##vso[task.logissue type=error]$1"
             echo "--- server log ---"; tail -n 200 $SERVER-*.log 2> /dev/null
+            echo "--- bridge: what the Synergy runtime says about host.dbr ---"
+            command -v dbs dbr 2> /dev/null
+            ( timeout 30 ./launch.sh 6 < /dev/null 2>&1 | head -n 30 ) || true
             echo "--- deployment ---"; ls -la . SampleData 2> /dev/null | head -n 80
             echo "--- environment ---"; env | grep -E '^(DAT|DBLDIR|SDE|ASPNETCORE_)' | sort
             if ! pidof $SERVER > /dev/null && command -v strace > /dev/null; then
