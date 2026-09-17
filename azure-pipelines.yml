@@ -434,6 +434,12 @@ stages:
   # use the harmonycore template (no Linux scripts) on the Windows agent, and TestJobLinux only
   # runs prebuilt test assemblies. Same split as the rest of the pipeline: build on the Windows
   # agent (cross-RID publish, as publish.bat LINUX does), run in the Linux agent container.
+  #
+  # The work lives in buildDefinitions/retarget-harmony-packages.ps1, publish-demo-linux.ps1 and
+  # linux-smoke-test.sh so it can be reviewed, diffed and run by hand outside the pipeline.
+  #
+  # To validate a templates-repo branch before it is merged, point the HarmonyCoreProjectTemplates
+  # resource at it with `ref:` (see the resources block at the top).
   - job: LinuxSmokeTestPublish
     displayName: 'Linux smoke test: publish harmonydemo with this build'
     dependsOn: BuildJob
@@ -445,12 +451,18 @@ stages:
         - agent.name -equals $(WinAgentName)
     variables:
       DemoDir: $(Pipeline.Workspace)\hcdemo
-      # Common.props derives RPSMFIL/RPSTFIL/EXE/DAT from $(SolutionDir). msbuild sets it for the
-      # .sln build; the project-level dotnet publish below picks it up from this variable.
+      # Common.props derives RPSMFIL/RPSTFIL/EXE/DAT from $(SolutionDir).
       SolutionDir: $(Pipeline.Workspace)\hcdemo\
       LocalFeed: $(Pipeline.Workspace)\NugetPackagesReleasex64
       DeployDir: $(Build.ArtifactStagingDirectory)\hcdemo-linux
+      Scripts: $(Pipeline.Workspace)\HarmonyCore\buildDefinitions
     steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 1
+      submodules: false
+      path: HarmonyCore
+
     - checkout: HarmonyCoreProjectTemplates
       clean: true
       path: HarmonyCoreProjectTemplates
@@ -479,13 +491,9 @@ stages:
     - task: CmdLine@2
       displayName: "Create harmonydemo solution"
       inputs:
-        script: |
-          dotnet new harmonydemo -o hcdemo
+        script: dotnet new harmonydemo -o hcdemo
         workingDirectory: '$(Pipeline.Workspace)'
 
-    # The template pins the released Harmony.Core* versions. The smoke test must run THIS build's
-    # packages, so: restore from this run's package artifact (same nuget.config as the sample job)
-    # and retarget the pins to the build number (Pack HarmonyCore uses versioningScheme byBuildNumber).
     - task: DownloadPipelineArtifact@2
       displayName: "Download this build's NuGet packages"
       inputs:
@@ -494,41 +502,10 @@ stages:
         targetPath: '$(LocalFeed)'
 
     - task: PowerShell@2
-      displayName: "Point harmonydemo at this build's Harmony.Core packages"
+      displayName: "Point harmonydemo at this build's packages"
       inputs:
-        targetType: inline
-        workingDirectory: '$(DemoDir)'
-        script: |
-          $ErrorActionPreference = 'Stop'
-          $localFeed = "$(LocalFeed)"
-          $version = "$(Build.BuildNumber)"
-
-          # <clear /> drops machine/user-level sources inherited on the agent, so the generated
-          # solution restores deterministically from this run's packages plus nuget.org.
-          @"
-          <?xml version="1.0" encoding="utf-8"?>
-          <configuration>
-            <packageSources>
-              <clear />
-              <add key="local" value="$localFeed" />
-              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-            </packageSources>
-          </configuration>
-          "@ | Out-File -FilePath 'nuget.config' -Encoding utf8
-
-          $ids = 'Harmony.Core', 'Harmony.Core.EF', 'Harmony.Core.OData', 'Harmony.Core.AspNetCore'
-          foreach ($id in $ids) {
-            if (-not (Test-Path "$localFeed\$id.$version.nupkg")) { throw "$id.$version.nupkg is not in the NugetPackagesReleasex64 artifact" }
-          }
-          $pattern = '(?s)(<PackageReference\s+Include="(' + (($ids | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')"\s*>\s*<Version>)[^<]+(</Version>)'
-          $changed = 0
-          Get-ChildItem -Recurse -Filter *.synproj | ForEach-Object {
-            $text = Get-Content -Raw $_.FullName
-            $new = [regex]::Replace($text, $pattern, ('${1}' + $version + '${3}'))
-            if ($new -ne $text) { [IO.File]::WriteAllText($_.FullName, $new); $changed++; Write-Host "retargeted $($_.FullName)" }
-          }
-          if ($changed -eq 0) { throw 'no Harmony.Core* PackageReference was retargeted' }
-          Write-Host "Harmony.Core* references now pinned to $version in $changed project(s)"
+        filePath: '$(Scripts)\retarget-harmony-packages.ps1'
+        arguments: '-SolutionDir "$(DemoDir)" -LocalFeed "$(LocalFeed)" -Version "$(Build.BuildNumber)"'
 
     - task: MSBuild@1
       displayName: "Restore harmonydemo"
@@ -539,63 +516,19 @@ stages:
         msbuildArguments: '-t:restore'
         clean: false
 
-    # Release|Any CPU builds TraditionalBridge as Release|x86 into TraditionalBridge\EXE. The .dbr
-    # is portable; TestJobLinux already runs an x86-built .dbr the same way.
     - task: VSBuild@1
       displayName: "Build harmonydemo"
       inputs:
         solution: '$(DemoDir)\*.sln'
         configuration: 'Release'
 
-    # publish.bat LINUX builds the bridge with Platform=linux64 before shipping host.dbr. The
-    # solution build above maps TraditionalBridge to Release|x86, which yields a 32-bit Windows
-    # host program that the container's 64-bit Synergy runtime cannot run.
-    - task: MSBuild@1
-      displayName: "Build TraditionalBridge for linux64"
-      inputs:
-        solution: '$(DemoDir)\TraditionalBridge\TraditionalBridge.synproj'
-        msbuildArchitecture: 'x64'
-        platform: 'linux64'
-        configuration: 'Release'
-        msbuildArguments: '-target:Rebuild'
-        clean: false
-
-    - task: CmdLine@2
-      displayName: "Publish Services.Host for linux-x64"
-      inputs:
-        script: |
-          dotnet publish Services.Host\Services.Host.synproj -c Release -r linux-x64 --self-contained true -p:platform=AnyCPU -p:PublishTrimmed=false -o "$(DeployDir)" -nologo -v minimal
-        workingDirectory: '$(DemoDir)'
-
+    # Builds the bridge for linux64, publishes Services.Host self-contained for linux-x64, and
+    # assembles the files publish.bat LINUX ships, including linux-smoke-test.sh itself.
     - task: PowerShell@2
-      displayName: "Assemble Linux deployment (what publish.bat LINUX ships)"
+      displayName: "Publish and assemble the Linux deployment"
       inputs:
-        targetType: inline
-        workingDirectory: '$(DemoDir)'
-        script: |
-          $ErrorActionPreference = 'Stop'
-          $deploy = "$(DeployDir)"
-          # The linux64 build lands in TraditionalBridge\EXE via the EXE: logical, or under
-          # bin\linux64 when that logical is not set. Take the most recently written one.
-          $dbr = Get-ChildItem -Path 'TraditionalBridge' -Recurse -Filter 'host.dbr' -ErrorAction SilentlyContinue |
-                 Sort-Object LastWriteTime -Descending | Select-Object -First 1
-          if (-not $dbr) { throw 'host.dbr not found; the linux64 bridge build produced nothing' }
-          Write-Host "bridge host program: $($dbr.FullName) written $($dbr.LastWriteTime)"
-          Copy-Item $dbr.FullName $deploy -Force
-          $dbp = Join-Path $dbr.DirectoryName 'host.dbp'
-          if (-not (Test-Path $dbp)) { throw "missing $dbp" }
-          Copy-Item $dbp $deploy -Force
-          if (-not (Test-Path 'TraditionalBridge\launch.sh')) { throw 'missing TraditionalBridge\launch.sh' }
-          Copy-Item 'TraditionalBridge\launch.sh' $deploy -Force
-          Copy-Item 'Linux\*.sh' $deploy -Force
-          Copy-Item 'Linux\startserver.*.config' $deploy -Force
-          New-Item -ItemType Directory -Force "$deploy\SampleData" | Out-Null
-          Copy-Item 'SampleData\*.txt', 'SampleData\*.xdl' "$deploy\SampleData" -Force
-          Copy-Item 'SampleData\sysparams.txt' "$deploy\SampleData\sysparams.ddf" -Force
-          dotnet dev-certs https --export-path "$deploy\Services.Host.pfx" --password p@ssw0rd --quiet
-          if (-not (Test-Path "$deploy\Services.Host.pfx")) { throw 'dev-certs export failed' }
-          if (-not (Test-Path "$deploy\Services.Host")) { throw 'Services.Host (linux-x64 apphost) missing from publish output' }
-          Get-ChildItem $deploy | Select-Object Name, Length | Format-Table -AutoSize
+        filePath: '$(Scripts)\publish-demo-linux.ps1'
+        arguments: '-SolutionDir "$(DemoDir)" -DeployDir "$(DeployDir)" -SmokeTestScript "$(Scripts)\linux-smoke-test.sh"'
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish HarmonyDemoLinux'
@@ -621,86 +554,16 @@ stages:
       displayName: "Download HarmonyDemoLinux"
       artifact: HarmonyDemoLinux
 
+    # The test script travels inside the artifact, so the deployment tests itself and the same
+    # script can be run by hand against any deployment folder.
     - task: Bash@3
       displayName: 'startserver.sh -> endpoints -> bridge -> check.sh -> stopserver.sh'
       inputs:
-        targetType: inline
-        workingDirectory: $(Pipeline.Workspace)/HarmonyDemoLinux
-        script: |
-          set -u
-          . "$(Agent.HomeDirectory)/setsde"    # Synergy runtime environment (SDE, DBLDIR), as TestJobLinux does
-
-          # The artifact was assembled on Windows: give it the line endings and exec bits that
-          # publish.bat LINUX gives a real deployment.
-          if command -v dos2unix > /dev/null; then dos2unix -q *.sh *.config; else sed -i 's/\r$//' *.sh *.config; fi
-          chmod +x *.sh Services.Host
-
-          SERVER=Services.Host.LinuxDemo
-          fail() {
-            echo "##vso[task.logissue type=error]$1"
-            echo "--- server log ---"; tail -n 200 $SERVER-*.log 2> /dev/null
-            echo "--- bridge: what the Synergy runtime says about host.dbr ---"
-            command -v dbs dbr 2> /dev/null
-            ( timeout 30 ./launch.sh 6 < /dev/null 2>&1 | head -n 30 ) || true
-            echo "--- deployment ---"; ls -la . SampleData 2> /dev/null | head -n 80
-            echo "--- environment ---"; env | grep -E '^(DAT|DBLDIR|SDE|ASPNETCORE_)' | sort
-            if ! pidof $SERVER > /dev/null && command -v strace > /dev/null; then
-              # The host prints only the exception message (e.g. "File not found"); show which path it was.
-              echo "--- files the service could not open (strace ENOENT) ---"
-              ( . ./startserver.LinuxDemo.config; export ASPNETCORE_ENVIRONMENT=LinuxDemo
-                timeout 60 strace -f -qq -e trace=openat,open,stat,newfstatat,access -o strace.log ./$SERVER > /dev/null 2>&1 || true )
-              grep -h ENOENT strace.log 2> /dev/null | grep -o -E '"[^"]+"' | grep -v -E '^"/(proc|sys|usr|etc|lib|lib64|dev|tmp)/|\.so' | sort -u | tail -n 40
-            fi
-            pkill -f "$SERVER" 2> /dev/null; pkill -f 'host\.dbr' 2> /dev/null
-            exit 1
-          }
-
-          echo "== 0. the deployment must contain this build's Harmony.Core ($(Build.BuildNumber)) =="
-          grep -q "\"Harmony.Core/$(Build.BuildNumber)\"" Services.Host.deps.json || fail "Services.Host.deps.json does not reference Harmony.Core $(Build.BuildNumber)"
-
-          echo "== 1. every script must parse =="
-          for f in *.sh; do bash -n "$f" || fail "$f does not parse"; done
-
-          echo "== 2. no .environment: startserver.sh must refuse to start =="
-          rm -f .environment environment
-          out=$(./startserver.sh detach 2>&1); echo "$out"
-          echo "$out" | grep -q "hidden file '.environment'" || fail "startserver.sh did not ask for the hidden file .environment"
-          pidof $SERVER > /dev/null && fail "the service started without an environment file"
-
-          echo "== 3. .environment = LinuxDemo: startserver.sh detach =="
-          echo LinuxDemo > .environment
-          ./startserver.sh detach || true      # the scripts exit 2 even on success (return/exit idiom)
-          sleep 3
-          pidof $SERVER > /dev/null || fail "$SERVER is not running after startserver.sh"
-
-          echo "== 4. wait for Kestrel on https://localhost:8086 =="
-          code=000
-          for i in {1..60}; do
-            code=$(curl -sk -o /dev/null -w '%{http_code}' 'https://localhost:8086/$metadata' || true)
-            [ "$code" = "200" ] && break
-            pidof $SERVER > /dev/null || fail "$SERVER exited during startup"
-            sleep 2
-          done
-          [ "$code" = "200" ] || fail "GET /\$metadata returned $code after 120s"
-
-          echo "== 5. OData entity set =="
-          code=$(curl -sk -o /dev/null -w '%{http_code}' https://localhost:8086/Customers || true)
-          [ "$code" = "200" ] || fail "GET /Customers returned $code"
-
-          echo "== 6. Traditional Bridge round trip (Services.Host -> launch.sh -> dbs host.dbr) =="
-          code=$(curl -sk -o bridge.json -w '%{http_code}' -H 'Content-Type: application/json' https://localhost:8086/BridgeAPI/GetEnvironment || true)
-          cat bridge.json 2> /dev/null; echo
-          [ "$code" = "200" ] || fail "GET /BridgeAPI/GetEnvironment returned $code"
-
-          echo "== 7. check.sh =="
-          ./check.sh
-          ./check.sh | grep -q "($SERVER): [0-9]" || fail "check.sh does not report the running service"
-
-          echo "== 8. stopserver.sh =="
-          ./stopserver.sh || true
-          sleep 2
-          pidof $SERVER > /dev/null && fail "$SERVER is still running after stopserver.sh"
-          echo "Linux smoke test OK: Harmony.Core $(Build.BuildNumber) deployed, started, queried, bridged and stopped"
+        filePath: '$(Pipeline.Workspace)/HarmonyDemoLinux/linux-smoke-test.sh'
+        workingDirectory: '$(Pipeline.Workspace)/HarmonyDemoLinux'
+      env:
+        EXPECT_HARMONY_VERSION: $(Build.BuildNumber)
+        SETSDE: $(Agent.HomeDirectory)/setsde
 
     - task: Bash@3
       displayName: 'Cleanup leftover processes'
