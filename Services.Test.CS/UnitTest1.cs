@@ -222,12 +222,34 @@ namespace Services.Test.CS
         [TestMethod]
         public void IncludeDeep()
         {
+            // Stress for the query arena allocator (HarmonyCore/Utility/MemoryHandle and
+            // FileIO/Queryable/QueryBuffer): run deep Include queries concurrently while forcing
+            // collections and draining finalizers, which is what surfaces arena memory being
+            // released while a query still refers to it.
+            //
+            // The work and the collection pressure are unchanged. What is added is a bound, so a
+            // deadlock fails this test instead of hanging the agent until the job times out, a
+            // yield so the collection loop does not starve the workers it is measuring, and an
+            // observation of the combined task, because the previous form discarded assertion
+            // failures raised inside the workers. HARMONY_INCLUDEDEEP_ITERATIONS overrides the
+            // iteration count.
+            const int Workers = 20;
+            const int DefaultIterations = 10000;
+            var budget = TimeSpan.FromMinutes(10);
+
+            if (!int.TryParse(Environment.GetEnvironmentVariable("HARMONY_INCLUDEDEEP_ITERATIONS"),
+                              out var iterations) || iterations <= 0)
+            {
+                iterations = DefaultIterations;
+            }
+
+            using var cts = new CancellationTokenSource(budget);
             var tasks = new List<Task>();
-            for (int taskN = 0; taskN < 20; taskN++)
+            for (int taskN = 0; taskN < Workers; taskN++)
             {
                 var task = Task.Run(() =>
                 {
-                    for (int i = 0; i < 10000; i++)
+                    for (int i = 0; i < iterations && !cts.IsCancellationRequested; i++)
                     {
                         using (var sp = BaseServiceProvider.Services)
                         {
@@ -246,12 +268,23 @@ namespace Services.Test.CS
 
 
             var allResult = Task.WhenAll(tasks.ToArray());
-            while(allResult.IsCompleted == false)
+            while (allResult.IsCompleted == false)
             {
                 GC.Collect(1, GCCollectionMode.Forced, false, false);
                 GC.WaitForPendingFinalizers();
+
+                // Yield to the workers. Every forced collection suspends them, so a loop with
+                // no pause at all starves the threads this test is measuring. A millisecond still
+                // leaves hundreds of collections per second, so the pressure is preserved.
+                Thread.Sleep(1);
             }
 
+            // Surface assertions and exceptions raised inside the workers, which the previous
+            // form discarded, then report a timeout as a failure rather than hanging the agent.
+            allResult.GetAwaiter().GetResult();
+            Assert.IsFalse(cts.IsCancellationRequested,
+                $"IncludeDeep did not finish {Workers} x {iterations} queries within " +
+                $"{budget.TotalMinutes:0} minutes; something is deadlocked or pathologically slow.");
         }
 
         [TestMethod]
