@@ -176,7 +176,7 @@ namespace <NAMESPACE>
 
             dataFile = "<FILE_NAME>"
       <IF STRUCTURE_ISAM>
-            xdlFile = "@" + dataFile.ToLower().Replace(".ism",".xdl")
+            xdlFile = "@" + dataFile.Replace(".ism",".xdl", StringComparison.CurrentCultureIgnoreCase)
 
             data <structureNoplural>, @<StructureNoplural>
             open(chout=0,o:i,dataFile,FDL:xdlFile)
@@ -186,7 +186,7 @@ namespace <NAMESPACE>
 
       </IF>
       <IF STRUCTURE_RELATIVE>
-            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            data sourceFile = dataFile.Replace(".ddf",".txt", StringComparison.CurrentCultureIgnoreCase)
             xcall copy(sourceFile,dataFile,1)
 
       </IF>
@@ -215,7 +215,7 @@ namespace <NAMESPACE>
         public static method load<StructurePlural>, @List<<StructureNoplural>>
         proc
             data dataFile = "<FILE_NAME>"
-            data textFile = dataFile.ToLower().Replace(".ism",".txt")
+            data textFile = dataFile.Replace(".ism",".txt", StringComparison.CurrentCultureIgnoreCase)
             data <structureNoplural>Ch, int, 0
             data <structureNoplural>Rec, str<StructureNoplural>
             data <structurePlural> = new List<<StructureNoplural>>()

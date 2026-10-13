@@ -46,21 +46,27 @@ steps:
   inputs:
     command: 'test'
     testRunTitle: "HarmonyCore.Test $(Platform)"
-    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll'
+    # --blame-hang turns a hung test into a fast failure with a dump naming the blocked
+    # threads, instead of the run sitting there until the 60 minute job timeout kills it.
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/HarmonyCore.Test/HarmonyCore.Test.dll --blame-hang --blame-hang-timeout 15m --blame-crash'
 
 - task: DotNetCoreCLI@2
   displayName: 'Run Services.Test.CS'
   inputs:
     command: 'test'
     testRunTitle: "Services.Test.CS $(Platform)"
-    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll'
+    # --blame-hang turns a hung test into a fast failure with a dump naming the blocked
+    # threads, instead of the run sitting there until the 60 minute job timeout kills it.
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test.CS/Services.Test.CS.dll --blame-hang --blame-hang-timeout 15m --blame-crash'
 
 - task: DotNetCoreCLI@2
   displayName: 'Run Services.Test'
   inputs:
     command: 'test'
     testRunTitle: "Services.Test $(Platform)"
-    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll'
+    # --blame-hang turns a hung test into a fast failure with a dump naming the blocked
+    # threads, instead of the run sitting there until the 60 minute job timeout kills it.
+    arguments: '$(Pipeline.Workspace)/TestArtifacts$(Configuration)$(Platform)/Services.Test/Services.Test.dll --blame-hang --blame-hang-timeout 15m --blame-crash'
 
 # for Windows only: copy TraditionalBridge.UnitTest to s folder and run TraditionalBridge.UnitTest
 - ${{ if ne(parameters.Platform, 'linux64') }}:

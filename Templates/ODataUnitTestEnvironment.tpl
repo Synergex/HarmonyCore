@@ -284,7 +284,7 @@ namespace <NAMESPACE>
 
   </IF STRUCTURE_ISAM>
   <IF STRUCTURE_RELATIVE>
-            data sourceFile = dataFile.ToLower().Replace(".ddf",".txt")
+            data sourceFile = dataFile.Replace(".ddf",".txt", StringComparison.CurrentCultureIgnoreCase)
             xcall copy(sourceFile,dataFile,1)
 
   </IF STRUCTURE_RELATIVE>

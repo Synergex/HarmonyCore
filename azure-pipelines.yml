@@ -425,6 +425,154 @@ stages:
         PublishProjects: ${{ parameters.PublishProjects }}
         Platform: linux64
 
+  # ---------------------------------------------------------------------------------------------
+  # Linux smoke test: a Harmony Core application built with THIS run's packages, deployed on the
+  # Linux agent container with the harmonydemo template's own scripts (Linux/startserver.sh,
+  # stopserver.sh, check.sh, TraditionalBridge/launch.sh) and exercised over HTTPS, including a
+  # Traditional Bridge round trip. Nothing else in this pipeline covers that path: the sample jobs
+  # use the harmonycore template (no Linux scripts) on the Windows agent, and TestJobLinux only
+  # runs prebuilt test assemblies. Same split as the rest of the pipeline: build on the Windows
+  # agent (cross-RID publish, as publish.bat LINUX does), run in the Linux agent container.
+  #
+  # The work lives in buildDefinitions/retarget-harmony-packages.ps1, publish-demo-linux.ps1 and
+  # linux-smoke-test.sh so it can be reviewed, diffed and run by hand outside the pipeline.
+  #
+  # To validate a templates-repo branch before it is merged, point the HarmonyCoreProjectTemplates
+  # resource at it with `ref:` (see the resources block at the top).
+  - job: LinuxSmokeTestPublish
+    displayName: 'Linux smoke test: publish harmonydemo with this build'
+    dependsOn: BuildJob
+    workspace:
+      clean: all
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(WinAgentName)
+    variables:
+      DemoDir: $(Pipeline.Workspace)\hcdemo
+      # Common.props derives RPSMFIL/RPSTFIL/EXE/DAT from $(SolutionDir).
+      SolutionDir: $(Pipeline.Workspace)\hcdemo\
+      LocalFeed: $(Pipeline.Workspace)\NugetPackagesReleasex64
+      DeployDir: $(Build.ArtifactStagingDirectory)\hcdemo-linux
+      Scripts: $(Pipeline.Workspace)\HarmonyCore\buildDefinitions
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 1
+      submodules: false
+      path: HarmonyCore
+
+    - checkout: HarmonyCoreProjectTemplates
+      clean: true
+      path: HarmonyCoreProjectTemplates
+
+    - task: UseDotNet@2
+      displayName: 'Get .NET SDK 10.0.x'
+      inputs:
+        packageType: 'sdk'
+        version: '10.0.x'
+
+    - task: NuGetToolInstaller@1
+      displayName: 'Get NuGet 7.x'
+      inputs:
+        versionSpec: 7.x
+        checkLatest: true
+
+    - task: CmdLine@2
+      displayName: "Install Harmony Core templates"
+      inputs:
+        script: |
+          dotnet new uninstall Harmony.Core.ProjectTemplates
+          call GenerateLocalPackages.bat
+          call InstallLocalPackages.bat
+        workingDirectory: '$(Pipeline.Workspace)\HarmonyCoreProjectTemplates'
+
+    - task: CmdLine@2
+      displayName: "Create harmonydemo solution"
+      inputs:
+        script: dotnet new harmonydemo -o hcdemo
+        workingDirectory: '$(Pipeline.Workspace)'
+
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download this build's NuGet packages"
+      inputs:
+        buildType: 'current'
+        artifact: 'NugetPackagesReleasex64'
+        targetPath: '$(LocalFeed)'
+
+    - task: PowerShell@2
+      displayName: "Point harmonydemo at this build's packages"
+      inputs:
+        filePath: '$(Scripts)\retarget-harmony-packages.ps1'
+        arguments: '-SolutionDir "$(DemoDir)" -LocalFeed "$(LocalFeed)" -Version "$(Build.BuildNumber)"'
+
+    - task: MSBuild@1
+      displayName: "Restore harmonydemo"
+      inputs:
+        solution: '$(DemoDir)\*.sln'
+        msbuildArchitecture: 'x64'
+        configuration: 'Release'
+        msbuildArguments: '-t:restore'
+        clean: false
+
+    - task: VSBuild@1
+      displayName: "Build harmonydemo"
+      inputs:
+        solution: '$(DemoDir)\*.sln'
+        configuration: 'Release'
+
+    # Builds the bridge for linux64, publishes Services.Host self-contained for linux-x64, and
+    # assembles the files publish.bat LINUX ships, including linux-smoke-test.sh itself.
+    - task: PowerShell@2
+      displayName: "Publish and assemble the Linux deployment"
+      inputs:
+        filePath: '$(Scripts)\publish-demo-linux.ps1'
+        arguments: '-SolutionDir "$(DemoDir)" -DeployDir "$(DeployDir)" -SmokeTestScript "$(Scripts)\linux-smoke-test.sh"'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish HarmonyDemoLinux'
+      inputs:
+        targetPath: '$(DeployDir)'
+        artifactName: 'HarmonyDemoLinux'
+
+  - job: LinuxSmokeTest
+    displayName: 'Linux smoke test: deploy and exercise harmonydemo'
+    dependsOn:
+    - LinuxSmokeTestPublish
+    - CreateContainer
+    workspace:
+      clean: all
+    pool:
+      name: $(BuildPool)
+      demands:
+        - agent.name -equals $(LinuxAgentName)
+    steps:
+    - checkout: none
+
+    - download: current
+      displayName: "Download HarmonyDemoLinux"
+      artifact: HarmonyDemoLinux
+
+    # The test script travels inside the artifact, so the deployment tests itself and the same
+    # script can be run by hand against any deployment folder.
+    - task: Bash@3
+      displayName: 'startserver.sh -> endpoints -> bridge -> check.sh -> stopserver.sh'
+      inputs:
+        filePath: '$(Pipeline.Workspace)/HarmonyDemoLinux/linux-smoke-test.sh'
+        workingDirectory: '$(Pipeline.Workspace)/HarmonyDemoLinux'
+      env:
+        EXPECT_HARMONY_VERSION: $(Build.BuildNumber)
+        SETSDE: $(Agent.HomeDirectory)/setsde
+
+    - task: Bash@3
+      displayName: 'Cleanup leftover processes'
+      condition: always()
+      inputs:
+        targetType: inline
+        script: |
+          pkill -f 'Services.Host.LinuxDemo' 2> /dev/null || true
+          pkill -f 'host\.dbr' 2> /dev/null || true
+
   - job: BuildHarmonyCoreProjects
     dependsOn: BuildJob
     workspace:

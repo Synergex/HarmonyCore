@@ -252,6 +252,8 @@ namespace Services.Test.CS
                 GC.WaitForPendingFinalizers();
             }
 
+            // Surface failures raised inside the workers, which were otherwise discarded.
+            allResult.GetAwaiter().GetResult();
         }
 
         [TestMethod]
